@@ -35,13 +35,13 @@ class OneSchemaImporter extends EventEmitter {
     this.#baseUrl = url
   }
 
-  constructor(clientId: string, iframeConfig: OneSchemaIframeConfig = {}) {
+  constructor(clientId: string, iframeConfig?: OneSchemaIframeConfig) {
     super()
 
     this.clientId = clientId
     this.iframeConfig = {
       ...DEFAULT_IFRAME_CONFIG,
-      ...iframeConfig,
+      ...(iframeConfig || {}),
     }
 
     this.iframe = document.createElement("iframe")

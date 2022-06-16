@@ -1,20 +1,24 @@
 {
-  "name": "@oneschema/sdk",
-  "version": "0.1.0",
-  "description": "SDK for using OneSchema",
+  "name": "@oneschema/importer",
+  "private": false,
+  "version": "0.1.1",
+  "description": "Importer for using OneSchema",
   "author": "OneSchema",
   "license": "MIT",
   "main": "dist/main.js",
   "module": "dist/module.js",
   "types": "dist/index.d.ts",
+  "homepage": "https://www.oneschema.co/",
   "repository": {
     "type": "git",
     "url": "git://github.com/oneschema/sdk",
+    "directory": "packages/importer",
     "web": "https://docs.oneschema.co/"
   },
   "scripts": {
     "build": "rollup -c",
     "watch": "rollup -c -w",
+    "deploy": "yarn build && npm publish",
     "clean": "npx rimraf dist"
   },
   "dependencies": {

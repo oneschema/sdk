@@ -14,23 +14,24 @@ A tool for embedding OneSchema into your application. This library will give you
 You can install this package with npm:
 
 ```bash
-npm i --save @oneschema/sdk
+npm i --save @oneschema/importer
 ```
 
 or with a script tag:
 
 ```html
-<script src="oneschemasdk-latest.min.js"></script>
+<script src="https://d3ah8o189k1llu.cloudfront.net/oneschema-importer-latest.min.js"></script>
 ```
 
 ### Sample usage
 
 ```javascript
-import oneSchemaImporter from "@oneschema/sdk"
+import oneSchemaImporter from "@oneschema/importer"
 
 const importer = oneSchemaImporter(clientId, {
   className: "my-iframe-class",
   parentId: "my-iframe-container",
+  autoClose: true,
 })
 
 importer.launch({
@@ -46,12 +47,10 @@ importer.launch({
 importer.on("success", (data) => {
   console.log(data)
   alert("success!")
-  importer.close()
 })
 
 importer.on("cancel", () => {
   alert("cancel")
-  importer.close()
 })
 
 importer.on("error", (message) => {
