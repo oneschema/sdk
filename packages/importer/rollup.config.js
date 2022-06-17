@@ -1,6 +1,7 @@
 import nodeResolve from "@rollup/plugin-node-resolve"
 import commonjs from "@rollup/plugin-commonjs"
 import typescript from "rollup-plugin-typescript2"
+import dts from "rollup-plugin-dts"
 import replace from "@rollup/plugin-replace"
 import { terser } from "rollup-plugin-terser"
 
@@ -19,7 +20,11 @@ export default [
         "process.env.NODE_ENV": JSON.stringify("production"),
         preventAssignment: true,
       }),
-      typescript(),
+      typescript({
+        tsconfigOverride: {
+          exclude: ["**/test"],
+        },
+      }),
       terser(),
     ],
     output: [
@@ -44,7 +49,15 @@ export default [
   // ESM and CJS (for importing as module)
   {
     input,
-    plugins: [nodeResolve(), commonjs(), typescript()],
+    plugins: [
+      nodeResolve(),
+      commonjs(),
+      typescript({
+        tsconfigOverride: {
+          exclude: ["**/test"],
+        },
+      }),
+    ],
     output: [
       {
         file: "dist/module.js",
@@ -59,5 +72,11 @@ export default [
         sourcemap: true,
       },
     ],
+  },
+  // Types
+  {
+    input,
+    output: [{ file: "dist/index.d.ts", format: "es" }],
+    plugins: [dts()],
   },
 ]
