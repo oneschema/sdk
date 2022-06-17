@@ -31,11 +31,26 @@ class OneSchemaImporter extends EventEmitter {
   #baseUrl = "https://embed.oneschema.co"
   #eventListener: (event: MessageEvent) => void
 
-  set __baseUrl(url: string) {
-    this.#baseUrl = url
+  #hide() {
+    this.iframe.style.display = "none"
   }
 
-  constructor(clientId: string, iframeConfig?: OneSchemaIframeConfig) {
+  #show() {
+    this.iframe.style.display = "initial"
+  }
+
+  #getParent(): HTMLElement {
+    if (this.iframeConfig.parentId) {
+      const parent = document.getElementById(this.iframeConfig.parentId)
+      if (parent) {
+        return parent
+      }
+    }
+
+    return document.body
+  }
+
+  constructor(clientId: string, iframeConfig?: OneSchemaIframeConfig, baseUrl?: string) {
     super()
 
     this.clientId = clientId
@@ -44,8 +59,15 @@ class OneSchemaImporter extends EventEmitter {
       ...(iframeConfig || {}),
     }
 
+    if (baseUrl) {
+      this.#baseUrl = baseUrl
+    }
+
     this.iframe = document.createElement("iframe")
+    const queryParams = `?embed_client_id=${this.clientId}&dev_mode=${this.iframeConfig.devMode}`
+    this.iframe.src = `${this.#baseUrl}/embed-launcher${queryParams}`
     this.iframe.classList.add(<string>this.iframeConfig.className)
+    this.#hide()
 
     this.#eventListener = (event: MessageEvent) => {
       if (event.source !== this.iframe.contentWindow) {
@@ -71,30 +93,23 @@ class OneSchemaImporter extends EventEmitter {
         }
         case "error": {
           this.emit("error", event.data.message)
+          if (this.iframeConfig.autoClose) {
+            this.close()
+          }
           break
         }
       }
     }
-  }
 
-  #getParent(): HTMLElement {
-    if (this.iframeConfig.parentId) {
-      const parent = document.getElementById(this.iframeConfig.parentId)
-      if (parent) {
-        return parent
-      }
-    }
-
-    return document.body
+    const parent = this.#getParent()
+    parent.append(this.iframe)
   }
 
   launch(config: OneSchemaImporterConfig) {
     window.addEventListener("message", this.#eventListener)
+    this.#show()
 
-    const queryParams = `?embed_client_id=${this.clientId}&dev_mode=${this.iframeConfig.devMode}`
-    this.iframe.src = `${this.#baseUrl}/embed-launcher${queryParams}`
-
-    this.iframe.onload = () => {
+    const postInit = () => {
       this.iframe.contentWindow?.postMessage(
         {
           messageType: "init",
@@ -104,22 +119,29 @@ class OneSchemaImporter extends EventEmitter {
       )
     }
 
-    const parent = this.#getParent()
-    parent.append(this.iframe)
+    if (this.iframe.contentWindow) {
+      postInit()
+    } else {
+      this.iframe.onload = postInit
+    }
   }
 
-  close() {
+  close(clean?: boolean) {
     this.iframe.contentWindow?.postMessage({ messageType: "close" }, this.#baseUrl)
+    this.#hide()
 
-    this.iframe.remove()
-    this.removeAllListeners()
-    window.removeEventListener("message", this.#eventListener)
+    if (clean) {
+      this.iframe.remove()
+      this.removeAllListeners()
+      window.removeEventListener("message", this.#eventListener)
+    }
   }
 }
 
 export default function oneSchemaImporter(
   clientId: string,
-  iframeConfig: OneSchemaIframeConfig,
+  iframeConfig?: OneSchemaIframeConfig,
+  baseUrl?: string,
 ): OneSchemaImporter {
-  return new OneSchemaImporter(clientId, iframeConfig)
+  return new OneSchemaImporter(clientId, iframeConfig, baseUrl)
 }
