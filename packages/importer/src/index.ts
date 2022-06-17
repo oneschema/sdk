@@ -39,6 +39,17 @@ class OneSchemaImporter extends EventEmitter {
     this.iframe.style.display = "initial"
   }
 
+  #getParent(): HTMLElement {
+    if (this.iframeConfig.parentId) {
+      const parent = document.getElementById(this.iframeConfig.parentId)
+      if (parent) {
+        return parent
+      }
+    }
+
+    return document.body
+  }
+
   constructor(clientId: string, iframeConfig?: OneSchemaIframeConfig, baseUrl?: string) {
     super()
 
@@ -92,17 +103,6 @@ class OneSchemaImporter extends EventEmitter {
 
     const parent = this.#getParent()
     parent.append(this.iframe)
-  }
-
-  #getParent(): HTMLElement {
-    if (this.iframeConfig.parentId) {
-      const parent = document.getElementById(this.iframeConfig.parentId)
-      if (parent) {
-        return parent
-      }
-    }
-
-    return document.body
   }
 
   launch(config: OneSchemaImporterConfig) {
