@@ -5,7 +5,7 @@
   </a>
 </p>
 
-This repository contains tools to help you embed OneScheme into your application:
+This repository contains tools to help you embed OneSchema into your application:
 
 - [📑 Importer](https://github.com/oneschema/sdk/tree/main/packages/importer), a plain Javascript library for embedding OneSchema 
 - [⚛ React](https://github.com/oneschema/sdk/tree/main/packages/react), a React component library for embedding OneSchema
