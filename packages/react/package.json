@@ -1,0 +1,57 @@
+{
+  "name": "@oneschema/react",
+  "private": false,
+  "version": "0.1.3",
+  "description": "React component for using OneSchema",
+  "author": "OneSchema",
+  "license": "MIT",
+  "main": "dist/main.js",
+  "module": "dist/module.js",
+  "types": "dist/index.d.ts",
+  "targets": {
+    "main": false,
+    "module": false,
+    "types": false,
+    "test": {
+      "distDir": "./test/dist"
+    }
+  },
+  "homepage": "https://www.oneschema.co/",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/oneschema/sdk",
+    "directory": "packages/react",
+    "web": "https://docs.oneschema.co/"
+  },
+  "scripts": {
+    "dev": "rollup -c -w",
+    "build": "yarn run clean && rollup -c",
+    "build-test": "parcel build test/index.html",
+    "test": "yarn run build-test && node test/server.js",
+    "clean": "npx rimraf dist"
+  },
+  "dependencies": {
+    "@oneschema/importer": "^0.1.3"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^22.0.0",
+    "@rollup/plugin-node-resolve": "^13.3.0",
+    "@rollup/plugin-replace": "^4.0.0",
+    "@types/react": "^18.0.14",
+    "@types/react-dom": "^18.0.5",
+    "express": "^4.18.1",
+    "parcel": "^2.6.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "rollup": "^2.75.6",
+    "rollup-plugin-dts": "^4.2.2",
+    "rollup-plugin-peer-deps-external": "^2.2.4",
+    "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-typescript2": "^0.32.1",
+    "tslib": "^2.4.0",
+    "typescript": "^4.7.3"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0"
+  }
+}
