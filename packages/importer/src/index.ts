@@ -30,7 +30,7 @@ const DEFAULT_ONESCHEMA_OPTIONS: OneSchemaImporterConfigOptions = {
   blockImportIfErrors: true,
 }
 
-export class OneSchemaImporterClass extends EventEmitter {
+class OneSchemaImporter extends EventEmitter {
   clientId: string
   iframe: HTMLIFrameElement
   iframeConfig: OneSchemaIframeConfig
@@ -149,10 +149,12 @@ export class OneSchemaImporterClass extends EventEmitter {
   }
 }
 
+export type OneSchemaImporterClass = InstanceType<typeof OneSchemaImporter>
+
 export default function oneSchemaImporter(
   clientId: string,
   iframeConfig?: OneSchemaIframeConfig,
   baseUrl?: string,
-): OneSchemaImporterClass {
-  return new OneSchemaImporterClass(clientId, iframeConfig, baseUrl)
+): OneSchemaImporter {
+  return new OneSchemaImporter(clientId, iframeConfig, baseUrl)
 }
