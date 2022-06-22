@@ -26,9 +26,9 @@ or with a script tag:
 ### Sample usage
 
 ```javascript
-import oneSchemaImporter from "@oneschema/importer"
+import oneschemaImporter from "@oneschema/importer"
 
-const importer = oneSchemaImporter(clientId, {
+const importer = oneschemaImporter(clientId, {
   className: "my-iframe-class",
   parentId: "my-iframe-container",
   autoClose: true,
@@ -38,8 +38,6 @@ importer.launch({
   templateKey: "test_template",
   userJwt: token,
   options: {
-    enableManageColumns: true,
-    autofixAfterMapping: true,
     blockImportIfErrors: true,
   },
 })
@@ -61,4 +59,4 @@ importer.on("error", (message) => {
 
 ## Documentation
 
-Please see [📚 OneSchema's documentation](https://docs.oneschema.co/) for API reference and other helpful guides.
+Please see [📚 OneSchema's documentation](https://docs.oneschema.co/) for [📒 API reference](https://docs.oneschema.co/docs/api-reference) and other helpful guides.

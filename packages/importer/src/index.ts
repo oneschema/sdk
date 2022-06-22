@@ -1,14 +1,16 @@
 import { EventEmitter } from "eventemitter3"
 
+export interface OneSchemaImporterConfigOptions {
+  enableManageColumns?: boolean
+  autofixAfterMapping?: boolean
+  blockImportIfErrors?: boolean
+}
+
 export interface OneSchemaImporterConfig {
   userJwt: string
   templateKey: string
   webhookKey?: string
-  options?: {
-    enableManageColumns?: boolean
-    autofixAfterMapping?: boolean
-    blockImportIfErrors?: boolean
-  }
+  options?: OneSchemaImporterConfigOptions
 }
 
 export interface OneSchemaIframeConfig {
@@ -24,7 +26,11 @@ const DEFAULT_IFRAME_CONFIG: OneSchemaIframeConfig = {
   autoClose: true,
 }
 
-class OneSchemaImporter extends EventEmitter {
+const DEFAULT_ONESCHEMA_OPTIONS: OneSchemaImporterConfigOptions = {
+  blockImportIfErrors: true,
+}
+
+export class OneSchemaImporterClass extends EventEmitter {
   clientId: string
   iframe: HTMLIFrameElement
   iframeConfig: OneSchemaIframeConfig
@@ -66,7 +72,7 @@ class OneSchemaImporter extends EventEmitter {
     this.iframe = document.createElement("iframe")
     const queryParams = `?embed_client_id=${this.clientId}&dev_mode=${this.iframeConfig.devMode}`
     this.iframe.src = `${this.#baseUrl}/embed-launcher${queryParams}`
-    this.iframe.classList.add(<string>this.iframeConfig.className)
+    this.iframe.className = this.iframeConfig.className || ""
     this.#hide()
 
     this.#eventListener = (event: MessageEvent) => {
@@ -109,11 +115,16 @@ class OneSchemaImporter extends EventEmitter {
     window.addEventListener("message", this.#eventListener)
     this.#show()
 
+    const { options, ...rest } = config
     const postInit = () => {
       this.iframe.contentWindow?.postMessage(
         {
           messageType: "init",
-          ...config,
+          ...rest,
+          options: {
+            ...DEFAULT_ONESCHEMA_OPTIONS,
+            ...options,
+          },
         },
         this.#baseUrl,
       )
@@ -142,6 +153,6 @@ export default function oneSchemaImporter(
   clientId: string,
   iframeConfig?: OneSchemaIframeConfig,
   baseUrl?: string,
-): OneSchemaImporter {
-  return new OneSchemaImporter(clientId, iframeConfig, baseUrl)
+): OneSchemaImporterClass {
+  return new OneSchemaImporterClass(clientId, iframeConfig, baseUrl)
 }

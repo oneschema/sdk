@@ -31,7 +31,7 @@ export default [
       {
         file: `dist/oneschema-importer-${pkg.version}.min.js`,
         format: "umd",
-        name: "oneSchemaImporter",
+        name: "oneschemaImporter",
         exports: "default",
         esModule: false,
         sourcemap: true,
@@ -39,7 +39,7 @@ export default [
       {
         file: `dist/oneschema-importer-latest.min.js`,
         format: "umd",
-        name: "oneSchemaImporter",
+        name: "oneschemaImporter",
         exports: "default",
         esModule: false,
         sourcemap: true,
