@@ -59,4 +59,4 @@ importer.on("error", (message) => {
 
 ## Documentation
 
-Please see [📚 OneSchema's documentation](https://docs.oneschema.co/) for [📒 API reference](https://docs.oneschema.co/docs/api-reference) and other helpful guides.
+Please see [📚 OneSchema's documentation](https://docs.oneschema.co/) for [📒 API reference](https://oneschema.readme.io/docs/api-reference) and other helpful guides.
