@@ -1,5 +1,9 @@
-import React, { useEffect, useRef } from "react"
-import oneschemaImporter from "@oneschema/importer"
+import React, { useEffect, useState } from "react"
+import oneschemaImporter, {
+  OneSchemaIframeConfig,
+  OneSchemaImporterConfig,
+  OneSchemaImporterConfigOptions,
+} from "@oneschema/importer"
 
 export interface OneSchemaImporterProps {
   isOpen: boolean
@@ -24,62 +28,74 @@ export interface OneSchemaImporterProps {
 }
 
 export default function OneSchemaImporter(props: OneSchemaImporterProps) {
-  const importer = useRef(
-    oneschemaImporter(
-      props.clientId,
-      {
-        autoClose: false,
-        parentId: props.parentId,
-        className: props.className,
-        devMode: props.devMode,
-      },
-      props.baseUrl,
-    ),
-  )
+  const [importer] = useState(() => {
+    const { parentId, className, devMode } = props
+    const importerOptions: OneSchemaIframeConfig = Object.assign(
+      { autoClose: false },
+      parentId !== undefined && { parentId },
+      className !== undefined && { className },
+      devMode !== undefined && { devMode },
+    )
+
+    return oneschemaImporter(props.clientId, importerOptions, props.baseUrl)
+  })
 
   useEffect(() => {
     return () => {
-      importer.current.close(true)
+      importer.close(true)
     }
   }, [])
 
   useEffect(() => {
-    importer.current.on("success", (data) => {
+    importer.on("success", (data) => {
       props.onSuccess && props.onSuccess(data)
       props.onRequestClose && props.onRequestClose()
     })
 
-    importer.current.on("cancel", () => {
+    importer.on("cancel", () => {
       props.onCancel && props.onCancel()
       props.onRequestClose && props.onRequestClose()
     })
 
-    importer.current.on("error", (message) => {
+    importer.on("error", (message) => {
       props.onError && props.onError(message)
       props.onRequestClose && props.onRequestClose()
     })
 
     return () => {
-      importer.current.removeAllListeners()
+      importer.removeAllListeners()
     }
   }, [props.onSuccess, props.onCancel, props.onError, props.onRequestClose])
 
   useEffect(() => {
-    importer.current.iframe.className = props.className || ""
+    if (props.className) {
+      importer.iframe.className = props.className
+    }
   }, [props.className])
 
   useEffect(() => {
-    if (props.isOpen) {
-      importer.current.launch({
-        userJwt: props.userJwt,
-        templateKey: props.templateKey,
-        webhookKey: props.webhookKey,
-        options: {
-          blockImportIfErrors: props.blockImportIfErrors,
-        },
-      })
-    } else {
-      importer.current.close()
+    if (importer) {
+      if (props.isOpen) {
+        const { webhookKey, blockImportIfErrors } = props
+
+        const options: OneSchemaImporterConfigOptions = Object.assign(
+          {},
+          blockImportIfErrors !== undefined ? { blockImportIfErrors } : {},
+        )
+
+        const launchConfig: OneSchemaImporterConfig = Object.assign(
+          {
+            userJwt: props.userJwt,
+            templateKey: props.templateKey,
+            options,
+          },
+          webhookKey !== undefined && { webhookKey },
+        )
+
+        importer.launch(launchConfig)
+      } else {
+        importer.close()
+      }
     }
   }, [props.isOpen])
 
