@@ -1,7 +1,7 @@
 {
   "name": "@oneschema/react",
   "private": false,
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "React component for using OneSchema",
   "author": "OneSchema",
   "license": "MIT",
@@ -28,10 +28,11 @@
     "build": "yarn run clean && rollup -c",
     "build-test": "parcel build test/index.html",
     "test": "yarn run build-test && node test/server.js",
+    "lint": "eslint './src/**/**.{ts,tsx,js,jsx}'",
     "clean": "npx rimraf dist"
   },
   "dependencies": {
-    "@oneschema/importer": "^0.1.3"
+    "@oneschema/importer": "^0.1.4"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^22.0.0",
@@ -39,6 +40,14 @@
     "@rollup/plugin-replace": "^4.0.0",
     "@types/react": "^18.0.14",
     "@types/react-dom": "^18.0.5",
+    "@typescript-eslint/eslint-plugin": "^5.29.0",
+    "@typescript-eslint/parser": "^5.29.0",
+    "eslint": "^8.18.0",
+    "eslint-import-resolver-typescript": "^3.1.1",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-react": "^7.30.1",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-unused-imports": "^2.0.0",
     "express": "^4.18.1",
     "parcel": "^2.6.2",
     "react": "^18.2.0",

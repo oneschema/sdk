@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import oneschemaImporter, {
   OneSchemaIframeConfig,
   OneSchemaImporterConfig,
@@ -42,36 +42,39 @@ export default function OneSchemaImporter(props: OneSchemaImporterProps) {
 
   useEffect(() => {
     return () => {
-      importer.close(true)
+      importer && importer.close(true)
     }
-  }, [])
+  }, [importer])
 
+  const { onSuccess, onCancel, onError, onRequestClose } = props
   useEffect(() => {
-    importer.on("success", (data) => {
-      props.onSuccess && props.onSuccess(data)
-      props.onRequestClose && props.onRequestClose()
-    })
+    if (importer) {
+      importer.on("success", (data) => {
+        onSuccess && onSuccess(data)
+        onRequestClose && onRequestClose()
+      })
 
-    importer.on("cancel", () => {
-      props.onCancel && props.onCancel()
-      props.onRequestClose && props.onRequestClose()
-    })
+      importer.on("cancel", () => {
+        onCancel && onCancel()
+        onRequestClose && onRequestClose()
+      })
 
-    importer.on("error", (message) => {
-      props.onError && props.onError(message)
-      props.onRequestClose && props.onRequestClose()
-    })
+      importer.on("error", (message) => {
+        onError && onError(message)
+        onRequestClose && onRequestClose()
+      })
+    }
 
     return () => {
-      importer.removeAllListeners()
+      importer && importer.removeAllListeners()
     }
-  }, [props.onSuccess, props.onCancel, props.onError, props.onRequestClose])
+  }, [importer, onSuccess, onCancel, onError, onRequestClose])
 
   useEffect(() => {
-    if (props.className) {
+    if (props.className && importer) {
       importer.iframe.className = props.className
     }
-  }, [props.className])
+  }, [importer, props.className])
 
   useEffect(() => {
     if (importer) {
@@ -97,7 +100,8 @@ export default function OneSchemaImporter(props: OneSchemaImporterProps) {
         importer.close()
       }
     }
-  }, [props.isOpen])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [importer, props.isOpen])
 
   return null
 }
