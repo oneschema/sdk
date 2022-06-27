@@ -36,6 +36,7 @@ class OneSchemaImporter extends EventEmitter {
   iframeConfig: OneSchemaIframeConfig
   #baseUrl = "https://embed.oneschema.co"
   #eventListener: (event: MessageEvent) => void
+  #isLoaded = false
 
   #hide() {
     this.iframe.style.display = "none"
@@ -73,6 +74,10 @@ class OneSchemaImporter extends EventEmitter {
     const queryParams = `?embed_client_id=${this.clientId}&dev_mode=${this.iframeConfig.devMode}`
     this.iframe.src = `${this.#baseUrl}/embed-launcher${queryParams}`
     this.iframe.className = this.iframeConfig.className || ""
+    this.iframe.onload = () => {
+      this.#isLoaded = true
+    }
+
     this.#hide()
 
     this.#eventListener = (event: MessageEvent) => {
@@ -130,10 +135,11 @@ class OneSchemaImporter extends EventEmitter {
       )
     }
 
-    if (this.iframe.contentWindow) {
+    if (this.#isLoaded) {
       postInit()
     } else {
       this.iframe.onload = postInit
+      this.#isLoaded = true
     }
   }
 
