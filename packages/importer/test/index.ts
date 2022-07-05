@@ -6,7 +6,7 @@ const importer = oneSchemaImporter(
     className: "oneschema-iframe",
     parentId: "oneschema-container",
   },
-  "http://embed.devschema.co:9450",
+  "http://embed.localschema.co:9450",
 )
 
 function start() {
