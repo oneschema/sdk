@@ -70,7 +70,18 @@ class OneSchemaImporter extends EventEmitter {
       this.#baseUrl = baseUrl
     }
 
-    this.iframe = document.createElement("iframe")
+    const iframeId = "_oneschema-iframe"
+
+    this.iframe =
+      (document.getElementById(iframeId) as HTMLIFrameElement) ||
+      document.createElement("iframe")
+    this.iframe.id = iframeId
+    if (this.iframe.dataset.count) {
+      this.iframe.dataset.count = `${parseInt(this.iframe.dataset.count) + 1}`
+    } else {
+      this.iframe.dataset.count = "1"
+    }
+
     const queryParams = `?embed_client_id=${this.clientId}&dev_mode=${this.iframeConfig.devMode}`
     this.iframe.src = `${this.#baseUrl}/embed-launcher${queryParams}`
     this.iframe.className = this.iframeConfig.className || ""
@@ -148,9 +159,13 @@ class OneSchemaImporter extends EventEmitter {
     this.#hide()
 
     if (clean) {
-      this.iframe.remove()
-      this.removeAllListeners()
-      window.removeEventListener("message", this.#eventListener)
+      if (this.iframe.dataset.count === "1") {
+        this.iframe.remove()
+        this.removeAllListeners()
+        window.removeEventListener("message", this.#eventListener)
+      } else {
+        this.iframe.dataset.count = `${parseInt(this.iframe.dataset.count || "") - 1}`
+      }
     }
   }
 }

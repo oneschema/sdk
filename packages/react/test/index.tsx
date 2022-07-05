@@ -21,7 +21,7 @@ function ImportTester() {
         onSuccess={handleData}
         onCancel={() => console.log("cancelled")}
         onError={(message) => console.log(message)}
-        baseUrl="http://embed.devschema.co:9450"
+        baseUrl="http://embed.localschema.co:9450"
       />
     </div>
   )
