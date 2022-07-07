@@ -155,7 +155,10 @@ class OneSchemaImporter extends EventEmitter {
   }
 
   close(clean?: boolean) {
-    this.iframe.contentWindow?.postMessage({ messageType: "close" }, this.#baseUrl)
+    if (this.#isLoaded) {
+      this.iframe.contentWindow?.postMessage({ messageType: "close" }, this.#baseUrl)
+    }
+
     this.#hide()
 
     if (clean) {
