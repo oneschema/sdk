@@ -19,6 +19,8 @@ export interface OneSchemaImporterProps {
   parentId?: string
   devMode?: boolean
 
+  style?: React.CSSProperties
+
   onRequestClose?: () => void
   onSuccess?: (data: any) => void
   onCancel?: () => void
@@ -75,6 +77,22 @@ export default function OneSchemaImporter(props: OneSchemaImporterProps) {
       importer.iframe.className = props.className
     }
   }, [importer, props.className])
+
+  useEffect(() => {
+    if (props.style && importer) {
+      Object.entries(props.style).forEach(([key, value]) => {
+        importer.iframe.style.setProperty(key, value)
+      })
+    }
+
+    return () => {
+      if (props.style && importer) {
+        Object.keys(props.style).forEach((key) => {
+          importer.iframe.style.removeProperty(key)
+        })
+      }
+    }
+  }, [importer, props.style])
 
   useEffect(() => {
     if (importer) {
