@@ -22,6 +22,13 @@ function ImportTester() {
         onCancel={() => console.log("cancelled")}
         onError={(message) => console.log(message)}
         baseUrl="http://embed.localschema.co:9450"
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+        }}
       />
     </div>
   )
