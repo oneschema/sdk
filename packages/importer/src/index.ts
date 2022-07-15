@@ -175,6 +175,17 @@ class OneSchemaImporter extends EventEmitter {
 
 export type OneSchemaImporterClass = InstanceType<typeof OneSchemaImporter>
 
+// this class is meant to shim the external facing class
+// for use in node based environments.
+const noop = () => null
+class MockOneSchemaImporter extends EventEmitter {
+  clientId: string = ""
+  iframe = {}
+  iframeConfig = {}
+  launch = noop
+  close = noop
+}
+
 export default function oneSchemaImporter(
   clientId: string,
   iframeConfig?: OneSchemaIframeConfig,
@@ -183,6 +194,6 @@ export default function oneSchemaImporter(
   if (typeof window !== "undefined") {
     return new OneSchemaImporter(clientId, iframeConfig, baseUrl)
   } else {
-    return {} as OneSchemaImporter
+    return new MockOneSchemaImporter() as unknown as OneSchemaImporter
   }
 }
