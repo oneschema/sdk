@@ -180,5 +180,9 @@ export default function oneSchemaImporter(
   iframeConfig?: OneSchemaIframeConfig,
   baseUrl?: string,
 ): OneSchemaImporter {
-  return new OneSchemaImporter(clientId, iframeConfig, baseUrl)
+  if (typeof window !== "undefined") {
+    return new OneSchemaImporter(clientId, iframeConfig, baseUrl)
+  } else {
+    return {} as OneSchemaImporter
+  }
 }
