@@ -89,6 +89,7 @@ class OneSchemaImporter extends EventEmitter {
       const queryParams = `?embed_client_id=${this.clientId}&dev_mode=${this.iframeConfig.devMode}`
       this.iframe.src = `${this.#baseUrl}/embed-launcher${queryParams}`
       this.iframe.className = this.iframeConfig.className || ""
+      OneSchemaImporter.#isLoaded = false
       this.iframe.onload = () => {
         OneSchemaImporter.#isLoaded = true
       }
