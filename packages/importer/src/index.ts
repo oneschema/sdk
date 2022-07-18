@@ -32,18 +32,22 @@ const DEFAULT_ONESCHEMA_OPTIONS: OneSchemaImporterConfigOptions = {
 
 class OneSchemaImporter extends EventEmitter {
   clientId: string
-  iframe: HTMLIFrameElement
+  iframe?: HTMLIFrameElement
   iframeConfig: OneSchemaIframeConfig
   #baseUrl = "https://embed.oneschema.co"
-  #eventListener: (event: MessageEvent) => void
-  #isLoaded = false
+  #eventListener: (event: MessageEvent) => void = () => null
+  static #isLoaded = false
 
   #hide() {
-    this.iframe.style.display = "none"
+    if (this.iframe) {
+      this.iframe.style.display = "none"
+    }
   }
 
   #show() {
-    this.iframe.style.display = "initial"
+    if (this.iframe) {
+      this.iframe.style.display = "initial"
+    }
   }
 
   #getParent(): HTMLElement {
@@ -70,29 +74,32 @@ class OneSchemaImporter extends EventEmitter {
       this.#baseUrl = baseUrl
     }
 
-    const iframeId = "_oneschema-iframe"
-
-    this.iframe =
-      (document.getElementById(iframeId) as HTMLIFrameElement) ||
-      document.createElement("iframe")
-    this.iframe.id = iframeId
-    if (this.iframe.dataset.count) {
-      this.iframe.dataset.count = `${parseInt(this.iframe.dataset.count) + 1}`
-    } else {
-      this.iframe.dataset.count = "1"
+    if (typeof window === "undefined") {
+      return
     }
 
-    const queryParams = `?embed_client_id=${this.clientId}&dev_mode=${this.iframeConfig.devMode}`
-    this.iframe.src = `${this.#baseUrl}/embed-launcher${queryParams}`
-    this.iframe.className = this.iframeConfig.className || ""
-    this.iframe.onload = () => {
-      this.#isLoaded = true
+    const iframeId = "_oneschema-iframe"
+
+    this.iframe = document.getElementById(iframeId) as HTMLIFrameElement
+    if (!this.iframe) {
+      this.iframe = document.createElement("iframe")
+      this.iframe.id = iframeId
+      this.iframe.dataset.count = "1"
+
+      const queryParams = `?embed_client_id=${this.clientId}&dev_mode=${this.iframeConfig.devMode}`
+      this.iframe.src = `${this.#baseUrl}/embed-launcher${queryParams}`
+      this.iframe.className = this.iframeConfig.className || ""
+      this.iframe.onload = () => {
+        OneSchemaImporter.#isLoaded = true
+      }
+    } else {
+      this.iframe.dataset.count = `${parseInt(this.iframe.dataset.count || "0") + 1}`
     }
 
     this.#hide()
 
     this.#eventListener = (event: MessageEvent) => {
-      if (event.source !== this.iframe.contentWindow) {
+      if (event.source !== this.iframe?.contentWindow) {
         return
       }
 
@@ -133,7 +140,7 @@ class OneSchemaImporter extends EventEmitter {
 
     const { options, ...rest } = config
     const postInit = () => {
-      this.iframe.contentWindow?.postMessage(
+      this.iframe?.contentWindow?.postMessage(
         {
           messageType: "init",
           ...rest,
@@ -146,22 +153,22 @@ class OneSchemaImporter extends EventEmitter {
       )
     }
 
-    if (this.#isLoaded) {
+    if (OneSchemaImporter.#isLoaded) {
       postInit()
-    } else {
+    } else if (this.iframe) {
       this.iframe.onload = postInit
-      this.#isLoaded = true
+      OneSchemaImporter.#isLoaded = true
     }
   }
 
   close(clean?: boolean) {
-    if (this.#isLoaded) {
+    if (this.iframe && OneSchemaImporter.#isLoaded) {
       this.iframe.contentWindow?.postMessage({ messageType: "close" }, this.#baseUrl)
     }
 
     this.#hide()
 
-    if (clean) {
+    if (clean && this.iframe) {
       if (this.iframe.dataset.count === "1") {
         this.iframe.remove()
         this.removeAllListeners()
@@ -175,25 +182,10 @@ class OneSchemaImporter extends EventEmitter {
 
 export type OneSchemaImporterClass = InstanceType<typeof OneSchemaImporter>
 
-// this class is meant to shim the external facing class
-// for use in node based environments.
-const noop = () => null
-class MockOneSchemaImporter extends EventEmitter {
-  clientId: string = ""
-  iframe = {}
-  iframeConfig = {}
-  launch = noop
-  close = noop
-}
-
 export default function oneSchemaImporter(
   clientId: string,
   iframeConfig?: OneSchemaIframeConfig,
   baseUrl?: string,
 ): OneSchemaImporter {
-  if (typeof window !== "undefined") {
-    return new OneSchemaImporter(clientId, iframeConfig, baseUrl)
-  } else {
-    return new MockOneSchemaImporter() as unknown as OneSchemaImporter
-  }
+  return new OneSchemaImporter(clientId, iframeConfig, baseUrl)
 }
