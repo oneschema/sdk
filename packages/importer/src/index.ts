@@ -10,7 +10,6 @@ import { DEFAULT_PARAMS, OneSchemaLaunchParams, OneSchemaParams } from "./config
 class OneSchemaImporter extends EventEmitter {
   #params: OneSchemaParams
   iframe?: HTMLIFrameElement
-  #eventListener: (event: MessageEvent) => void = () => null
   static #isLoaded = false
 
   constructor(params: OneSchemaParams) {
@@ -22,67 +21,51 @@ class OneSchemaImporter extends EventEmitter {
       return
     }
 
-    const iframeId = "_oneschema-iframe"
-
-    this.iframe = document.getElementById(iframeId) as HTMLIFrameElement
-    if (!this.iframe) {
-      this.iframe = document.createElement("iframe")
-      this.iframe.id = iframeId
-      this.iframe.dataset.count = "1"
-
-      const queryParams = `?embed_client_id=${this.#params.clientId}&dev_mode=${
-        this.#params.devMode
-      }`
-      this.iframe.src = `${this.#params.baseUrl}/embed-launcher${queryParams}`
-      this.setClassName(this.#params.className || "")
-      OneSchemaImporter.#isLoaded = false
-      this.iframe.onload = () => {
-        OneSchemaImporter.#isLoaded = true
+    if (this.#params.manageDOM) {
+      const iframeId = "_oneschema-iframe"
+      this.iframe = document.getElementById(iframeId) as HTMLIFrameElement
+      if (this.iframe) {
+        this.iframe.dataset.count = `${parseInt(this.iframe.dataset.count || "0") + 1}`
+      } else {
+        const iframe = document.createElement("iframe")
+        iframe.id = iframeId
+        iframe.dataset.count = "1"
+        this.setIframe(iframe)
       }
-    } else {
-      this.iframe.dataset.count = `${parseInt(this.iframe.dataset.count || "0") + 1}`
+
+      let parent = document.body
+      if (this.#params.parentId) {
+        parent = document.getElementById(this.#params.parentId) || parent
+      }
+
+      this.setParent(parent)
+    }
+  }
+
+  /**
+   * Set the iframe to be used by the OneSchema importer
+   * Should only be used in conjuction with the param of manageDOM false
+   * @param iframe
+   */
+  setIframe(iframe: HTMLIFrameElement) {
+    // just in case..
+    if (this.iframe) {
+      this.close(true)
+    }
+
+    this.iframe = iframe
+
+    const queryParams = `?embed_client_id=${this.#params.clientId}&dev_mode=${
+      this.#params.devMode
+    }`
+    this.iframe.src = `${this.#params.baseUrl}/embed-launcher${queryParams}`
+    this.setClassName(this.#params.className || "")
+    OneSchemaImporter.#isLoaded = false
+    this.iframe.onload = () => {
+      OneSchemaImporter.#isLoaded = true
     }
 
     this.#hide()
-
-    this.#eventListener = (event: MessageEvent) => {
-      if (event.source !== this.iframe?.contentWindow) {
-        return
-      }
-
-      switch (event.data.messageType) {
-        case "complete": {
-          this.emit("success", event.data.data)
-          if (this.#params.autoClose) {
-            this.close()
-          }
-
-          break
-        }
-        case "cancel": {
-          this.emit("cancel")
-          if (this.#params.autoClose) {
-            this.close()
-          }
-
-          break
-        }
-        case "error": {
-          this.emit("error", event.data.message)
-          if (this.#params.autoClose) {
-            this.close()
-          }
-          break
-        }
-      }
-    }
-
-    let parent = document.body
-    if (this.#params.parentId) {
-      parent = document.getElementById(this.#params.parentId) || parent
-    }
-
-    this.setParent(parent)
   }
 
   /**
@@ -161,12 +144,14 @@ class OneSchemaImporter extends EventEmitter {
     this.#hide()
 
     if (clean && this.iframe) {
-      if (this.iframe.dataset.count === "1") {
-        this.iframe.remove()
+      if (!this.iframe.dataset.count || this.iframe.dataset.count === "1") {
         this.removeAllListeners()
         window.removeEventListener("message", this.#eventListener)
+        if (this.#params.manageDOM) {
+          this.iframe.remove()
+        }
       } else {
-        this.iframe.dataset.count = `${parseInt(this.iframe.dataset.count || "") - 1}`
+        this.iframe.dataset.count = `${parseInt(this.iframe.dataset.count || "1") - 1}`
       }
     }
   }
@@ -180,6 +165,38 @@ class OneSchemaImporter extends EventEmitter {
   #show() {
     if (this.iframe) {
       this.iframe.style.display = "initial"
+    }
+  }
+
+  #eventListener = (event: MessageEvent) => {
+    if (event.source !== this.iframe?.contentWindow) {
+      return
+    }
+
+    switch (event.data.messageType) {
+      case "complete": {
+        this.emit("success", event.data.data)
+        if (this.#params.autoClose) {
+          this.close()
+        }
+
+        break
+      }
+      case "cancel": {
+        this.emit("cancel")
+        if (this.#params.autoClose) {
+          this.close()
+        }
+
+        break
+      }
+      case "error": {
+        this.emit("error", event.data.message)
+        if (this.#params.autoClose) {
+          this.close()
+        }
+        break
+      }
     }
   }
 }
