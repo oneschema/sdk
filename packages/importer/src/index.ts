@@ -33,8 +33,6 @@ class OneSchemaImporter extends EventEmitter {
         this.setIframe(iframe)
       }
 
-      this.#hide()
-
       let parent = document.body
       if (this.#params.parentId) {
         parent = document.getElementById(this.#params.parentId) || parent
@@ -66,6 +64,8 @@ class OneSchemaImporter extends EventEmitter {
     this.iframe.onload = () => {
       OneSchemaImporter.#isLoaded = true
     }
+
+    this.#hide()
   }
 
   /**
