@@ -64,6 +64,11 @@ export interface OneSchemaParams extends Partial<OneSchemaLaunchParams> {
    */
   autoClose?: boolean
   /**
+   * Whether the class should create and append iframe to DOM.
+   * Default to true
+   */
+  manageDOM?: boolean
+  /**
    * The base URL for the iframe.
    * By default uses OneSchema's production instance
    */
@@ -78,6 +83,7 @@ export const DEFAULT_PARAMS: Partial<OneSchemaParams> = {
   devMode: !!(process.env.NODE_ENV !== "production"),
   className: "oneschema-iframe",
   autoClose: true,
+  manageDOM: true,
   config: {
     blockImportIfErrors: true,
   },
