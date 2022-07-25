@@ -1,6 +1,6 @@
 import { EventEmitter } from "eventemitter3"
 import merge from "lodash.merge"
-import { OneSchemaConfig, DEFAULT_CONFIG, OneSchemaLaunchConfig } from "./config"
+import { DEFAULT_PARAMS, OneSchemaLaunchParams, OneSchemaParams } from "./config"
 
 /**
  * OneSchemaImporter class manages the iframe
@@ -8,43 +8,15 @@ import { OneSchemaConfig, DEFAULT_CONFIG, OneSchemaLaunchConfig } from "./config
  * and emits events based on what happens
  */
 class OneSchemaImporter extends EventEmitter {
-  #config: OneSchemaConfig
+  #params: OneSchemaParams
   iframe?: HTMLIFrameElement
-  #baseUrl = "https://embed.oneschema.co"
   #eventListener: (event: MessageEvent) => void = () => null
   static #isLoaded = false
 
-  #hide() {
-    if (this.iframe) {
-      this.iframe.style.display = "none"
-    }
-  }
-
-  #show() {
-    if (this.iframe) {
-      this.iframe.style.display = "initial"
-    }
-  }
-
-  #getParent(): HTMLElement {
-    if (this.#config.parentId) {
-      const parent = document.getElementById(this.#config.parentId)
-      if (parent) {
-        return parent
-      }
-    }
-
-    return document.body
-  }
-
-  constructor(config: OneSchemaConfig) {
+  constructor(params: OneSchemaParams) {
     super()
 
-    this.#config = merge({}, DEFAULT_CONFIG, config)
-
-    if (config.baseUrl) {
-      this.#baseUrl = config.baseUrl
-    }
+    this.#params = merge({}, DEFAULT_PARAMS, params)
 
     if (typeof window === "undefined") {
       return
@@ -58,11 +30,11 @@ class OneSchemaImporter extends EventEmitter {
       this.iframe.id = iframeId
       this.iframe.dataset.count = "1"
 
-      const queryParams = `?embed_client_id=${this.#config.clientId}&dev_mode=${
-        this.#config.devMode
+      const queryParams = `?embed_client_id=${this.#params.clientId}&dev_mode=${
+        this.#params.devMode
       }`
-      this.iframe.src = `${this.#baseUrl}/embed-launcher${queryParams}`
-      this.iframe.className = this.#config.className || ""
+      this.iframe.src = `${this.#params.baseUrl}/embed-launcher${queryParams}`
+      this.setClassName(this.#params.className || "")
       OneSchemaImporter.#isLoaded = false
       this.iframe.onload = () => {
         OneSchemaImporter.#isLoaded = true
@@ -81,7 +53,7 @@ class OneSchemaImporter extends EventEmitter {
       switch (event.data.messageType) {
         case "complete": {
           this.emit("success", event.data.data)
-          if (this.#config.autoClose) {
+          if (this.#params.autoClose) {
             this.close()
           }
 
@@ -89,7 +61,7 @@ class OneSchemaImporter extends EventEmitter {
         }
         case "cancel": {
           this.emit("cancel")
-          if (this.#config.autoClose) {
+          if (this.#params.autoClose) {
             this.close()
           }
 
@@ -97,7 +69,7 @@ class OneSchemaImporter extends EventEmitter {
         }
         case "error": {
           this.emit("error", event.data.message)
-          if (this.#config.autoClose) {
+          if (this.#params.autoClose) {
             this.close()
           }
           break
@@ -105,40 +77,65 @@ class OneSchemaImporter extends EventEmitter {
       }
     }
 
-    const parent = this.#getParent()
-    parent.append(this.iframe)
+    let parent = document.body
+    if (this.#params.parentId) {
+      parent = document.getElementById(this.#params.parentId) || parent
+    }
+
+    this.setParent(parent)
+  }
+
+  /**
+   * Will change the CSS class of the iframe
+   * @param className the new CSS class
+   */
+  setClassName(className: string) {
+    if (this.iframe) {
+      this.iframe.className = className
+    }
+  }
+
+  /**
+   * Will change the parent container of the iframe
+   * NOTE: will reload the URL
+   * @param parent DOM element to append to
+   */
+  setParent(parent: HTMLElement) {
+    if (this.iframe) {
+      parent.append(this.iframe)
+    }
   }
 
   /**
    * Launch will show the OneSchema window and initialize the importer session
-   * @param launchConfig optionally pass in config overrides or values not passed into constructor
+   * @param launchParams optionally pass in parameter overrides or values not passed into constructor
    */
-  launch(launchConfig?: Partial<OneSchemaLaunchConfig>) {
+  launch(launchParams?: Partial<OneSchemaLaunchParams>) {
     window.addEventListener("message", this.#eventListener)
-    this.#show()
 
-    const mergedConfig = merge({}, this.#config, launchConfig)
+    const mergedParams = merge({}, this.#params, launchParams)
     const message: any = { messageType: "init" }
-    message.options = mergedConfig.config
+    message.options = mergedParams.config
 
-    message.userJwt = mergedConfig.userJwt
+    message.userJwt = mergedParams.userJwt
     if (!message.userJwt) {
       console.error("OneSchema config error: missing userJwt")
       return
     }
 
-    message.templateKey = mergedConfig.templateKey
+    message.templateKey = mergedParams.templateKey
     if (!message.templateKey) {
       console.error("OneSchema config error: missing templateKey")
       return
     }
 
-    if (mergedConfig.webhookKey) {
-      message.webhookKey = mergedConfig.webhookKey
+    if (mergedParams.webhookKey) {
+      message.webhookKey = mergedParams.webhookKey
     }
 
     const postInit = () => {
-      this.iframe?.contentWindow?.postMessage(message, this.#baseUrl)
+      this.iframe?.contentWindow?.postMessage(message, this.#params.baseUrl || "")
+      this.#show()
     }
 
     if (OneSchemaImporter.#isLoaded) {
@@ -155,7 +152,10 @@ class OneSchemaImporter extends EventEmitter {
    */
   close(clean?: boolean) {
     if (this.iframe && OneSchemaImporter.#isLoaded) {
-      this.iframe.contentWindow?.postMessage({ messageType: "close" }, this.#baseUrl)
+      this.iframe.contentWindow?.postMessage(
+        { messageType: "close" },
+        this.#params.baseUrl || "",
+      )
     }
 
     this.#hide()
@@ -170,14 +170,26 @@ class OneSchemaImporter extends EventEmitter {
       }
     }
   }
+
+  #hide() {
+    if (this.iframe) {
+      this.iframe.style.display = "none"
+    }
+  }
+
+  #show() {
+    if (this.iframe) {
+      this.iframe.style.display = "initial"
+    }
+  }
 }
 
 export type OneSchemaImporterClass = InstanceType<typeof OneSchemaImporter>
 
 /**
- * @param config the settings for the importing session
+ * @param params the settings for the importing session
  * @returns an instance of the OneSchemaImporter
  */
-export default function oneSchemaImporter(config: OneSchemaConfig): OneSchemaImporter {
-  return new OneSchemaImporter(config)
+export default function oneSchemaImporter(params: OneSchemaParams): OneSchemaImporter {
+  return new OneSchemaImporter(params)
 }

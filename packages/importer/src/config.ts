@@ -1,7 +1,7 @@
 /**
  * Config options for how the OneSchema importer will behave
  */
-export interface OneSchemaEmbedConfig {
+export interface OneSchemaConfig {
   /**
    * Whether importing should be blocked if there are validation errors in the data
    */
@@ -13,9 +13,9 @@ export interface OneSchemaEmbedConfig {
 }
 
 /**
- * Config options that can be set when the OneSchema importer launches
+ * Parameters that can be set when the OneSchema importer launches
  */
-export interface OneSchemaLaunchConfig {
+export interface OneSchemaLaunchParams {
   /**
    * The JSON web token for the user importing data
    */
@@ -33,13 +33,13 @@ export interface OneSchemaLaunchConfig {
   /**
    * Config options for how the OneSchema importer will behave
    */
-  config?: OneSchemaEmbedConfig
+  config?: OneSchemaConfig
 }
 
 /**
- * Base config for the OneSchema importer, includes all settings
+ * Parameters for the OneSchema importer, includes all settings
  */
-export interface OneSchemaConfig extends Partial<OneSchemaLaunchConfig> {
+export interface OneSchemaParams extends Partial<OneSchemaLaunchParams> {
   /**
    * The client id from your OneSchema developer dashboard
    */
@@ -73,7 +73,8 @@ export interface OneSchemaConfig extends Partial<OneSchemaLaunchConfig> {
 /**
  * The default values for the OneSchema importer
  */
-export const DEFAULT_CONFIG: Partial<OneSchemaConfig> = {
+export const DEFAULT_PARAMS: Partial<OneSchemaParams> = {
+  baseUrl: "https://embed.oneschema.co",
   devMode: !!(process.env.NODE_ENV !== "production"),
   className: "oneschema-iframe",
   autoClose: true,
