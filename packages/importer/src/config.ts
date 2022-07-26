@@ -27,7 +27,7 @@ export interface OneSchemaLaunchParams {
   templateKey: string
   /**
    * The key for the webhook that data from this import
-   * should be sent to. Setup inside Oneschema before using
+   * should be sent to. Setup inside OneSchema before using
    */
   webhookKey?: string
   /**

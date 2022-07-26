@@ -7,7 +7,7 @@ import { DEFAULT_PARAMS, OneSchemaLaunchParams, OneSchemaParams } from "./config
  * used for importing data in your application
  * and emits events based on what happens
  */
-class OneSchemaImporter extends EventEmitter {
+export class OneSchemaImporterClass extends EventEmitter {
   #params: OneSchemaParams
   iframe?: HTMLIFrameElement
   static #isLoaded = false
@@ -60,9 +60,9 @@ class OneSchemaImporter extends EventEmitter {
     }`
     this.iframe.src = `${this.#params.baseUrl}/embed-launcher${queryParams}`
     this.setClassName(this.#params.className || "")
-    OneSchemaImporter.#isLoaded = false
+    OneSchemaImporterClass.#isLoaded = false
     this.iframe.onload = () => {
-      OneSchemaImporter.#isLoaded = true
+      OneSchemaImporterClass.#isLoaded = true
     }
 
     this.#hide()
@@ -121,11 +121,11 @@ class OneSchemaImporter extends EventEmitter {
       this.#show()
     }
 
-    if (OneSchemaImporter.#isLoaded) {
+    if (OneSchemaImporterClass.#isLoaded) {
       postInit()
     } else if (this.iframe) {
       this.iframe.onload = postInit
-      OneSchemaImporter.#isLoaded = true
+      OneSchemaImporterClass.#isLoaded = true
     }
   }
 
@@ -134,7 +134,7 @@ class OneSchemaImporter extends EventEmitter {
    * @param clean will remove the iframe and event listeners if true
    */
   close(clean?: boolean) {
-    if (this.iframe && OneSchemaImporter.#isLoaded) {
+    if (this.iframe && OneSchemaImporterClass.#isLoaded) {
       this.iframe.contentWindow?.postMessage(
         { messageType: "close" },
         this.#params.baseUrl || "",
@@ -201,12 +201,12 @@ class OneSchemaImporter extends EventEmitter {
   }
 }
 
-export type OneSchemaImporterClass = InstanceType<typeof OneSchemaImporter>
-
 /**
  * @param params the settings for the importing session
  * @returns an instance of the OneSchemaImporter
  */
-export default function oneSchemaImporter(params: OneSchemaParams): OneSchemaImporter {
-  return new OneSchemaImporter(params)
+export default function oneSchemaImporter(
+  params: OneSchemaParams,
+): OneSchemaImporterClass {
+  return new OneSchemaImporterClass(params)
 }
