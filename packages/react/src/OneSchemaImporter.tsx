@@ -23,11 +23,11 @@ export interface OneSchemaImporterProps {
   webhookKey?: string
   config?: OneSchemaConfig
   /**
-   * DEPRACATED: use config prop instead
+   * DEPRECATED: use config prop instead
    */
   blockImportIfErrors?: boolean
   /**
-   * DEPRACATED: use inline prop instead
+   * DEPRECATED: use inline prop instead
    */
   parentId?: string
   /**
