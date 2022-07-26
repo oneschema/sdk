@@ -54,6 +54,10 @@ export interface OneSchemaParams extends Partial<OneSchemaLaunchParams> {
    */
   className?: string
   /**
+   * CSS Styles to be applied directly to the iframe
+   */
+  styles?: Partial<CSSStyleDeclaration>
+  /**
    * The id of the DOM element the iframe should be appended to
    * By default appends to document.body
    */
@@ -81,10 +85,27 @@ export interface OneSchemaParams extends Partial<OneSchemaLaunchParams> {
 export const DEFAULT_PARAMS: Partial<OneSchemaParams> = {
   baseUrl: "https://embed.oneschema.co",
   devMode: !!(process.env.NODE_ENV !== "production"),
-  className: "oneschema-iframe",
   autoClose: true,
   manageDOM: true,
   config: {
     blockImportIfErrors: true,
   },
 }
+
+/**
+ * The default styling for the OneSchema iframe
+ */
+export const DEFAULT_STYLES: Partial<CSSStyleDeclaration> = {
+  position: "fixed",
+  top: "0",
+  left: "0",
+  width: "100vw",
+  height: "100vh",
+}
+
+/**
+ * open questions:
+ * - should param styles merge or override default?
+ * - should (and even is it possible) for className to override default_styles? (so it isn't pure replace)
+ * - would this ever get annoying if we needed other 'defaults'?
+ */

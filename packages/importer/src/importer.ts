@@ -1,6 +1,11 @@
 import { EventEmitter } from "eventemitter3"
 import merge from "lodash.merge"
-import { DEFAULT_PARAMS, OneSchemaLaunchParams, OneSchemaParams } from "./config"
+import {
+  DEFAULT_PARAMS,
+  DEFAULT_STYLES,
+  OneSchemaLaunchParams,
+  OneSchemaParams,
+} from "./config"
 
 /**
  * OneSchemaImporter class manages the iframe
@@ -59,7 +64,22 @@ export class OneSchemaImporterClass extends EventEmitter {
       this.#params.devMode
     }`
     this.iframe.src = `${this.#params.baseUrl}/embed-launcher${queryParams}`
-    this.setClassName(this.#params.className || "")
+
+    let styled = false
+    if (this.#params.className) {
+      this.setClassName(this.#params.className)
+      styled = true
+    }
+
+    if (this.#params.styles) {
+      this.setStyles(this.#params.styles)
+      styled = true
+    }
+
+    if (!styled) {
+      this.setStyles(DEFAULT_STYLES)
+    }
+
     OneSchemaImporterClass.#isLoaded = false
     this.iframe.onload = () => {
       OneSchemaImporterClass.#isLoaded = true
@@ -75,6 +95,20 @@ export class OneSchemaImporterClass extends EventEmitter {
   setClassName(className: string) {
     if (this.iframe) {
       this.iframe.className = className
+    }
+  }
+
+  /**
+   * Will change the styles of the iframe
+   * @param styles the styles to apply
+   */
+  setStyles(styles: Partial<CSSStyleDeclaration>) {
+    if (this.iframe) {
+      // we save display because we use it for whether
+      // the iframe is shown or not
+      const display = this.iframe.style.display
+      Object.assign(this.iframe.style, styles)
+      this.iframe.style.display = display
     }
   }
 

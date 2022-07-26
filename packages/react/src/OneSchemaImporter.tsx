@@ -33,7 +33,7 @@ export interface OneSchemaImporterProps {
   /**
    * CSS styles that should be applied to the iframe
    */
-  style?: React.CSSProperties
+  style?: Partial<CSSStyleDeclaration>
   /**
    * Handler for when the importer wants to close
    * should set isOpen prop to false
@@ -127,18 +127,8 @@ export default function OneSchemaImporter({
   }, [importer, params.className])
 
   useEffect(() => {
-    if (style && importer && importer.iframe) {
-      Object.entries(style).forEach(([key, value]) => {
-        importer.iframe!.style.setProperty(key, value)
-      })
-    }
-
-    return () => {
-      if (style && importer && importer.iframe) {
-        Object.keys(style).forEach((key) => {
-          importer.iframe!.style.removeProperty(key)
-        })
-      }
+    if (style && importer) {
+      importer.setStyles(style)
     }
   }, [importer, style])
 

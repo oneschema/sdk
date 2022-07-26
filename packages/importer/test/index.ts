@@ -2,7 +2,6 @@ import oneSchemaImporter from "../src"
 
 const importer = oneSchemaImporter({
   clientId: "67bb2e5f-f0f7-42a6-a511-18b25e67b8c4",
-  className: "oneschema-iframe",
   parentId: "oneschema-container",
   baseUrl: "http://embed.localschema.co:9450",
   templateKey: "crm_test",
