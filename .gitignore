@@ -18,3 +18,16 @@ lerna-debug.log*
 # Parcel
 .parcel-cache
 dist
+
+tmp
+out-tsc
+bazel-out
+
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+.angular
