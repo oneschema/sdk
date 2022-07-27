@@ -44,10 +44,20 @@ function OneSchemaExample() {
         templateKey={templateKey}
         /* optional config values */
         webhookKey={webhookKey}
-        blockImportIfErrors={true}
+        config={{
+          blockImportIfErrors: true,
+          autofixAfterMapping: true,
+        }}
         devMode={process.env.NODE_ENV !== "production"}
         className="oneschema-importer"
-        parentId="oneschema-container"
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+        }}
+        inline={false}
         /* handling results */
         onSuccess={handleData}
         onCancel={() => console.log("cancelled")}

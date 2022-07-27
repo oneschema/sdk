@@ -18,3 +18,17 @@ lerna-debug.log*
 # Parcel
 .parcel-cache
 dist
+
+# pulled from the angular gen'd gitignore
+tmp
+out-tsc
+bazel-out
+
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+.angular
