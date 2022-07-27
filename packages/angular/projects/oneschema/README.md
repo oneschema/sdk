@@ -39,6 +39,13 @@ import { OneSchemaModule } from '@oneschema/angular';
       clientId: 'CLIENT_ID',
       templateKey: 'TEMPLATE_KEY',
       userJwt: 'USER_JWT',
+      style: {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '100vw',
+        height: '100vh',
+      }
     }),
   ],
 
@@ -47,7 +54,7 @@ import { OneSchemaModule } from '@oneschema/angular';
 export class AppModule {}
 ```
 
-Create a button to open the OneSchema importer:
+Create a button to open the OneSchema importer and listen to events:
 
 ```javascript
 import { Component } from '@angular/core'
@@ -58,32 +65,15 @@ import { OneSchemaService } from './oneschema.service'
   template: `<button (click)="launch()">Open OneSchema</button>`,
   styles: [],
 })
-export class OneSchemaButton {
-  constructor(public oneschema: OneSchemaService) {}
-
-  launch() {
-    this.oneschema.launch()
-  }
-}
-```
-
-### Advanced usage
-
-Use event handlers in a component:
-```javascript
-import { Component, OnDestroy } from '@angular/core'
-import { OneSchemaService } from '@oneschema/angular'
-
-@Component({
-  selector: 'oneschema-listener',
-  template: ``,
-  styles: [],
-})
-export class OneSchemaListener implements OnDestroy {
+export class OneSchemaButton implements OnDestroy {
   constructor(public oneschema: OneSchemaService) {
     this.oneschema.on('success', this.onSuccess)
     this.oneschema.on('error', this.onError)
     this.oneschema.on('cancel', this.onCancel)
+  }
+
+  launch() {
+    this.oneschema.launch()
   }
 
   onSuccess(data: any) {
@@ -106,7 +96,12 @@ export class OneSchemaListener implements OnDestroy {
 }
 ```
 
-Manage the iframe and its styles yourself by adding `inline` to your OneSchemaModule configuration and then making an iframe in a component:
+To style the iframe, either pass in `style` prop to the module, add CSS to your global stylesheet, or to a component with [ViewEncapsulation.None](https://angular.io/guide/view-encapsulation). 
+The iframe's class be what is passed to the module as the `className` prop or `oneschema-iframe` by default.
+
+### Advanced usage
+
+Manage the iframe yourself by adding `inline` to your OneSchemaModule configuration and then making an iframe in a component:
 ```javascript
 import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core'
 import { OneSchemaService } from '@oneschema/angular'
