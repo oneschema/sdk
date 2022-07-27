@@ -1,6 +1,6 @@
 import { Inject, Injectable, OnDestroy } from '@angular/core'
 import { OneSchemaImporterClass, OneSchemaParams } from '@oneschema/importer'
-import { OneSchemaParamsService } from './oneschema.config'
+import { OneSchemaParamsService } from './oneschema.params'
 
 @Injectable({
   providedIn: 'root',

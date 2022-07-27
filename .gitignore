@@ -19,6 +19,7 @@ lerna-debug.log*
 .parcel-cache
 dist
 
+# pulled from the angular gen'd gitignore
 tmp
 out-tsc
 bazel-out
