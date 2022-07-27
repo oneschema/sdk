@@ -39,7 +39,7 @@ import { OneSchemaModule } from '@oneschema/angular';
       clientId: 'CLIENT_ID',
       templateKey: 'TEMPLATE_KEY',
       userJwt: 'USER_JWT',
-      style: {
+      styles: {
         position: 'fixed',
         top: '0',
         left: '0',
@@ -96,7 +96,7 @@ export class OneSchemaButton implements OnDestroy {
 }
 ```
 
-To style the iframe, either pass in `style` prop to the module, add CSS to your global stylesheet, or to a component with [ViewEncapsulation.None](https://angular.io/guide/view-encapsulation). 
+To style the iframe, either pass in `styles` prop to the module, add CSS to your global stylesheet, or to a component with [ViewEncapsulation.None](https://angular.io/guide/view-encapsulation). 
 The iframe's class be what is passed to the module as the `className` prop or `oneschema-iframe` by default.
 
 ### Advanced usage
