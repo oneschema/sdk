@@ -32,7 +32,7 @@
     "clean": "npx rimraf dist"
   },
   "dependencies": {
-    "@oneschema/importer": "^0.1.7"
+    "@oneschema/importer": "^0.2.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^22.0.0",
