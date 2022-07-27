@@ -70,4 +70,4 @@ function OneSchemaExample() {
 
 ## Documentation
 
-Please see [📚 OneSchema's documentation](https://docs.oneschema.co/) for [📒 API reference](https://oneschema.readme.io/docs/api-reference#oneschemaimporter-react-component) and other helpful guides.
+Please see [📚 OneSchema's documentation](https://docs.oneschema.co/) for [📒 API reference](https://docs.oneschema.co/docs/react#api-reference) and other helpful guides.

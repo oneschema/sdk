@@ -96,8 +96,16 @@ export class OneSchemaButton implements OnDestroy {
 }
 ```
 
-To style the iframe, either pass in `styles` prop to the module, add CSS to your global stylesheet, or to a component with [ViewEncapsulation.None](https://angular.io/guide/view-encapsulation). 
-The iframe's class be what is passed to the module as the `className` prop or `oneschema-iframe` by default.
+To style the iframe, either pass in `styles` prop to the module, add CSS to your global stylesheet, or to a component with [ViewEncapsulation.None](https://angular.io/guide/view-encapsulation). The iframe's class will be what is passed to the module as the `className` prop or `oneschema-iframe` by default. Sample CSS for the iframe to take up the full viewport is:
+```css
+.oneschema-iframe {
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+}
+```
 
 ### Advanced usage
 
@@ -131,3 +139,8 @@ export class OneSchemaIframe implements AfterViewInit {
   }
 }
 ```
+
+## Documentation
+
+Please see [📚 OneSchema's documentation](https://docs.oneschema.co/) for [📒 API reference](https://docs.oneschema.co/docs/angular#api-reference) and other helpful guides.
+

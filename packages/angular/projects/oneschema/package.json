@@ -1,6 +1,10 @@
 {
   "name": "@oneschema/angular",
-  "version": "0.0.1",
+  "private": false,
+  "version": "0.2.0",
+  "description": "Angular module for using OneSchema",
+  "author": "OneSchema",
+  "license": "MIT",
   "peerDependencies": {
     "@angular/common": "^14.1.0",
     "@angular/core": "^14.1.0",
