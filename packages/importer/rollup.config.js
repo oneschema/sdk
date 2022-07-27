@@ -7,12 +7,10 @@ import { terser } from "rollup-plugin-terser"
 
 import pkg from "./package.json"
 
-const input = ["src/index.ts"]
-
 export default [
   {
     // UMD (for importing with script tag)
-    input,
+    input: ["src/index-default.ts"],
     plugins: [
       nodeResolve(),
       commonjs(),
@@ -32,7 +30,7 @@ export default [
         file: `dist/oneschema-importer-${pkg.version}.min.js`,
         format: "umd",
         name: "oneschemaImporter",
-        exports: "named",
+        exports: "default",
         esModule: false,
         sourcemap: true,
       },
@@ -40,7 +38,7 @@ export default [
         file: `dist/oneschema-importer-latest.min.js`,
         format: "umd",
         name: "oneschemaImporter",
-        exports: "named",
+        exports: "default",
         esModule: false,
         sourcemap: true,
       },
@@ -48,7 +46,7 @@ export default [
   },
   // ESM and CJS (for importing as module)
   {
-    input,
+    input: ["src/index.ts"],
     plugins: [
       nodeResolve(),
       commonjs(),
@@ -75,7 +73,7 @@ export default [
   },
   // Types
   {
-    input,
+    input: ["src/index.ts"],
     output: [{ file: "dist/index.d.ts", format: "es" }],
     plugins: [dts()],
   },
