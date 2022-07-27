@@ -90,5 +90,6 @@ export const DEFAULT_PARAMS: Partial<OneSchemaParams> = {
   manageDOM: true,
   config: {
     blockImportIfErrors: true,
+    autofixAfterMapping: false,
   },
 }
