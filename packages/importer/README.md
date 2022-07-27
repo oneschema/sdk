@@ -28,32 +28,45 @@ or with a script tag:
 ```javascript
 import oneschemaImporter from "@oneschema/importer"
 
-const importer = oneschemaImporter(clientId, {
-  className: "my-iframe-class",
-  parentId: "my-iframe-container",
-  autoClose: true,
+const importer = oneschemaImporter({
+  /* required here */
+  clientID: 'YOUR_CLIENT_ID',
+  /* required here or at launch */
+  templateKey: 'YOUR_TEMPLATE_KEY',
+  userJwt: 'YOUR_USER_JWT',
+  /* optional */
+  webhookKey: 'YOUR_WEBHOOK_KEY',
+  config: {
+    blockImportIfErrors: true,
+    autofixAfterMapping: true,
+  },
+  devMode: true,
+  className: 'oneschema-importer',
 })
 
+importer.launch()
+// OR
+// pass overrides and values not specified at creation time:
 importer.launch({
-  templateKey: "test_template",
-  userJwt: token,
-  options: {
+  templateKey: 'YOUR_TEMPLATE_KEY',
+  userJwt: 'YOUR_USER_JWT',
+  webhookKey: 'YOUR_WEBHOOK_KEY',
+  config: {
     blockImportIfErrors: true,
+    autofixAfterMapping: true,
   },
 })
 
 importer.on("success", (data) => {
-  console.log(data)
-  alert("success!")
+  // handle success
 })
 
 importer.on("cancel", () => {
-  alert("cancel")
+  // handle cancel
 })
 
 importer.on("error", (message) => {
-  console.log(message)
-  alert("error!")
+  // handle error
 })
 ```
 

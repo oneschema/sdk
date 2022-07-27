@@ -19,14 +19,14 @@ npm i --save @oneschema/angular @oneschema/importer
 
 ### Sample usage
 
-Add the module to your `app.module`:
+Add the OneSchemaModule to your `app.module`:
 
 ```javascript
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
 
-// Import the module from the SDK
+// Import the module from the OneSchema package
 import { OneSchemaModule } from '@oneschema/angular';
 
 @NgModule({
@@ -72,7 +72,7 @@ export class OneSchemaButton {
 Use event handlers in a component:
 ```javascript
 import { Component, OnDestroy } from '@angular/core'
-import { OneSchemaService } from './oneschema.service'
+import { OneSchemaService } from '@oneschema/angular'
 
 @Component({
   selector: 'oneschema-listener',
@@ -109,7 +109,7 @@ export class OneSchemaListener implements OnDestroy {
 Manage the iframe and its styles yourself by adding `inline` to your OneSchemaModule configuration and then making an iframe in a component:
 ```javascript
 import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core'
-import { OneSchemaService } from './oneschema.service'
+import { OneSchemaService } from '@oneschema/angular'
 
 @Component({
   selector: 'oneschema-iframe',
