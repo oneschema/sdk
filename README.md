@@ -9,4 +9,4 @@ This repository contains tools to help you embed OneSchema into your application
 
 - [📑 Importer](https://github.com/oneschema/sdk/tree/main/packages/importer), a plain Javascript library for embedding OneSchema 
 - [⚛ React](https://github.com/oneschema/sdk/tree/main/packages/react), a React component library for embedding OneSchema
-- [🅰️ Angular](https://github.com/oneschema/sdk/tree/main/packages/angular), an Angular module for embedding OneSchema
+- [🅰️ Angular](https://github.com/oneschema/sdk/tree/main/packages/angular/projects/oneschema), an Angular module for embedding OneSchema
