@@ -1,11 +1,6 @@
 import { EventEmitter } from "eventemitter3"
 import merge from "lodash.merge"
-import {
-  DEFAULT_PARAMS,
-  DEFAULT_STYLES,
-  OneSchemaLaunchParams,
-  OneSchemaParams,
-} from "./config"
+import { DEFAULT_PARAMS, OneSchemaLaunchParams, OneSchemaParams } from "./config"
 
 /**
  * OneSchemaImporter class manages the iframe
@@ -64,20 +59,9 @@ export class OneSchemaImporterClass extends EventEmitter {
       this.#params.devMode
     }`
     this.iframe.src = `${this.#params.baseUrl}/embed-launcher${queryParams}`
-
-    let styled = false
-    if (this.#params.className) {
-      this.setClassName(this.#params.className)
-      styled = true
-    }
-
+    this.setClassName(this.#params.className || "")
     if (this.#params.styles) {
       this.setStyles(this.#params.styles)
-      styled = true
-    }
-
-    if (!styled) {
-      this.setStyles(DEFAULT_STYLES)
     }
 
     OneSchemaImporterClass.#isLoaded = false
