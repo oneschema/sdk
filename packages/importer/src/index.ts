@@ -1,5 +1,5 @@
 export { OneSchemaConfig, OneSchemaLaunchParams, OneSchemaParams } from "./config"
-export { OneSchemaImporterClass } from "./importer"
+import oneSchemaImporter, { OneSchemaImporterClass } from "./importer"
 
-import oneSchemaImporter from "./importer"
+export { OneSchemaImporterClass }
 export default oneSchemaImporter

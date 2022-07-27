@@ -54,6 +54,10 @@ export interface OneSchemaParams extends Partial<OneSchemaLaunchParams> {
    */
   className?: string
   /**
+   * CSS Styles to be applied directly to the iframe
+   */
+  styles?: Partial<CSSStyleDeclaration>
+  /**
    * The id of the DOM element the iframe should be appended to
    * By default appends to document.body
    */
@@ -86,5 +90,6 @@ export const DEFAULT_PARAMS: Partial<OneSchemaParams> = {
   manageDOM: true,
   config: {
     blockImportIfErrors: true,
+    autofixAfterMapping: false,
   },
 }

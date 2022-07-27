@@ -127,18 +127,8 @@ export default function OneSchemaImporter({
   }, [importer, params.className])
 
   useEffect(() => {
-    if (style && importer && importer.iframe) {
-      Object.entries(style).forEach(([key, value]) => {
-        importer.iframe!.style.setProperty(key, value)
-      })
-    }
-
-    return () => {
-      if (style && importer && importer.iframe) {
-        Object.keys(style).forEach((key) => {
-          importer.iframe!.style.removeProperty(key)
-        })
-      }
+    if (style && importer) {
+      importer.setStyles(style as Partial<CSSStyleDeclaration>)
     }
   }, [importer, style])
 
