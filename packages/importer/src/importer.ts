@@ -54,6 +54,7 @@ export class OneSchemaImporterClass extends EventEmitter {
     }
 
     this.iframe = iframe
+    this.iframe.setAttribute("allowtransparency", "true")
 
     const queryParams = `?embed_client_id=${this.#params.clientId}&dev_mode=${
       this.#params.devMode
