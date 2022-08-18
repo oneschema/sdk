@@ -117,6 +117,7 @@ export class OneSchemaImporterClass extends EventEmitter {
 
     const mergedParams = merge({}, this.#params, launchParams)
     const message: any = { messageType: "init" }
+    message.manualClose = true
     message.options = mergedParams.config
 
     message.userJwt = mergedParams.userJwt
@@ -137,7 +138,6 @@ export class OneSchemaImporterClass extends EventEmitter {
 
     const postInit = () => {
       this.iframe?.contentWindow?.postMessage(message, this.#params.baseUrl || "")
-      this.#show()
     }
 
     if (OneSchemaImporterClass.#isLoaded) {
@@ -153,14 +153,13 @@ export class OneSchemaImporterClass extends EventEmitter {
    * @param clean will remove the iframe and event listeners if true
    */
   close(clean?: boolean) {
+    this.#hide()
     if (this.iframe && OneSchemaImporterClass.#isLoaded) {
       this.iframe.contentWindow?.postMessage(
         { messageType: "close" },
         this.#params.baseUrl || "",
       )
     }
-
-    this.#hide()
 
     if (clean && this.iframe) {
       if (!this.iframe.dataset.count || this.iframe.dataset.count === "1") {
@@ -193,6 +192,10 @@ export class OneSchemaImporterClass extends EventEmitter {
     }
 
     switch (event.data.messageType) {
+      case "launched": {
+        this.#show()
+        break
+      }
       case "complete": {
         this.emit("success", event.data.data)
         if (this.#params.autoClose) {
