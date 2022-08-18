@@ -51,6 +51,10 @@ export interface OneSchemaImporterProps {
    * Handler for when an error occurs during the import
    */
   onError?: (message: string) => void
+  /**
+   * Handler for when the importer is launched (aka is ready to be shown)
+   */
+  onLaunched?: () => void
 }
 
 /**
@@ -64,6 +68,7 @@ export default function OneSchemaImporter({
   onSuccess,
   onCancel,
   onError,
+  onLaunched,
 
   // deprecated
   blockImportIfErrors,
@@ -113,12 +118,16 @@ export default function OneSchemaImporter({
         onError && onError(message)
         onRequestClose && onRequestClose()
       })
+
+      importer.on("launched", () => {
+        onLaunch && onLaunch()
+      })
     }
 
     return () => {
       importer && importer.removeAllListeners()
     }
-  }, [importer, onSuccess, onCancel, onError, onRequestClose])
+  }, [importer, onSuccess, onCancel, onError, onRequestClose, onLaunched])
 
   useEffect(() => {
     if (params.className && importer) {

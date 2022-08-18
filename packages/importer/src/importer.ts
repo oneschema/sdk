@@ -193,6 +193,7 @@ export class OneSchemaImporterClass extends EventEmitter {
 
     switch (event.data.messageType) {
       case "launched": {
+        this.emit("launched")
         this.#show()
         break
       }
