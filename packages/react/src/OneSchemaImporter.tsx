@@ -120,7 +120,7 @@ export default function OneSchemaImporter({
       })
 
       importer.on("launched", () => {
-        onLaunch && onLaunch()
+        onLaunched && onLaunched()
       })
     }
 
