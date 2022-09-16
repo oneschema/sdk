@@ -10,6 +10,14 @@ export interface OneSchemaConfig {
    * Whether fixable errors should automatically be fixed after the mapping headers step
    */
   autofixAfterMapping?: boolean
+  /**
+   * Whether suggestions from code hooks should be auto-accepted. Defaults to false
+   */
+  acceptCodeHookSuggestions?: boolean
+  /**
+   * A token for a session created through the API for initiliaizing OneSchema
+   */
+  sessionToken?: string
 }
 
 /**
