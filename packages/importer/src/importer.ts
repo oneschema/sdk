@@ -2,6 +2,8 @@ import { EventEmitter } from "eventemitter3"
 import merge from "lodash.merge"
 import { DEFAULT_PARAMS, OneSchemaLaunchParams, OneSchemaParams } from "./config"
 
+const MAX_LAUNCH_RETRY = 10
+
 /**
  * OneSchemaImporter class manages the iframe
  * used for importing data in your application
@@ -10,6 +12,7 @@ import { DEFAULT_PARAMS, OneSchemaLaunchParams, OneSchemaParams } from "./config
 export class OneSchemaImporterClass extends EventEmitter {
   #params: OneSchemaParams
   iframe?: HTMLIFrameElement
+  _hasLaunched = false
   static #isLoaded = false
 
   constructor(params: OneSchemaParams) {
@@ -137,7 +140,7 @@ export class OneSchemaImporterClass extends EventEmitter {
     }
 
     const postInit = () => {
-      this.iframe?.contentWindow?.postMessage(message, this.#params.baseUrl || "")
+      this._initWithRetry(message)
     }
 
     if (OneSchemaImporterClass.#isLoaded) {
@@ -146,6 +149,20 @@ export class OneSchemaImporterClass extends EventEmitter {
       this.iframe.onload = postInit
       OneSchemaImporterClass.#isLoaded = true
     }
+  }
+
+  _initWithRetry(message: any, count = 1) {
+    if (this._hasLaunched) {
+      return
+    }
+
+    if (count > MAX_LAUNCH_RETRY) {
+      console.error("OneSchema failed to respond for initialization")
+      return
+    }
+
+    this.iframe?.contentWindow?.postMessage(message, this.#params.baseUrl || "")
+    setTimeout(() => this._initWithRetry(message, count + 1), 500)
   }
 
   /**
@@ -160,6 +177,8 @@ export class OneSchemaImporterClass extends EventEmitter {
         this.#params.baseUrl || "",
       )
     }
+
+    this._hasLaunched = false
 
     if (clean && this.iframe) {
       if (!this.iframe.dataset.count || this.iframe.dataset.count === "1") {
@@ -193,6 +212,7 @@ export class OneSchemaImporterClass extends EventEmitter {
 
     switch (event.data.messageType) {
       case "launched": {
+        this._hasLaunched = true
         this.emit("launched")
         this.#show()
         break
