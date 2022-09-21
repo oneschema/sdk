@@ -13,6 +13,7 @@ export class OneSchemaImporterClass extends EventEmitter {
   #params: OneSchemaParams
   iframe?: HTMLIFrameElement
   _hasLaunched = false
+  _hasCancelled = false
   static #isLoaded = false
 
   constructor(params: OneSchemaParams) {
@@ -140,19 +141,20 @@ export class OneSchemaImporterClass extends EventEmitter {
     }
 
     const postInit = () => {
+      this._hasCancelled = false
       this._initWithRetry(message)
+      OneSchemaImporterClass.#isLoaded = true
     }
 
     if (OneSchemaImporterClass.#isLoaded) {
       postInit()
     } else if (this.iframe) {
       this.iframe.onload = postInit
-      OneSchemaImporterClass.#isLoaded = true
     }
   }
 
   _initWithRetry(message: any, count = 1) {
-    if (this._hasLaunched) {
+    if (this._hasLaunched || this._hasCancelled) {
       return
     }
 
@@ -179,6 +181,7 @@ export class OneSchemaImporterClass extends EventEmitter {
     }
 
     this._hasLaunched = false
+    this._hasCancelled = true
 
     if (clean && this.iframe) {
       if (!this.iframe.dataset.count || this.iframe.dataset.count === "1") {
