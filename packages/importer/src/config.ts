@@ -18,6 +18,73 @@ export interface OneSchemaConfig {
    * A token for a session created through the API for initiliaizing OneSchema
    */
   sessionToken?: string
+  /**
+   * Options for specifying and/or modifying content displayed on different panes of the
+   * OneSchema Importer
+   */
+  contentOptions?: OneSchemaContentOptions
+}
+
+/**
+ * Options for specifying and/or modifying content displayed on different panes of the
+ * OneSchema Importer
+ */
+export interface OneSchemaContentOptions {
+  /**
+   * Options for the Upload a File step of the OneSchema Importer
+   */
+  upload?: OneSchemaUploadStepOptions
+}
+
+/**
+ * Options for content on the the Upload a File step of the OneSchema Importer
+ */
+export interface OneSchemaUploadStepOptions {
+  /**
+   * Options to override the content in the uploader
+   */
+  uploader?: OneSchemaUploaderOptions
+  /**
+   * Options to specify information displayed in the uploader sidebar
+   */
+  infoSidebar?: OneSchemaUploadInfoSidebarOptions
+}
+
+/**
+ * Options to override the content in the uploader
+ */
+export interface OneSchemaUploaderOptions {
+  /**
+   * String override for the header in the uploader.
+   * Defaults to: "What data do you want to upload?"
+   */
+  header?: string
+  /**
+   * String override for the subheader in the uploader
+   * Defaults to: "Upload a CSV or Excel file to begin the import process"
+   */
+  subheader?: string
+}
+
+/**
+ * Options to specify information displayed in the uploader sidebar
+ */
+export interface OneSchemaUploadInfoSidebarOptions {
+  /**
+   * Whether to hide the info banner. Defaults to false.
+   */
+  hideInfoBanner?: boolean
+  /**
+   * Text to be displayed in the info banner
+   * Defaults to: "Make sure your file includes at least the following required columns:"
+   */
+  infoBannerText?: string
+  /**
+   * Specify which template columns to display in the info sidebar.
+   * "required" shows only columns that must be mapped
+   * "all" shows all columns on the template
+   */
+  displayTemplateColumns: "required" | "all"
 }
 
 /**
