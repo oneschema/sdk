@@ -17,6 +17,7 @@ export interface OneSchemaImporterProps {
   clientId: string
   className?: string
   devMode?: boolean
+  languageCode?: string
   baseUrl?: string
   userJwt: string
   templateKey: string
