@@ -60,9 +60,10 @@ export class OneSchemaImporterClass extends EventEmitter {
     this.iframe = iframe
     this.iframe.setAttribute("allowtransparency", "true")
 
+    const lngParam = this.#params.lng ? `&lng=${this.#params.lng}` : ""
     const queryParams = `?embed_client_id=${this.#params.clientId}&dev_mode=${
       this.#params.devMode
-    }`
+    }${lngParam}`
     this.iframe.src = `${this.#params.baseUrl}/embed-launcher${queryParams}`
     this.setClassName(this.#params.className || "")
     if (this.#params.styles) {

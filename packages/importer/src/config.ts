@@ -66,6 +66,12 @@ export interface OneSchemaParams extends Partial<OneSchemaLaunchParams> {
    */
   styles?: Partial<CSSStyleDeclaration>
   /**
+   * Optional lng code (like 'en' or 'zh') to force importer language
+   * By default, will use user's set language.
+   * Requires enterprise licensing
+   */
+  lng?: string
+  /**
    * The id of the DOM element the iframe should be appended to
    * By default appends to document.body
    */
