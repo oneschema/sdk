@@ -4,6 +4,11 @@ This log is intended to keep track of package changes, including
 but not limited to API changes and file location changes. Minor behavioral
 changes may not be included if they are not expected to break existing code.
 
+## 0.2.6 (2022-09-27)
+
+* Add languageCode option
+* Update type definitions for contentOptions
+
 ## 0.2.5 (2022-09-21)
 
 * Fix for noisy error messages related to `postMessage`
@@ -15,7 +20,7 @@ changes may not be included if they are not expected to break existing code.
 
 ## 0.2.3 (2022-08-19)
 
-* emit `launched` event and add `onLaunched` prop which is called when UI is shown
+* Emit `launched` event and add `onLaunched` prop which is called when UI is shown
 
 ## 0.2.2 (2022-08-18)
 
