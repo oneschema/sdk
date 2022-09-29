@@ -2,8 +2,10 @@ import { EventEmitter } from "eventemitter3"
 import merge from "lodash.merge"
 import {
   DEFAULT_PARAMS,
+  OneSchemaLaunchError,
   OneSchemaLaunchParams,
   OneSchemaLaunchSessionParams,
+  OneSchemaLaunchStatus,
   OneSchemaParams,
 } from "./config"
 
@@ -125,7 +127,7 @@ export class OneSchemaImporterClass extends EventEmitter {
    * Launch will show the OneSchema window and initialize the importer session
    * @param launchParams optionally pass in parameter overrides or values not passed into constructor
    */
-  launch(launchParams?: Partial<OneSchemaLaunchParams>) {
+  launch(launchParams?: Partial<OneSchemaLaunchParams>): OneSchemaLaunchStatus {
     const mergedParams = merge({}, this.#params, launchParams)
     const message: any = { messageType: "init" }
     message.manualClose = true
@@ -134,13 +136,13 @@ export class OneSchemaImporterClass extends EventEmitter {
     message.userJwt = mergedParams.userJwt
     if (!message.userJwt) {
       console.error("OneSchema config error: missing userJwt")
-      return
+      return { success: false, error: OneSchemaLaunchError.MissingJwt }
     }
 
     message.templateKey = mergedParams.templateKey
     if (!message.templateKey) {
       console.error("OneSchema config error: missing templateKey")
-      return
+      return { success: false, error: OneSchemaLaunchError.MissingTemplate }
     }
 
     if (mergedParams.webhookKey) {
@@ -148,6 +150,7 @@ export class OneSchemaImporterClass extends EventEmitter {
     }
 
     this._launch(message)
+    return { success: true }
   }
 
   /**
@@ -155,7 +158,9 @@ export class OneSchemaImporterClass extends EventEmitter {
    * with the given session token
    * @param launchParams optionally pass in parameter overrides or values not passed into constructor
    */
-  launchSession(launchParams?: Partial<OneSchemaLaunchSessionParams>) {
+  launchSession(
+    launchParams?: Partial<OneSchemaLaunchSessionParams>,
+  ): OneSchemaLaunchStatus {
     const mergedParams = merge({}, this.#params, launchParams)
     const message: any = { messageType: "init-session" }
     message.manualClose = true
@@ -164,9 +169,11 @@ export class OneSchemaImporterClass extends EventEmitter {
     message.sessionToken = mergedParams.sessionToken
     if (!message.sessionToken) {
       console.error("OneSchema config error: missing sessionToken")
+      return { success: false, error: OneSchemaLaunchError.MissingSessionToken }
     }
 
     this._launch(message)
+    return { success: true }
   }
 
   _launch(message: any) {

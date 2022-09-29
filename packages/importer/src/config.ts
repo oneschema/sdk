@@ -123,6 +123,26 @@ export interface OneSchemaLaunchSessionParams {
 }
 
 /**
+ * Possible errors when launching OneSchema
+ */
+export enum OneSchemaLaunchError {
+  MissingTemplate,
+  MissingJwt,
+  MissingSessionToken,
+}
+
+export interface OneSchemaLaunchStatus {
+  /**
+   * Whether or not launch was successful
+   */
+  success: boolean
+  /**
+   * If success is false, this will be why it failed
+   */
+  error?: OneSchemaLaunchError
+}
+
+/**
  * Parameters for the OneSchema importer set at initialization
  */
 export interface OneSchemaInitParams {
