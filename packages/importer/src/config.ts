@@ -15,10 +15,6 @@ export interface OneSchemaConfig {
    */
   acceptCodeHookSuggestions?: boolean
   /**
-   * A token for a session created through the API for initiliaizing OneSchema
-   */
-  sessionToken?: string
-  /**
    * Options for specifying and/or modifying content displayed on different panes of the
    * OneSchema Importer
    */
@@ -112,9 +108,24 @@ export interface OneSchemaLaunchParams {
 }
 
 /**
- * Parameters for the OneSchema importer, includes all settings
+ * Parameters that can be set when the OneSchema importer launches with a sessionToken
  */
-export interface OneSchemaParams extends Partial<OneSchemaLaunchParams> {
+export interface OneSchemaLaunchSessionParams {
+  /**
+   * A token for a session created through the API for initiliaizing OneSchema
+   * If specified, there is no need to
+   */
+  sessionToken: string
+  /**
+   * Config options for how the OneSchema importer will behave
+   */
+  config?: OneSchemaConfig
+}
+
+/**
+ * Parameters for the OneSchema importer set at initialization
+ */
+export interface OneSchemaInitParams {
   /**
    * The client id from your OneSchema developer dashboard
    */
@@ -159,6 +170,18 @@ export interface OneSchemaParams extends Partial<OneSchemaLaunchParams> {
    */
   baseUrl?: string
 }
+
+/**
+ * Combined options for params used when launching OneSchema
+ */
+export type OneSchemaLaunchParamOptions =
+  | OneSchemaLaunchParams
+  | OneSchemaLaunchSessionParams
+
+/**
+ * Parameters for the OneSchema importer, includes all settings
+ */
+export type OneSchemaParams = OneSchemaInitParams & Partial<OneSchemaLaunchParamOptions>
 
 /**
  * The default values for the OneSchema importer
