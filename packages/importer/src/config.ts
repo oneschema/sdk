@@ -113,7 +113,6 @@ export interface OneSchemaLaunchParams {
 export interface OneSchemaLaunchSessionParams {
   /**
    * A token for a session created through the API for initiliaizing OneSchema
-   * If specified, there is no need to
    */
   sessionToken: string
   /**
