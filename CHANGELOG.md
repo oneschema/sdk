@@ -4,6 +4,12 @@ This log is intended to keep track of package changes, including
 but not limited to API changes and file location changes. Minor behavioral
 changes may not be included if they are not expected to break existing code.
 
+## 0.2.7 (2022-09-30)
+
+* Add `launchSession` and Typescript definitons for its usage
+* Moves `sessionToken` from config object into base option
+* `launched` event and `onLaunched` now have a parameter (object with `success` (bolean) and `error` (enum))
+
 ## 0.2.6 (2022-09-27)
 
 * Add languageCode option

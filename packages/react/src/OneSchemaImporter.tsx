@@ -1,7 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from "react"
-import oneschemaImporter, { OneSchemaConfig } from "@oneschema/importer"
+import oneschemaImporter, {
+  OneSchemaLaunchParamOptions,
+  OneSchemaLaunchStatus,
+} from "@oneschema/importer"
 
-export interface OneSchemaImporterProps {
+export interface OneSchemaImporterBaseProps {
   /**
    * Whether to show the iframe or not
    */
@@ -19,10 +22,6 @@ export interface OneSchemaImporterProps {
   devMode?: boolean
   languageCode?: string
   baseUrl?: string
-  userJwt: string
-  templateKey: string
-  webhookKey?: string
-  config?: OneSchemaConfig
   /**
    * DEPRECATED: use config prop instead
    */
@@ -54,9 +53,16 @@ export interface OneSchemaImporterProps {
   onError?: (message: string) => void
   /**
    * Handler for when the importer is launched (aka is ready to be shown)
+   * Or when launching fails, based on result
    */
-  onLaunched?: () => void
+  onLaunched?: (result: OneSchemaLaunchStatus) => void
 }
+
+/**
+ * Combined props for OneSchemaImporter
+ */
+export type OneSchemaImporterProps = OneSchemaImporterBaseProps &
+  OneSchemaLaunchParamOptions
 
 /**
  * Component for importing data with OneSchema
@@ -105,7 +111,7 @@ export default function OneSchemaImporter({
 
   useEffect(() => {
     if (importer) {
-      importer.on("success", (data) => {
+      importer.on("success", (data: any) => {
         onSuccess && onSuccess(data)
         onRequestClose && onRequestClose()
       })
@@ -115,13 +121,13 @@ export default function OneSchemaImporter({
         onRequestClose && onRequestClose()
       })
 
-      importer.on("error", (message) => {
+      importer.on("error", (message: string) => {
         onError && onError(message)
         onRequestClose && onRequestClose()
       })
 
       importer.on("launched", () => {
-        onLaunched && onLaunched()
+        onLaunched && onLaunched({ success: true })
       })
     }
 
@@ -145,7 +151,20 @@ export default function OneSchemaImporter({
   useEffect(() => {
     if (importer) {
       if (isOpen) {
-        importer.launch(params)
+        let result: OneSchemaLaunchStatus
+        if ("sessionToken" in params) {
+          result = importer.launchSession(params)
+        } else {
+          result = importer.launch(params)
+        }
+
+        // if there is a invalid config when launch is done
+        // it will fail and we give reason back as to why here
+        if (result && !result.success) {
+          importer.on("launched", () => {
+            onLaunched && onLaunched(result)
+          })
+        }
       } else {
         importer.close()
       }
