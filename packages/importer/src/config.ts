@@ -15,6 +15,13 @@ export interface OneSchemaConfig {
    */
   acceptCodeHookSuggestions?: boolean
   /**
+   * Whether to skip exporting data to the onSuccess callback when not using a webhookKey
+   * Will return an object with a `sheet_id` key which can be used with external API calls
+   * to access the data
+   * Default to false.
+   */
+  skipExportData?: boolean
+  /**
    * Options for specifying and/or modifying content displayed on different panes of the
    * OneSchema Importer
    */
