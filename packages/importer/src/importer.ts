@@ -199,6 +199,12 @@ export class OneSchemaImporterClass extends EventEmitter {
 
     if (count > MAX_LAUNCH_RETRY) {
       console.error("OneSchema failed to respond for initialization")
+      if (this.#params.devMode) {
+        // there might be some error in which case,
+        // it's good to surface to devs
+        this.#show()
+      }
+
       return
     }
 
