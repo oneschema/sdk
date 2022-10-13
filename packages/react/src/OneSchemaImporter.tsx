@@ -3,6 +3,7 @@ import oneschemaImporter, {
   OneSchemaLaunchParamOptions,
   OneSchemaLaunchStatus,
 } from "@oneschema/importer"
+import { version } from "../package.json"
 
 export interface OneSchemaImporterBaseProps {
   /**
@@ -96,11 +97,14 @@ export default function OneSchemaImporter({
   }
 
   const [importer] = useState(() => {
-    return oneschemaImporter({
+    const instance = oneschemaImporter({
       ...params,
       autoClose: false,
       manageDOM: inline,
     })
+
+    instance.setClient("React", version)
+    return instance
   })
 
   useEffect(() => {

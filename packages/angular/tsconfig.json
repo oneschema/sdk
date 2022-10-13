@@ -2,6 +2,7 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    "resolveJsonModule": true,
     "paths": {
       "@oneschema/angular": ["dist/oneschema/angular"],
       "oneschema": ["dist/oneschema"]
