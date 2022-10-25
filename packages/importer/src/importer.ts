@@ -8,6 +8,7 @@ import {
   OneSchemaLaunchStatus,
   OneSchemaParams,
 } from "./config"
+import { version } from "../package.json"
 
 const MAX_LAUNCH_RETRY = 10
 
@@ -19,6 +20,8 @@ const MAX_LAUNCH_RETRY = 10
 export class OneSchemaImporterClass extends EventEmitter {
   #params: OneSchemaParams
   iframe?: HTMLIFrameElement
+  _client = "Importer"
+  _version = version
   _hasLaunched = false
   _hasCancelled = false
   static #isLoaded = false
@@ -51,6 +54,16 @@ export class OneSchemaImporterClass extends EventEmitter {
 
       this.setParent(parent)
     }
+  }
+
+  /**
+   * Set the name and version of the client, used for logging/debugging
+   * @param client
+   * @param version
+   */
+  setClient(client: string, version: string) {
+    this._client = client
+    this._version = version
   }
 
   /**
@@ -181,7 +194,11 @@ export class OneSchemaImporterClass extends EventEmitter {
 
     const postInit = () => {
       this._hasCancelled = false
-      this._initWithRetry(message)
+      this._initWithRetry({
+        version: this._version,
+        client: this._client,
+        ...message,
+      })
       OneSchemaImporterClass.#isLoaded = true
     }
 

@@ -1,7 +1,7 @@
 {
   "name": "@oneschema/importer",
   "private": false,
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "Importer for using OneSchema",
   "author": "OneSchema",
   "license": "MIT",
@@ -37,6 +37,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^22.0.0",
+    "@rollup/plugin-json": "^5.0.0",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@rollup/plugin-replace": "^4.0.0",
     "@types/lodash.merge": "^4.6.7",

@@ -2,6 +2,7 @@ import nodeResolve from "@rollup/plugin-node-resolve"
 import commonjs from "@rollup/plugin-commonjs"
 import typescript from "rollup-plugin-typescript2"
 import dts from "rollup-plugin-dts"
+import json from "@rollup/plugin-json"
 import replace from "@rollup/plugin-replace"
 import { terser } from "rollup-plugin-terser"
 
@@ -14,6 +15,7 @@ export default [
     plugins: [
       nodeResolve(),
       commonjs(),
+      json(),
       replace({
         "process.env.NODE_ENV": JSON.stringify("production"),
         preventAssignment: true,
@@ -50,6 +52,7 @@ export default [
     plugins: [
       nodeResolve(),
       commonjs(),
+      json(),
       typescript({
         tsconfigOverride: {
           exclude: ["**/test"],
