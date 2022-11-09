@@ -1,13 +1,13 @@
 {
   "name": "@oneschema/react",
   "private": false,
-  "version": "0.2.9",
+  "version": "0.2.10",
   "description": "React component for using OneSchema",
   "author": "OneSchema",
   "license": "MIT",
   "main": "dist/main.js",
   "module": "dist/module.js",
-  "types": "dist/index.d.ts",
+  "types": "dist/src/index.d.ts",
   "targets": {
     "main": false,
     "module": false,

@@ -4,6 +4,14 @@ This log is intended to keep track of package changes, including
 but not limited to API changes and file location changes. Minor behavioral
 changes may not be included if they are not expected to break existing code.
 
+## 0.2.10 (React) (2022-11-09)
+
+* Fix Typescript definitions
+
+## 0.2.9 (2022-10-25)
+
+* Added messaging around SDK version and client to iframe
+
 ## 0.2.8 (2022-10-11)
 
 * Add `skipExportData` to Typescript definitions
