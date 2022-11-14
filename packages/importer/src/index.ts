@@ -1,18 +1,4 @@
-export {
-  OneSchemaConfig,
-  OneSchemaContentOptions,
-  OneSchemaUploadStepOptions,
-  OneSchemaUploaderOptions,
-  OneSchemaUploadInfoSidebarOptions,
-  OneSchemaLaunchParams,
-  OneSchemaLaunchSessionParams,
-  OneSchemaLaunchError,
-  OneSchemaLaunchStatus,
-  OneSchemaInitParams,
-  OneSchemaLaunchParamOptions,
-  OneSchemaParams,
-  DEFAULT_PARAMS,
-} from "./config"
+export * from "./config"
 import oneSchemaImporter, { OneSchemaImporterClass } from "./importer"
 
 export { OneSchemaImporterClass }

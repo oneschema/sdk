@@ -1,94 +1,99 @@
 /**
- * Config options for how the OneSchema importer will behave
+ * Type for hex colors
  */
-export interface OneSchemaConfig {
+export type Hex = `#${string}`
+/**
+ * Type with options for mapping strategy customization
+ */
+export type MappingStrategy = "exact" | "fuzzy" | "historical"
+/**
+ * Type with options for import experience customization
+ */
+export type ImportExperience = "blockIfErrors" | "promptIfErrors" | "ignoreErrors"
+/**
+ * Type with options for sidebar details customization
+ */
+export type SidebarDetails = "required" | "all"
+
+/**
+ * Available customization settings for OneSchema
+ * For more information on a particular setting see https://docs.oneschema.co/docs/customizations
+ */
+export interface OneSchemaCustomization {
   /**
-   * Whether importing should be blocked if there are validation errors in the data
+   * styles
    */
-  blockImportIfErrors?: boolean
+  // GENERAL
+  primaryColor?: Hex
+  backgroundPrimaryColor?: Hex
+  backgroundSecondaryColor?: Hex
+  headerColor?: Hex
+  footerColor?: Hex
+  borderColor?: Hex
+  successColor?: Hex
+  warningColor?: Hex
+  errorColor?: Hex
+
+  // BUTTONS
+  buttonBorderRadius?: string
+  buttonPrimaryFillColor?: Hex
+  buttonPrimaryStrokeColor?: Hex
+  buttonPrimaryTextColor?: Hex
+  buttonSecondaryFillColor?: Hex
+  buttonSecondaryStrokeColor?: Hex
+  buttonSecondaryTextColor?: Hex
+  buttonTertiaryFillColor?: Hex
+  buttonTertiaryStrokeColor?: Hex
+  buttonTertiaryTextColor?: Hex
+  buttonAlertFillColor?: Hex
+  buttonAlertStrokeColor?: Hex
+  buttonAlertTextColor?: Hex
+
+  // FONTS
+  fontUrl?: string
+  fontFamily?: string
+  fontColorPrimary?: Hex
+  fontColorSecondary?: Hex
+  fontColorPlaceholder?: Hex
+
+  // MODAL
+  modalFullscreen?: boolean
+  modalMaskColor?: Hex
+  modalBorderRadius?: string
+  hideLogo?: boolean
+  illustrationUrl?: string
+
+  uploaderHeaderText?: string
+  uploaderSubheaderText?: string
+  uploaderShowSidebar?: boolean
+  uploaderSidebarDetails?: SidebarDetails
+  uploaderShowSidebarBanner?: boolean
+  uploaderSidebarBannerText?: string
+
+  includeExcelTemplate?: boolean
+  importExperience?: ImportExperience
+
   /**
-   * Whether fixable errors should automatically be fixed after the mapping headers step
+   * importer options
    */
-  autofixAfterMapping?: boolean
-  /**
-   * Whether suggestions from code hooks should be auto-accepted. Defaults to false
-   */
+  importUnmappedColumns?: boolean
+  mappingStrategy?: MappingStrategy[]
+  skipMapping?: MappingStrategy[]
   acceptCodeHookSuggestions?: boolean
-  /**
-   * Whether to skip exporting data to the onSuccess callback when not using a webhookKey
-   * Will return an object with a `sheet_id` key which can be used with external API calls
-   * to access the data
-   * Default to false.
-   */
-  skipExportData?: boolean
-  /**
-   * Options for specifying and/or modifying content displayed on different panes of the
-   * OneSchema Importer
-   */
-  contentOptions?: OneSchemaContentOptions
+  autofixAfterMapping?: boolean
 }
 
-/**
- * Options for specifying and/or modifying content displayed on different panes of the
- * OneSchema Importer
- */
-export interface OneSchemaContentOptions {
-  /**
-   * Options for the Upload a File step of the OneSchema Importer
-   */
-  upload?: OneSchemaUploadStepOptions
+export interface WebhookImportConfig {
+  type: "webhook"
+  key: string
 }
 
-/**
- * Options for content on the the Upload a File step of the OneSchema Importer
- */
-export interface OneSchemaUploadStepOptions {
-  /**
-   * Options to override the content in the uploader
-   */
-  uploader?: OneSchemaUploaderOptions
-  /**
-   * Options to specify information displayed in the uploader sidebar
-   */
-  infoSidebar?: OneSchemaUploadInfoSidebarOptions
+export interface LocalImportConfig {
+  type: "local"
+  metadataOnly?: boolean
 }
 
-/**
- * Options to override the content in the uploader
- */
-export interface OneSchemaUploaderOptions {
-  /**
-   * String override for the header in the uploader.
-   * Defaults to: "What data do you want to upload?"
-   */
-  header?: string
-  /**
-   * String override for the subheader in the uploader
-   * Defaults to: "Upload a CSV or Excel file to begin the import process"
-   */
-  subheader?: string
-}
-
-/**
- * Options to specify information displayed in the uploader sidebar
- */
-export interface OneSchemaUploadInfoSidebarOptions {
-  /**
-   * Whether to hide the info banner. Defaults to false.
-   */
-  hideInfoBanner?: boolean
-  /**
-   * Text to be displayed in the info banner
-   * Defaults to: "Make sure your file includes at least the following required columns:"
-   */
-  infoBannerText?: string
-  /**
-   * Specify which template columns to display in the info sidebar.
-   * "required" shows only columns that must be mapped
-   * "all" shows all columns on the template
-   */
-  displayTemplateColumns: "required" | "all"
-}
+export type ImportConfig = WebhookImportConfig | LocalImportConfig
 
 /**
  * Parameters that can be set when the OneSchema importer launches
@@ -104,14 +109,13 @@ export interface OneSchemaLaunchParams {
    */
   templateKey: string
   /**
-   * The key for the webhook that data from this import
-   * should be sent to. Setup inside OneSchema before using
+   * The configuration for how data should be impored from OneSchema
    */
-  webhookKey?: string
+  importConfig?: ImportConfig
   /**
-   * Config options for how the OneSchema importer will behave
+   * Customization options for how OneSchema will behave
    */
-  config?: OneSchemaConfig
+  customizationOverrides?: OneSchemaCustomization
 }
 
 /**
@@ -123,9 +127,9 @@ export interface OneSchemaLaunchSessionParams {
    */
   sessionToken: string
   /**
-   * Config options for how the OneSchema importer will behave
+   * Customization options for how OneSchema will behave
    */
-  config?: OneSchemaConfig
+  customizationOverrides?: OneSchemaCustomization
 }
 
 /**
@@ -218,8 +222,4 @@ export const DEFAULT_PARAMS: Partial<OneSchemaParams> = {
   className: "oneschema-iframe",
   autoClose: true,
   manageDOM: true,
-  config: {
-    blockImportIfErrors: true,
-    autofixAfterMapping: false,
-  },
 }
