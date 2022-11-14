@@ -43,11 +43,7 @@ function OneSchemaExample() {
         userJwt={token}
         templateKey={templateKey}
         /* optional config values */
-        webhookKey={webhookKey}
-        config={{
-          blockImportIfErrors: true,
-          autofixAfterMapping: true,
-        }}
+        importConfig={{ type: "local", metadataOnly: false, }}
         devMode={process.env.NODE_ENV !== "production"}
         className="oneschema-importer"
         style={{
