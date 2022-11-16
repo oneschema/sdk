@@ -20,7 +20,7 @@ npm i --save @oneschema/importer
 or with a script tag:
 
 ```html
-<script src="https://d3ah8o189k1llu.cloudfront.net/oneschema-importer-latest.min.js"></script>
+<script src="https://d3ah8o189k1llu.cloudfront.net/oneschema-importer-0.3.latest.min.js"></script>
 ```
 
 ### Sample usage
