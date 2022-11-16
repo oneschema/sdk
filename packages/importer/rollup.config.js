@@ -37,7 +37,11 @@ export default [
         sourcemap: true,
       },
       {
-        file: `dist/oneschema-importer-latest.min.js`,
+        // take off smallest part of version, so 0.2.6 becomes 0.2.latest :)
+        file: `dist/oneschema-importer-${pkg.version
+          .split(".")
+          .slice(0, 2)
+          .join(".")}.latest.min.js`,
         format: "umd",
         name: "oneschemaImporter",
         exports: "default",
