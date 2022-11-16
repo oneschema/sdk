@@ -24,14 +24,6 @@ export interface OneSchemaImporterBaseProps {
   languageCode?: string
   baseUrl?: string
   /**
-   * DEPRECATED: use config prop instead
-   */
-  blockImportIfErrors?: boolean
-  /**
-   * DEPRECATED: use inline prop instead
-   */
-  parentId?: string
-  /**
    * CSS styles that should be applied to the iframe
    */
   style?: React.CSSProperties
@@ -77,25 +69,8 @@ export default function OneSchemaImporter({
   onCancel,
   onError,
   onLaunched,
-
-  // deprecated
-  blockImportIfErrors,
-  parentId,
-
   ...params
 }: OneSchemaImporterProps) {
-  if (blockImportIfErrors !== undefined) {
-    console.warn(
-      "OneSchema prop 'blockImportIfErrors' is deprecated. Use 'config' prop instead",
-    )
-  }
-
-  if (parentId !== undefined) {
-    console.warn(
-      "OneSchema prop 'parentId' is deprecated. Use 'inline' prop, possibly with portal instead",
-    )
-  }
-
   const [importer] = useState(() => {
     const instance = oneschemaImporter({
       ...params,

@@ -4,6 +4,17 @@ This log is intended to keep track of package changes, including
 but not limited to API changes and file location changes. Minor behavioral
 changes may not be included if they are not expected to break existing code.
 
+## 0.3.0 (2022-11-15)
+
+* Updates to how config is specified with some breaking changes:
+  * Add `customizationOverrides` and `importConfig` to params
+  * Remove `config` and `webhookKey` from params. To migrate:
+    * For most `config` values, pass them into `customizationOverride` or set on the [Customizations page](https://app.oneschema.co/customizations).
+    * For `skipExportData` set `importConfig` to `{ type: "local", metadataOnly: true }`
+    * For `webhookKey` set `importConfig` as `{ type: "webhook", key: webhookKey}`
+  * Remove `parentId` and `blockImportIfErrors`
+
+
 ## 0.2.10 (React) (2022-11-09)
 
 * Fix Typescript definitions

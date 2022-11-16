@@ -144,7 +144,7 @@ export class OneSchemaImporterClass extends EventEmitter {
     const mergedParams = merge({}, this.#params, launchParams)
     const message: any = { messageType: "init" }
     message.manualClose = true
-    message.options = mergedParams.config
+    message.customizationOverrides = mergedParams.customizationOverrides
 
     message.userJwt = mergedParams.userJwt
     if (!message.userJwt) {
@@ -158,8 +158,8 @@ export class OneSchemaImporterClass extends EventEmitter {
       return { success: false, error: OneSchemaLaunchError.MissingTemplate }
     }
 
-    if (mergedParams.webhookKey) {
-      message.webhookKey = mergedParams.webhookKey
+    if (mergedParams.importConfig) {
+      message.importConfig = mergedParams.importConfig
     }
 
     this._launch(message)
@@ -177,7 +177,7 @@ export class OneSchemaImporterClass extends EventEmitter {
     const mergedParams = merge({}, this.#params, launchParams)
     const message: any = { messageType: "init-session" }
     message.manualClose = true
-    message.options = mergedParams.config
+    message.customizationOverrides = mergedParams.customizationOverrides
 
     message.sessionToken = mergedParams.sessionToken
     if (!message.sessionToken) {

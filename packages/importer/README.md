@@ -35,11 +35,7 @@ const importer = oneschemaImporter({
   templateKey: 'YOUR_TEMPLATE_KEY',
   userJwt: 'YOUR_USER_JWT',
   /* optional */
-  webhookKey: 'YOUR_WEBHOOK_KEY',
-  config: {
-    blockImportIfErrors: true,
-    autofixAfterMapping: true,
-  },
+  importConfig: { type: "local" }
   devMode: true,
   className: 'oneschema-importer',
 })
@@ -50,11 +46,7 @@ importer.launch()
 importer.launch({
   templateKey: 'YOUR_TEMPLATE_KEY',
   userJwt: 'YOUR_USER_JWT',
-  webhookKey: 'YOUR_WEBHOOK_KEY',
-  config: {
-    blockImportIfErrors: true,
-    autofixAfterMapping: true,
-  },
+  importConfig: { type: "local" }
 })
 
 importer.on("success", (data) => {
