@@ -6,8 +6,8 @@ changes may not be included if they are not expected to break existing code.
 
 ## 0.3.1 (2022-12-13)
 
-* Add `fileSizeLimit` to Typescript definiitions for `customizationOverrides
-* Add support for `customizationKey` param to specif which customization to use
+* Add `fileSizeLimit` to Typescript definitions for `customizationOverrides
+* Add support for `customizationKey` param to specify which customization to use
 * Deprecate `launchSession` (use `launch` instead)
 
 ## 0.3.0 (2022-11-15)
