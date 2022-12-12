@@ -81,6 +81,7 @@ export interface OneSchemaCustomization {
   skipMapping?: MappingStrategy[]
   acceptCodeHookSuggestions?: boolean
   autofixAfterMapping?: boolean
+  fileSizeLimit?: number
 }
 
 export interface WebhookImportConfig {
@@ -109,9 +110,13 @@ export interface OneSchemaLaunchParams {
    */
   templateKey: string
   /**
-   * The configuration for how data should be impored from OneSchema
+   * The configuration for how data should be imported from OneSchema
    */
   importConfig?: ImportConfig
+  /**
+   * Key for a customization setup in OneSchema
+   */
+  customizationKey?: string
   /**
    * Customization options for how OneSchema will behave
    */
