@@ -140,26 +140,35 @@ export class OneSchemaImporterClass extends EventEmitter {
    * Launch will show the OneSchema window and initialize the importer session
    * @param launchParams optionally pass in parameter overrides or values not passed into constructor
    */
-  launch(launchParams?: Partial<OneSchemaLaunchParams>): OneSchemaLaunchStatus {
+  launch(
+    launchParams?: Partial<OneSchemaLaunchParams> & Partial<OneSchemaLaunchSessionParams>,
+  ): OneSchemaLaunchStatus {
     const mergedParams = merge({}, this.#params, launchParams)
-    const message: any = { messageType: "init" }
+    const message: any = {}
     message.manualClose = true
+    message.customizationKey = mergedParams.customizationKey
     message.customizationOverrides = mergedParams.customizationOverrides
 
-    message.userJwt = mergedParams.userJwt
-    if (!message.userJwt) {
-      console.error("OneSchema config error: missing userJwt")
-      return { success: false, error: OneSchemaLaunchError.MissingJwt }
-    }
+    if (mergedParams.sessionToken) {
+      message.messageType = "init-session"
+      message.sessionToken = mergedParams.sessionToken
+    } else {
+      message.messageType = "init"
+      message.userJwt = mergedParams.userJwt
+      if (!message.userJwt) {
+        console.error("OneSchema config error: missing userJwt")
+        return { success: false, error: OneSchemaLaunchError.MissingJwt }
+      }
 
-    message.templateKey = mergedParams.templateKey
-    if (!message.templateKey) {
-      console.error("OneSchema config error: missing templateKey")
-      return { success: false, error: OneSchemaLaunchError.MissingTemplate }
-    }
+      message.templateKey = mergedParams.templateKey
+      if (!message.templateKey) {
+        console.error("OneSchema config error: missing templateKey")
+        return { success: false, error: OneSchemaLaunchError.MissingTemplate }
+      }
 
-    if (mergedParams.importConfig) {
-      message.importConfig = mergedParams.importConfig
+      if (mergedParams.importConfig) {
+        message.importConfig = mergedParams.importConfig
+      }
     }
 
     this._launch(message)
@@ -167,26 +176,14 @@ export class OneSchemaImporterClass extends EventEmitter {
   }
 
   /**
-   * Launch session will show the OneSchema window and initialize the importer session
-   * with the given session token
+   * DEPRECATED: use `launch` instead.
+   * Launch session will show the OneSchema window and initialize the importer session with the given session token
    * @param launchParams optionally pass in parameter overrides or values not passed into constructor
    */
   launchSession(
     launchParams?: Partial<OneSchemaLaunchSessionParams>,
   ): OneSchemaLaunchStatus {
-    const mergedParams = merge({}, this.#params, launchParams)
-    const message: any = { messageType: "init-session" }
-    message.manualClose = true
-    message.customizationOverrides = mergedParams.customizationOverrides
-
-    message.sessionToken = mergedParams.sessionToken
-    if (!message.sessionToken) {
-      console.error("OneSchema config error: missing sessionToken")
-      return { success: false, error: OneSchemaLaunchError.MissingSessionToken }
-    }
-
-    this._launch(message)
-    return { success: true }
+    return this.launch(launchParams)
   }
 
   _launch(message: any) {
