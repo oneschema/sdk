@@ -280,7 +280,16 @@ export class OneSchemaImporterClass extends EventEmitter {
         break
       }
       case "complete": {
-        this.emit("success", event.data.data)
+        if (event.data.data) {
+          // for frontend pass through
+          this.emit("success", event.data.data)
+        } else {
+          // for webhook imports, eventId and responses are used
+          this.emit("success", {
+            eventId: event.data.eventId,
+            responses: event.data.responses,
+          })
+        }
         if (this.#params.autoClose) {
           this.close()
         }
