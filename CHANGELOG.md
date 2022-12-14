@@ -4,6 +4,10 @@ This log is intended to keep track of package changes, including
 but not limited to API changes and file location changes. Minor behavioral
 changes may not be included if they are not expected to break existing code.
 
+## 0.3.2 (2022-12-14)
+
+* Include data to the "success" event for webhook imports
+
 ## 0.3.1 (2022-12-13)
 
 * Add `fileSizeLimit` to Typescript definitions for `customizationOverrides
