@@ -22,6 +22,7 @@ export class OneSchemaImporterClass extends EventEmitter {
   iframe?: HTMLIFrameElement
   _client = "Importer"
   _version = version
+  _resumeTokenKey = ""
   _hasLaunched = false
   _hasCancelled = false
   static #isLoaded = false
@@ -169,6 +170,18 @@ export class OneSchemaImporterClass extends EventEmitter {
       if (mergedParams.importConfig) {
         message.importConfig = mergedParams.importConfig
       }
+
+      if (mergedParams.saveSession) {
+        try {
+          this._resumeTokenKey = `OneSchema-session-${mergedParams.userJwt}-${mergedParams.templateKey}`
+          const resumeToken = window.localStorage.getItem(this._resumeTokenKey)
+          if (resumeToken) {
+            message.resumeToken = resumeToken
+          }
+        } catch {
+          /* local storage is not avialable, don't sweat it */
+        }
+      }
     }
 
     this._launch(message)
@@ -275,6 +288,15 @@ export class OneSchemaImporterClass extends EventEmitter {
     switch (event.data.messageType) {
       case "launched": {
         this._hasLaunched = true
+        if (this._resumeTokenKey && event.data.sessionToken) {
+          try {
+            const sessionToken = event.data.sessionToken
+            window.localStorage.setItem(this._resumeTokenKey, sessionToken)
+          } catch {
+            /* local storage is not avialable, don't sweat it */
+          }
+        }
+
         this.emit("launched")
         this.#show()
         break
@@ -290,6 +312,14 @@ export class OneSchemaImporterClass extends EventEmitter {
             responses: event.data.responses,
           })
         }
+        if (this._resumeTokenKey) {
+          try {
+            window.localStorage.removeItem(this._resumeTokenKey)
+          } catch {
+            /* local storage is not avialable, don't sweat it */
+          }
+        }
+
         if (this.#params.autoClose) {
           this.close()
         }

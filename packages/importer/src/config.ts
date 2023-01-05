@@ -190,6 +190,11 @@ export interface OneSchemaInitParams {
    */
   parentId?: string
   /**
+   * Whether to save session information to local storage and enable resuming
+   * Defaults to false
+   */
+  saveSession?: boolean
+  /**
    * Whether to close the importer when complete.
    * Defaults to true
    */
