@@ -190,6 +190,11 @@ export interface OneSchemaInitParams {
    */
   parentId?: string
   /**
+   * Whether to save session information to local storage and enable resuming
+   * Defaults to true
+   */
+  saveSession?: boolean
+  /**
    * Whether to close the importer when complete.
    * Defaults to true
    */
@@ -227,4 +232,5 @@ export const DEFAULT_PARAMS: Partial<OneSchemaParams> = {
   className: "oneschema-iframe",
   autoClose: true,
   manageDOM: true,
+  saveSession: true,
 }
