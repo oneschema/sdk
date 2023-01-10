@@ -328,6 +328,14 @@ export class OneSchemaImporterClass extends EventEmitter {
       }
       case "cancel": {
         this.emit("cancel")
+        if (this._resumeTokenKey) {
+          try {
+            window.localStorage.removeItem(this._resumeTokenKey)
+          } catch {
+            /* local storage is not avialable, don't sweat it */
+          }
+        }
+
         if (this.#params.autoClose) {
           this.close()
         }

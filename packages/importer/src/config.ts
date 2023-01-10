@@ -232,4 +232,5 @@ export const DEFAULT_PARAMS: Partial<OneSchemaParams> = {
   className: "oneschema-iframe",
   autoClose: true,
   manageDOM: true,
+  saveSession: true,
 }
