@@ -4,6 +4,10 @@ This log is intended to keep track of package changes, including
 but not limited to API changes and file location changes. Minor behavioral
 changes may not be included if they are not expected to break existing code.
 
+## 0.3.4 (2023-01-10)
+
+* Change resume session to default on and remove session saving on cancel.
+
 ## 0.3.3 (2023-01-5)
 
 * Adds support for saving and resuming session.
