@@ -131,10 +131,6 @@ export interface OneSchemaLaunchSessionParams {
    * A token for a session created through the API for initiliaizing OneSchema
    */
   sessionToken: string
-  /**
-   * Customization options for how OneSchema will behave
-   */
-  customizationOverrides?: OneSchemaCustomization
 }
 
 /**
