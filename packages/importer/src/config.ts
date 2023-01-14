@@ -96,6 +96,28 @@ export interface LocalImportConfig {
 
 export type ImportConfig = WebhookImportConfig | LocalImportConfig
 
+export interface OneSchemaTemplateColumn {
+  key: string
+  label?: string
+  data_type?: string | null
+  validation_options?: { [key: string]: any }
+  description?: string
+  is_custom?: boolean
+  is_required?: boolean
+  is_unique?: boolean
+  letter_case?: string
+  min_char_limit?: number
+  max_char_limit?: number
+  delimiter?: string
+  must_exit?: boolean
+  default_value?: string
+  mapping_hints?: string[]
+}
+
+export interface OneSchemaTemplateOverrides {
+  columns: OneSchemaTemplateColumn[]
+}
+
 /**
  * Parameters that can be set when the OneSchema importer launches
  */
@@ -109,6 +131,10 @@ export interface OneSchemaLaunchParams {
    * Setup inside OneSchema before using
    */
   templateKey: string
+  /**
+   * Template overrides to modify the behavior of the base template
+   */
+  templateOverrides: OneSchemaTemplateOverrides
   /**
    * The configuration for how data should be imported from OneSchema
    */

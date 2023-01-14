@@ -8,6 +8,18 @@ const importer = oneSchemaImporter({
   templateKey: "crm_test",
   userJwt:
     "eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI2N2JiMmU1Zi1mMGY3LTQyYTYtYTUxMS0xOGIyNWU2N2I4YzQiLCJ1c2VyX2lkIjoxMjM0fQ.MaxfODdhWqVamNgK7l8mZrR-A4B2uGDuPWLOreu7dQI",
+  templateOverrides: {
+    columns: [
+      {
+        key: "segment",
+        label: "overwritten segment",
+        data_type: null,
+        validation_options: {
+          values: ["test"],
+        },
+      },
+    ],
+  },
 })
 
 function start() {
