@@ -22,6 +22,7 @@ export interface OneSchemaImporterBaseProps {
   className?: string
   devMode?: boolean
   languageCode?: string
+  saveSession?: boolean
   baseUrl?: string
   /**
    * CSS styles that should be applied to the iframe
