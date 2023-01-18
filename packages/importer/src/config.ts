@@ -134,7 +134,7 @@ export interface OneSchemaLaunchParams {
   /**
    * Template overrides to modify the behavior of the base template
    */
-  templateOverrides: OneSchemaTemplateOverrides
+  templateOverrides?: OneSchemaTemplateOverrides
   /**
    * The configuration for how data should be imported from OneSchema
    */
