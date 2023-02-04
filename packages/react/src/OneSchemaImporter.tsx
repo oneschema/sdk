@@ -22,6 +22,7 @@ export interface OneSchemaImporterBaseProps {
   className?: string
   devMode?: boolean
   languageCode?: string
+  parentId?: string
   saveSession?: boolean
   baseUrl?: string
   /**
