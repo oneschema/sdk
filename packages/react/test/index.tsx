@@ -19,7 +19,6 @@ function ImportTester() {
         userJwt="eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI2N2JiMmU1Zi1mMGY3LTQyYTYtYTUxMS0xOGIyNWU2N2I4YzQiLCJ1c2VyX2lkIjoxMjM0fQ.MaxfODdhWqVamNgK7l8mZrR-A4B2uGDuPWLOreu7dQI"
         templateKey="crm_test"
         onSuccess={handleData}
-        inline
         onCancel={() => console.log("cancelled")}
         onError={(message) => console.log(message)}
         baseUrl="http://embed.localschema.co:9450"
