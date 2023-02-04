@@ -77,7 +77,7 @@ export default function OneSchemaImporter({
     const instance = oneschemaImporter({
       ...params,
       autoClose: false,
-      manageDOM: inline,
+      manageDOM: !inline,
     })
 
     instance.setClient("React", version)
