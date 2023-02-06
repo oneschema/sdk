@@ -1,5 +1,5 @@
-import React, { useState } from "react"
-import * as ReactDOM from "react-dom"
+import React, { useEffect, useState } from "react"
+import { createRoot } from "react-dom/client"
 import OneSchemaImporter from "../src"
 
 function ImportTester() {
@@ -34,4 +34,14 @@ function ImportTester() {
   )
 }
 
-ReactDOM.render(<ImportTester />, document.getElementById("root"))
+const container = document.getElementById("root")
+const root = createRoot(container!)
+root.render(
+  <React.StrictMode>
+    <ImportTester />
+  </React.StrictMode>,
+)
+
+if ((module as any)?.hot) {
+  ;(module as any)?.hot.accept()
+}

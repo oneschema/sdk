@@ -29,3 +29,7 @@ const startbutton = document.getElementById("start-button")
 if (startbutton) {
   startbutton.onclick = start
 }
+
+if ((module as any)?.hot) {
+  ;(module as any)?.hot.accept()
+}

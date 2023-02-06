@@ -22,7 +22,6 @@ export interface OneSchemaImporterBaseProps {
   className?: string
   devMode?: boolean
   languageCode?: string
-  parentId?: string
   saveSession?: boolean
   baseUrl?: string
   /**
@@ -77,7 +76,7 @@ export default function OneSchemaImporter({
     const instance = oneschemaImporter({
       ...params,
       autoClose: false,
-      manageDOM: inline,
+      manageDOM: !inline,
     })
 
     instance.setClient("React", version)
