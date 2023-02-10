@@ -147,6 +147,10 @@ export interface OneSchemaLaunchParams {
    * Customization options for how OneSchema will behave
    */
   customizationOverrides?: OneSchemaCustomization
+  /**
+   * Event webhooks that should be used during an import session
+   */
+  eventWebhooks?: string[]
 }
 
 /**
