@@ -150,6 +150,7 @@ export class OneSchemaImporterClass extends EventEmitter {
     message.customizationKey = mergedParams.customizationKey
     message.customizationOverrides = mergedParams.customizationOverrides
     message.templateOverrides = mergedParams.templateOverrides
+    message.eventWebhooks = mergedParams.eventWebhooks
 
     if (mergedParams.sessionToken) {
       message.messageType = "init-session"
