@@ -4,10 +4,13 @@ This log is intended to keep track of package changes, including
 but not limited to API changes and file location changes. Minor behavioral
 changes may not be included if they are not expected to break existing code.
 
+## 0.3.9 (2023-02-14)
 
-## 0.3.8 (2023-02-14)
+- Update event webhooks field to `eventWebhookKeys`
 
-- Add typing for event webhooks
+## 0.3.8 (2023-02-13)
+
+- Add support for event webhooks
 
 ## 0.3.7 (2023-02-04)
 

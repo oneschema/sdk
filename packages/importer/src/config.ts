@@ -150,7 +150,7 @@ export interface OneSchemaLaunchParams {
   /**
    * Event webhooks that should be used during an import session
    */
-  eventWebhooks?: string[]
+  eventWebhookKeys?: string[]
 }
 
 /**
