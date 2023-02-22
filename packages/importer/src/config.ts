@@ -7,6 +7,10 @@ export type Hex = `#${string}`
  */
 export type MappingStrategy = "exact" | "fuzzy" | "historical"
 /**
+ * Type with options for skipping the header row step
+ */
+export type SkipHeaderRowStrategy = "always" | "detect" | "never"
+/**
  * Type with options for import experience customization
  */
 export type ImportExperience = "blockIfErrors" | "promptIfErrors" | "ignoreErrors"
@@ -79,6 +83,7 @@ export interface OneSchemaCustomization {
   importUnmappedColumns?: boolean
   mappingStrategy?: MappingStrategy[]
   skipMapping?: MappingStrategy[]
+  skipHeaderRow?: SkipHeaderRowStrategy
   acceptCodeHookSuggestions?: boolean
   autofixAfterMapping?: boolean
   fileSizeLimit?: number
