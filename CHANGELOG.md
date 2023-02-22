@@ -6,7 +6,7 @@ changes may not be included if they are not expected to break existing code.
 
 ## 0.3.10 (2023-02-21)
 
-- Add support for skipHeaderRow as a customization override
+- Update Typescript definitions for skipHeaderRow in customization overrides
 
 ## 0.3.9 (2023-02-14)
 
