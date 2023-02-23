@@ -4,6 +4,10 @@ This log is intended to keep track of package changes, including
 but not limited to API changes and file location changes. Minor behavioral
 changes may not be included if they are not expected to break existing code.
 
+## 0.3.11 (2023-02-23)
+
+- Emit session token in the launched event
+
 ## 0.3.10 (2023-02-21)
 
 - Update Typescript definitions for skipHeaderRow in customization overrides
