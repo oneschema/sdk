@@ -106,8 +106,8 @@ export default function OneSchemaImporter({
         onRequestClose && onRequestClose()
       })
 
-      importer.on("launched", () => {
-        onLaunched && onLaunched({ success: true })
+      importer.on("launched", (data: { sessionToken: string }) => {
+        onLaunched && onLaunched({ success: true, sessionToken: data.sessionToken })
       })
     }
 

@@ -183,6 +183,10 @@ export interface OneSchemaLaunchStatus {
    */
   success: boolean
   /**
+   * If success is true, include a session token
+   */
+  sessionToken?: string
+  /**
    * If success is false, this will be why it failed
    */
   error?: OneSchemaLaunchError
@@ -253,6 +257,30 @@ export type OneSchemaLaunchParamOptions =
  * Parameters for the OneSchema importer, includes all settings
  */
 export type OneSchemaParams = OneSchemaInitParams & Partial<OneSchemaLaunchParamOptions>
+
+/**
+ * Message passed to OneSchema for init
+ */
+export interface OneSchemaInitMessage {
+  messageType: "init" | "init-session"
+  userJwt: string
+  templateKey: string
+  importConfig: ImportConfig
+  customizationKey: string
+  customizationOverrides: OneSchemaCustomization
+  templateOverrides: OneSchemaTemplateOverrides
+  eventWebhookKeys: string[]
+
+  resumeToken?: string
+
+  sessionToken?: string
+
+  manualClose: boolean
+
+  // debug info
+  version: string
+  client: string
+}
 
 /**
  * The default values for the OneSchema importer

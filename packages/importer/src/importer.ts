@@ -7,6 +7,7 @@ import {
   OneSchemaLaunchSessionParams,
   OneSchemaLaunchStatus,
   OneSchemaParams,
+  OneSchemaInitMessage,
 } from "./config"
 import { version } from "../package.json"
 
@@ -25,6 +26,7 @@ export class OneSchemaImporterClass extends EventEmitter {
   _resumeTokenKey = ""
   _hasLaunched = false
   _hasCancelled = false
+  _initMessage?: OneSchemaInitMessage
   static #isLoaded = false
 
   constructor(params: OneSchemaParams) {
@@ -145,12 +147,15 @@ export class OneSchemaImporterClass extends EventEmitter {
     launchParams?: Partial<OneSchemaLaunchParams> & Partial<OneSchemaLaunchSessionParams>,
   ): OneSchemaLaunchStatus {
     const mergedParams = merge({}, this.#params, launchParams)
-    const message: any = {}
-    message.manualClose = true
-    message.customizationKey = mergedParams.customizationKey
-    message.customizationOverrides = mergedParams.customizationOverrides
-    message.templateOverrides = mergedParams.templateOverrides
-    message.eventWebhookKeys = mergedParams.eventWebhookKeys
+    const message: Partial<OneSchemaInitMessage> = {
+      version: this._version,
+      client: this._client,
+      manualClose: true,
+      customizationKey: mergedParams.customizationKey,
+      customizationOverrides: mergedParams.customizationOverrides,
+      templateOverrides: mergedParams.templateOverrides,
+      eventWebhookKeys: mergedParams.eventWebhookKeys,
+    }
 
     if (mergedParams.sessionToken) {
       message.messageType = "init-session"
@@ -186,7 +191,8 @@ export class OneSchemaImporterClass extends EventEmitter {
       }
     }
 
-    this._launch(message)
+    this._initMessage = message as OneSchemaInitMessage
+    this._launch()
     return { success: true }
   }
 
@@ -201,16 +207,12 @@ export class OneSchemaImporterClass extends EventEmitter {
     return this.launch(launchParams)
   }
 
-  _launch(message: any) {
+  _launch() {
     window.addEventListener("message", this.#eventListener)
 
     const postInit = () => {
       this._hasCancelled = false
-      this._initWithRetry({
-        version: this._version,
-        client: this._client,
-        ...message,
-      })
+      this._initWithRetry()
       OneSchemaImporterClass.#isLoaded = true
     }
 
@@ -221,7 +223,7 @@ export class OneSchemaImporterClass extends EventEmitter {
     }
   }
 
-  _initWithRetry(message: any, count = 1) {
+  _initWithRetry(count = 1) {
     if (this._hasLaunched || this._hasCancelled) {
       return
     }
@@ -237,8 +239,8 @@ export class OneSchemaImporterClass extends EventEmitter {
       return
     }
 
-    this.iframe?.contentWindow?.postMessage(message, this.#params.baseUrl || "")
-    setTimeout(() => this._initWithRetry(message, count + 1), 500)
+    this.iframe?.contentWindow?.postMessage(this._initMessage, this.#params.baseUrl || "")
+    setTimeout(() => this._initWithRetry(count + 1), 500)
   }
 
   /**
@@ -290,16 +292,22 @@ export class OneSchemaImporterClass extends EventEmitter {
     switch (event.data.messageType) {
       case "launched": {
         this._hasLaunched = true
-        if (this._resumeTokenKey && event.data.sessionToken) {
+        let sessionToken = event.data.sessionToken
+        if (this._resumeTokenKey && sessionToken) {
           try {
-            const sessionToken = event.data.sessionToken
             window.localStorage.setItem(this._resumeTokenKey, sessionToken)
           } catch {
             /* local storage is not avialable, don't sweat it */
           }
         }
-
-        this.emit("launched")
+        // if sessionToken is undefined, then we init with one
+        // and want to echo it back out
+        if (!sessionToken) {
+          sessionToken = this._initMessage?.resumeToken || this._initMessage?.sessionToken
+        }
+        this.emit("launched", {
+          sessionToken,
+        })
         this.#show()
         break
       }
