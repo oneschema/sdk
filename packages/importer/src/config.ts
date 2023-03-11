@@ -169,6 +169,18 @@ export interface OneSchemaLaunchSessionParams {
 }
 
 /**
+ * Parameters that can be set when the OneSchema importer launches with a template group.
+ */
+export interface OneSchemaLaunchTemplateGroupParams {
+  /**
+   * The key for the template group that data will be imported for.
+   * Setup associated templates and linked validations
+   * inside OneSchema before using.
+   */
+  templateGroupKey: string
+}
+
+/**
  * Possible errors when launching OneSchema
  */
 export enum OneSchemaLaunchError {
@@ -252,6 +264,7 @@ export interface OneSchemaInitParams {
 export type OneSchemaLaunchParamOptions =
   | OneSchemaLaunchParams
   | OneSchemaLaunchSessionParams
+  | OneSchemaLaunchTemplateGroupParams
 
 /**
  * Parameters for the OneSchema importer, includes all settings
@@ -262,7 +275,7 @@ export type OneSchemaParams = OneSchemaInitParams & Partial<OneSchemaLaunchParam
  * Message passed to OneSchema for init
  */
 export interface OneSchemaInitMessage {
-  messageType: "init" | "init-session"
+  messageType: "init" | "init-session" | "init-template-group"
   userJwt: string
   templateKey: string
   importConfig: ImportConfig
@@ -276,6 +289,8 @@ export interface OneSchemaInitMessage {
   sessionToken?: string
 
   manualClose: boolean
+
+  templateGroupKey?: string
 
   // debug info
   version: string

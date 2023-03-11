@@ -8,6 +8,7 @@ import {
   OneSchemaLaunchStatus,
   OneSchemaParams,
   OneSchemaInitMessage,
+  OneSchemaLaunchTemplateGroupParams,
 } from "./config"
 import { version } from "../package.json"
 
@@ -144,7 +145,9 @@ export class OneSchemaImporterClass extends EventEmitter {
    * @param launchParams optionally pass in parameter overrides or values not passed into constructor
    */
   launch(
-    launchParams?: Partial<OneSchemaLaunchParams> & Partial<OneSchemaLaunchSessionParams>,
+    launchParams?: Partial<OneSchemaLaunchParams> &
+      Partial<OneSchemaLaunchSessionParams> &
+      Partial<OneSchemaLaunchTemplateGroupParams>,
   ): OneSchemaLaunchStatus {
     const mergedParams = merge({}, this.#params, launchParams)
     const message: Partial<OneSchemaInitMessage> = {
@@ -160,6 +163,9 @@ export class OneSchemaImporterClass extends EventEmitter {
     if (mergedParams.sessionToken) {
       message.messageType = "init-session"
       message.sessionToken = mergedParams.sessionToken
+    } else if (mergedParams.templateGroupKey) {
+      message.messageType = "init-template-group"
+      message.templateGroupKey = mergedParams.templateGroupKey
     } else {
       message.messageType = "init"
       message.userJwt = mergedParams.userJwt
