@@ -277,7 +277,8 @@ export type OneSchemaParams = OneSchemaInitParams & Partial<OneSchemaLaunchParam
 export interface OneSchemaInitMessage {
   messageType: "init" | "init-session" | "init-template-group"
   userJwt: string
-  templateKey: string
+  // idk what ur thoughts are on this
+  templateKey?: string
   importConfig: ImportConfig
   customizationKey: string
   customizationOverrides: OneSchemaCustomization

@@ -131,12 +131,7 @@ export default function OneSchemaImporter({
   useEffect(() => {
     if (importer) {
       if (isOpen) {
-        let result: OneSchemaLaunchStatus
-        if ("sessionToken" in params) {
-          result = importer.launchSession(params)
-        } else {
-          result = importer.launch(params)
-        }
+        const result = importer.launch(params)
 
         // if there is a invalid config when launch is done
         // it will fail and we give reason back as to why here
