@@ -163,36 +163,39 @@ export class OneSchemaImporterClass extends EventEmitter {
     if (mergedParams.sessionToken) {
       message.messageType = "init-session"
       message.sessionToken = mergedParams.sessionToken
-    } else if (mergedParams.templateGroupKey) {
-      message.messageType = "init-template-group"
-      message.templateGroupKey = mergedParams.templateGroupKey
     } else {
-      message.messageType = "init"
       message.userJwt = mergedParams.userJwt
       if (!message.userJwt) {
         console.error("OneSchema config error: missing userJwt")
         return { success: false, error: OneSchemaLaunchError.MissingJwt }
       }
 
-      message.templateKey = mergedParams.templateKey
-      if (!message.templateKey) {
-        console.error("OneSchema config error: missing templateKey")
-        return { success: false, error: OneSchemaLaunchError.MissingTemplate }
-      }
-
       if (mergedParams.importConfig) {
         message.importConfig = mergedParams.importConfig
       }
 
-      if (mergedParams.saveSession) {
-        try {
-          this._resumeTokenKey = `OneSchema-session-${mergedParams.userJwt}-${mergedParams.templateKey}`
-          const resumeToken = window.localStorage.getItem(this._resumeTokenKey)
-          if (resumeToken) {
-            message.resumeToken = resumeToken
+      if (mergedParams.templateGroupKey) {
+        message.messageType = "init-template-group"
+        message.templateGroupKey = mergedParams.templateGroupKey
+      } else {
+        message.messageType = "init"
+
+        message.templateKey = mergedParams.templateKey
+        if (!message.templateKey) {
+          console.error("OneSchema config error: missing templateKey")
+          return { success: false, error: OneSchemaLaunchError.MissingTemplate }
+        }
+
+        if (mergedParams.saveSession) {
+          try {
+            this._resumeTokenKey = `OneSchema-session-${mergedParams.userJwt}-${mergedParams.templateKey}`
+            const resumeToken = window.localStorage.getItem(this._resumeTokenKey)
+            if (resumeToken) {
+              message.resumeToken = resumeToken
+            }
+          } catch {
+            /* local storage is not avialable, don't sweat it */
           }
-        } catch {
-          /* local storage is not avialable, don't sweat it */
         }
       }
     }
