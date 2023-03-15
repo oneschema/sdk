@@ -6,7 +6,7 @@ changes may not be included if they are not expected to break existing code.
 
 ## 0.3.12 (2023-03-14)
 
-- Add support for template groups including new message type "init-template-group"
+- Add support for template groups
 
 ## 0.3.11 (2023-02-23)
 

@@ -2,13 +2,16 @@ import { EventEmitter } from "eventemitter3"
 import merge from "lodash.merge"
 import {
   DEFAULT_PARAMS,
-  OneSchemaLaunchError,
   OneSchemaLaunchParams,
   OneSchemaLaunchSessionParams,
   OneSchemaLaunchStatus,
   OneSchemaParams,
   OneSchemaInitMessage,
   OneSchemaLaunchTemplateGroupParams,
+  OneSchemaSharedInitParams,
+  OneSchemaLaunchError,
+  OneSchemaInitSimpleMessage,
+  OneSchemaInitSessionMessage,
 } from "./config"
 import { version } from "../package.json"
 
@@ -150,52 +153,74 @@ export class OneSchemaImporterClass extends EventEmitter {
       Partial<OneSchemaLaunchTemplateGroupParams>,
   ): OneSchemaLaunchStatus {
     const mergedParams = merge({}, this.#params, launchParams)
-    const message: Partial<OneSchemaInitMessage> = {
+    const baseMessage: OneSchemaSharedInitParams = {
       version: this._version,
       client: this._client,
       manualClose: true,
-      customizationKey: mergedParams.customizationKey,
-      customizationOverrides: mergedParams.customizationOverrides,
-      templateOverrides: mergedParams.templateOverrides,
-      eventWebhookKeys: mergedParams.eventWebhookKeys,
     }
 
+    let message: Partial<OneSchemaInitMessage>
+
+    // Init Session
     if (mergedParams.sessionToken) {
-      message.messageType = "init-session"
-      message.sessionToken = mergedParams.sessionToken
-    } else {
-      message.userJwt = mergedParams.userJwt
+      message = {
+        messageType: "init-session",
+        sessionToken: mergedParams.sessionToken,
+        ...baseMessage,
+      }
+    }
+    // Init Template Group
+    else if (mergedParams.templateGroupKey) {
+      message = {
+        messageType: "init-template-group",
+        userJwt: mergedParams.userJwt,
+        templateGroupKey: mergedParams.templateGroupKey,
+        importConfig: mergedParams.importConfig,
+        customizationKey: mergedParams.customizationKey,
+        customizationOverrides: mergedParams.customizationOverrides,
+        ...baseMessage,
+      }
       if (!message.userJwt) {
         console.error("OneSchema config error: missing userJwt")
         return { success: false, error: OneSchemaLaunchError.MissingJwt }
       }
 
-      if (mergedParams.importConfig) {
-        message.importConfig = mergedParams.importConfig
+      if (!message.templateGroupKey) {
+        console.error("OneSchema config error: missing templateGroupKey")
+        return { success: false, error: OneSchemaLaunchError.MissingTemplateGroup }
+      }
+    }
+    // Init
+    else {
+      message = {
+        messageType: "init",
+        userJwt: mergedParams.userJwt,
+        templateKey: mergedParams.templateGroupKey,
+        importConfig: mergedParams.importConfig,
+        customizationKey: mergedParams.customizationKey,
+        customizationOverrides: mergedParams.customizationOverrides,
+        templateOverrides: mergedParams.templateOverrides,
+        eventWebhookKeys: mergedParams.eventWebhookKeys,
+      }
+      if (!message.userJwt) {
+        console.error("OneSchema config error: missing userJwt")
+        return { success: false, error: OneSchemaLaunchError.MissingJwt }
       }
 
-      if (mergedParams.templateGroupKey) {
-        message.messageType = "init-template-group"
-        message.templateGroupKey = mergedParams.templateGroupKey
-      } else {
-        message.messageType = "init"
+      if (!message.templateKey) {
+        console.error("OneSchema config error: missing templateKey")
+        return { success: false, error: OneSchemaLaunchError.MissingTemplate }
+      }
 
-        message.templateKey = mergedParams.templateKey
-        if (!message.templateKey) {
-          console.error("OneSchema config error: missing templateKey")
-          return { success: false, error: OneSchemaLaunchError.MissingTemplate }
-        }
-
-        if (mergedParams.saveSession) {
-          try {
-            this._resumeTokenKey = `OneSchema-session-${mergedParams.userJwt}-${mergedParams.templateKey}`
-            const resumeToken = window.localStorage.getItem(this._resumeTokenKey)
-            if (resumeToken) {
-              message.resumeToken = resumeToken
-            }
-          } catch {
-            /* local storage is not avialable, don't sweat it */
+      if (mergedParams.saveSession) {
+        try {
+          this._resumeTokenKey = `OneSchema-session-${mergedParams.userJwt}-${mergedParams.templateKey}`
+          const resumeToken = window.localStorage.getItem(this._resumeTokenKey)
+          if (resumeToken) {
+            message.resumeToken = resumeToken
           }
+        } catch {
+          /* local storage is not available, don't sweat it */
         }
       }
     }
@@ -306,13 +331,15 @@ export class OneSchemaImporterClass extends EventEmitter {
           try {
             window.localStorage.setItem(this._resumeTokenKey, sessionToken)
           } catch {
-            /* local storage is not avialable, don't sweat it */
+            /* local storage is not available, don't sweat it */
           }
         }
         // if sessionToken is undefined, then we init with one
         // and want to echo it back out
         if (!sessionToken) {
-          sessionToken = this._initMessage?.resumeToken || this._initMessage?.sessionToken
+          sessionToken =
+            (this._initMessage as OneSchemaInitSimpleMessage)?.resumeToken ||
+            (this._initMessage as OneSchemaInitSessionMessage)?.sessionToken
         }
         this.emit("launched", {
           sessionToken,
@@ -335,7 +362,7 @@ export class OneSchemaImporterClass extends EventEmitter {
           try {
             window.localStorage.removeItem(this._resumeTokenKey)
           } catch {
-            /* local storage is not avialable, don't sweat it */
+            /* local storage is not available, don't sweat it */
           }
         }
 
@@ -351,7 +378,7 @@ export class OneSchemaImporterClass extends EventEmitter {
           try {
             window.localStorage.removeItem(this._resumeTokenKey)
           } catch {
-            /* local storage is not avialable, don't sweat it */
+            /* local storage is not available, don't sweat it */
           }
         }
 
