@@ -161,16 +161,13 @@ export class OneSchemaImporterClass extends EventEmitter {
 
     let message: Partial<OneSchemaInitMessage>
 
-    // Init Session
     if (mergedParams.sessionToken) {
       message = {
         messageType: "init-session",
         sessionToken: mergedParams.sessionToken,
         ...baseMessage,
       }
-    }
-    // Init Template Group
-    else if (mergedParams.templateGroupKey) {
+    } else if (mergedParams.templateGroupKey) {
       message = {
         messageType: "init-template-group",
         userJwt: mergedParams.userJwt,
@@ -189,18 +186,17 @@ export class OneSchemaImporterClass extends EventEmitter {
         console.error("OneSchema config error: missing templateGroupKey")
         return { success: false, error: OneSchemaLaunchError.MissingTemplateGroup }
       }
-    }
-    // Init
-    else {
+    } else {
       message = {
         messageType: "init",
         userJwt: mergedParams.userJwt,
-        templateKey: mergedParams.templateGroupKey,
+        templateKey: mergedParams.templateKey,
         importConfig: mergedParams.importConfig,
         customizationKey: mergedParams.customizationKey,
         customizationOverrides: mergedParams.customizationOverrides,
         templateOverrides: mergedParams.templateOverrides,
         eventWebhookKeys: mergedParams.eventWebhookKeys,
+        ...baseMessage,
       }
       if (!message.userJwt) {
         console.error("OneSchema config error: missing userJwt")
