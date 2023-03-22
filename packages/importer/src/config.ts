@@ -169,12 +169,25 @@ export interface OneSchemaLaunchSessionParams {
 }
 
 /**
+ * Parameters that can be set when the OneSchema importer launches with a template group.
+ */
+export interface OneSchemaLaunchTemplateGroupParams {
+  /**
+   * The key for the template group that data will be imported for.
+   * Setup associated templates and linked validations
+   * inside OneSchema before using.
+   */
+  templateGroupKey: string
+}
+
+/**
  * Possible errors when launching OneSchema
  */
 export enum OneSchemaLaunchError {
   MissingTemplate,
   MissingJwt,
   MissingSessionToken,
+  MissingTemplateGroup,
 }
 
 export interface OneSchemaLaunchStatus {
@@ -252,6 +265,7 @@ export interface OneSchemaInitParams {
 export type OneSchemaLaunchParamOptions =
   | OneSchemaLaunchParams
   | OneSchemaLaunchSessionParams
+  | OneSchemaLaunchTemplateGroupParams
 
 /**
  * Parameters for the OneSchema importer, includes all settings
@@ -259,10 +273,21 @@ export type OneSchemaLaunchParamOptions =
 export type OneSchemaParams = OneSchemaInitParams & Partial<OneSchemaLaunchParamOptions>
 
 /**
- * Message passed to OneSchema for init
+ * Message params shared for all messageTypes
  */
-export interface OneSchemaInitMessage {
-  messageType: "init" | "init-session"
+export interface OneSchemaSharedInitParams {
+  manualClose: boolean
+
+  // debug info
+  version: string
+  client: string
+}
+
+/**
+ * Message params for init a standard OneSchemaImporter
+ */
+export interface OneSchemaInitSimpleMessage extends OneSchemaSharedInitParams {
+  messageType: "init"
   userJwt: string
   templateKey: string
   importConfig: ImportConfig
@@ -270,17 +295,36 @@ export interface OneSchemaInitMessage {
   customizationOverrides: OneSchemaCustomization
   templateOverrides: OneSchemaTemplateOverrides
   eventWebhookKeys: string[]
-
   resumeToken?: string
-
-  sessionToken?: string
-
-  manualClose: boolean
-
-  // debug info
-  version: string
-  client: string
 }
+
+/**
+ * Message params for init a OneSchemaImporter with a sessionToken
+ */
+export interface OneSchemaInitSessionMessage extends OneSchemaSharedInitParams {
+  messageType: "init-session"
+  sessionToken: string
+}
+
+/**
+ * Message params for init a OneSchemaImporter with a templateGroup
+ */
+export interface OneSchemaInitTemplateGroupMessage extends OneSchemaSharedInitParams {
+  messageType: "init-template-group"
+  userJwt: string
+  templateGroupKey: string
+  importConfig: ImportConfig
+  customizationKey: string
+  customizationOverrides: OneSchemaCustomization
+}
+
+/**
+ * Message passed to OneSchema for init
+ */
+export type OneSchemaInitMessage =
+  | OneSchemaInitSimpleMessage
+  | OneSchemaInitSessionMessage
+  | OneSchemaInitTemplateGroupMessage
 
 /**
  * The default values for the OneSchema importer
