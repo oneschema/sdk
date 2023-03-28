@@ -100,7 +100,7 @@ export interface LocalImportConfig {
 }
 
 export interface FileUploadImportConfig {
-  type: "fileUpload"
+  type: "file-upload"
   url: string
   format?: "json" | "csv"
 }

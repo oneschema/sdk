@@ -223,7 +223,7 @@ export class OneSchemaImporterClass extends EventEmitter {
 
     if (
       mergedParams.importConfig &&
-      mergedParams.importConfig.type === "fileUpload" &&
+      mergedParams.importConfig.type === "file-upload" &&
       !mergedParams.importConfig.format
     ) {
       mergedParams.importConfig.format = "csv"
