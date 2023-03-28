@@ -272,6 +272,8 @@ export class OneSchemaImporterClass extends EventEmitter {
         // there might be some error in which case,
         // it's good to surface to devs
         this.#show()
+      } else {
+        this.emit("error", "OneSchema failed to respond for initialization")
       }
 
       return
