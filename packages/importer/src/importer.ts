@@ -221,6 +221,14 @@ export class OneSchemaImporterClass extends EventEmitter {
       }
     }
 
+    if (
+      mergedParams.importConfig &&
+      mergedParams.importConfig.type === "fileUpload" &&
+      !mergedParams.importConfig.format
+    ) {
+      mergedParams.importConfig.format = "csv"
+    }
+
     this._initMessage = message as OneSchemaInitMessage
     this._launch()
     return { success: true }
