@@ -221,6 +221,14 @@ export class OneSchemaImporterClass extends EventEmitter {
       }
     }
 
+    if (
+      mergedParams.importConfig &&
+      mergedParams.importConfig.type === "file-upload" &&
+      !mergedParams.importConfig.format
+    ) {
+      mergedParams.importConfig.format = "csv"
+    }
+
     this._initMessage = message as OneSchemaInitMessage
     this._launch()
     return { success: true }
@@ -259,11 +267,17 @@ export class OneSchemaImporterClass extends EventEmitter {
     }
 
     if (count > MAX_LAUNCH_RETRY) {
-      console.error("OneSchema failed to respond for initialization")
+      const msg = "OneSchema failed to respond for initialization"
+      console.error(msg)
       if (this.#params.devMode) {
         // there might be some error in which case,
         // it's good to surface to devs
         this.#show()
+      } else {
+        this.emit("error", msg)
+        if (this.#params.autoClose) {
+          this.close()
+        }
       }
 
       return

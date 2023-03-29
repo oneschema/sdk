@@ -99,7 +99,16 @@ export interface LocalImportConfig {
   metadataOnly?: boolean
 }
 
-export type ImportConfig = WebhookImportConfig | LocalImportConfig
+export interface FileUploadImportConfig {
+  type: "file-upload"
+  url: string
+  format?: "json" | "csv"
+}
+
+export type ImportConfig =
+  | WebhookImportConfig
+  | LocalImportConfig
+  | FileUploadImportConfig
 
 export interface OneSchemaTemplateColumn {
   key: string
