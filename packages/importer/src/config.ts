@@ -67,8 +67,6 @@ export interface OneSchemaCustomization {
   hideLogo?: boolean
   illustrationUrl?: string
 
-  uploaderHeaderText?: string
-  uploaderSubheaderText?: string
   uploaderShowSidebar?: boolean
   uploaderSidebarDetails?: SidebarDetails
   uploaderShowSidebarBanner?: boolean
@@ -76,6 +74,21 @@ export interface OneSchemaCustomization {
 
   includeExcelTemplate?: boolean
   importExperience?: ImportExperience
+
+  /**
+   * text overrides
+   */
+  backButtonText?: string
+  nextButtonText?: string
+  uploadPaneHeaderText?: string
+  uploaderHeaderText?: string
+  uploaderSubheaderText?: string
+  setHeaderPaneHeaderText?: string
+  mappingPaneHeaderText?: string
+  mappingUploadedColumnText?: string
+  mappingTemplateColumnText?: string
+  cleaningPaneHeaderText?: string
+  cleaningConfirmButtonText?: string
 
   /**
    * importer options
