@@ -103,6 +103,7 @@ export interface FileUploadImportConfig {
   type: "file-upload"
   url: string
   format?: "json" | "csv"
+  headers?: { [headerName: string]: string }
 }
 
 export type ImportConfig =
