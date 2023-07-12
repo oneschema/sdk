@@ -93,7 +93,7 @@ export interface OneSchemaCustomization {
   /**
    * importer options
    */
-  importUnmappedColumns?: boolean
+  includeUnmappedColumns?: boolean
   mappingStrategy?: MappingStrategy[]
   skipMapping?: MappingStrategy[]
   skipHeaderRow?: SkipHeaderRowStrategy
