@@ -38,7 +38,7 @@ app.mount('#app')
 ### Sample usage
 Once the OneSchema plugin has been registered, you can call the `useOneSchemaImporter` function to obtain the `OneSchemaImporterClass` instance.
 
-```vue
+```js-vue
 <script setup lang="ts">
   import { useOneSchemaImporter } from "@oneschema/vue"
 
