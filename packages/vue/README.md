@@ -81,4 +81,4 @@ Once the OneSchema plugin has been registered, you can call the `useOneSchemaImp
 
 ## Documentation
 
-Please see [📚 OneSchema's documentation](https://docs.oneschema.co/) for [📒 API reference](https://docs.oneschema.co/docs/react#api-reference) and other helpful guides.
+Please see [📚 OneSchema's documentation](https://docs.oneschema.co/) for [📒 API reference](https://docs.oneschema.co/docs/vue#api-reference) and other helpful guides.
