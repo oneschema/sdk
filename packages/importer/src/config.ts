@@ -223,6 +223,10 @@ export interface OneSchemaLaunchStatus {
    */
   sessionToken?: string
   /**
+   * If success is true, include the embed ID
+   */
+  embedId?: string
+  /**
    * If success is false, this will be why it failed
    */
   error?: OneSchemaLaunchError
