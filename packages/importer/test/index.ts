@@ -14,6 +14,10 @@ function start() {
   importer.launch()
 }
 
+importer.on("launched", (data) => {
+  console.log(data)
+});
+
 importer.on("success", (data) => {
   console.log(data)
   alert("success!")
