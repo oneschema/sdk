@@ -11,6 +11,10 @@ export type MappingStrategy = "exact" | "fuzzy" | "historical"
  */
 export type SkipHeaderRowStrategy = "always" | "detect" | "never"
 /**
+ * Type with options for AI suggested mappings customization
+ */
+export type AiSuggestedMappings = "column" | "picklist"
+/**
  * Type with options for import experience customization
  */
 export type ImportExperience = "blockIfErrors" | "promptIfErrors" | "ignoreErrors"
@@ -100,6 +104,7 @@ export interface OneSchemaCustomization {
   acceptCodeHookSuggestions?: boolean
   autofixAfterMapping?: boolean
   fileSizeLimit?: number
+  aiSuggestedMappings?: AiSuggestedMappings[]
 }
 
 export interface WebhookImportConfig {
@@ -222,6 +227,10 @@ export interface OneSchemaLaunchStatus {
    * If success is true, include a session token
    */
   sessionToken?: string
+  /**
+   * If success is true, include the embed ID
+   */
+  embedId?: string
   /**
    * If success is false, this will be why it failed
    */
