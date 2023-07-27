@@ -129,7 +129,7 @@ export type ImportConfig =
   | LocalImportConfig
   | FileUploadImportConfig
 
-export interface OneSchemaTemplateColumn {
+export interface OneSchemaTemplateColumnToUpdate {
   key: string
   label?: string
   data_type?: string | null
@@ -147,8 +147,18 @@ export interface OneSchemaTemplateColumn {
   mapping_hints?: string[]
 }
 
+export interface OneSchemaTemplateColumnToAdd extends Omit<OneSchemaTemplateColumnToUpdate, "label"> {
+  label: string
+}
+
+export interface OneSchemaTemplateColumnToRemove {
+  key: string
+}
+
 export interface OneSchemaTemplateOverrides {
-  columns: OneSchemaTemplateColumn[]
+  columns_to_add: OneSchemaTemplateColumnToAdd[]
+  columns_to_update: OneSchemaTemplateColumnToUpdate[]
+  columns_to_remove: OneSchemaTemplateColumnToRemove[]
 }
 
 /**
