@@ -337,7 +337,7 @@ export class OneSchemaImporterClass extends EventEmitter {
       case "launched": {
         this._hasLaunched = true
         let sessionToken = event.data.sessionToken
-        let embedId = event.data.embedId
+        const embedId = event.data.embedId
         if (this._resumeTokenKey && sessionToken) {
           try {
             window.localStorage.setItem(this._resumeTokenKey, sessionToken)
