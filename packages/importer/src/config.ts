@@ -142,7 +142,7 @@ export interface OneSchemaTemplateColumnToUpdate {
   min_char_limit?: number
   max_char_limit?: number
   delimiter?: string
-  must_exit?: boolean
+  must_exist?: boolean
   default_value?: string
   mapping_hints?: string[]
 }
