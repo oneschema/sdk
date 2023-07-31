@@ -4,6 +4,10 @@ This log is intended to keep track of package changes, including
 but not limited to API changes and file location changes. Minor behavioral
 changes may not be included if they are not expected to break existing code.
 
+## 0.4.1 (2023-07-31)
+
+- Fix typo in `OneSchemaTemplateColumnToUpdate`: `must_exit` to`must_exist`
+
 ## 0.4.0 (2023-07-27)
 
 - Update type definitions for OneSchemaTemplateOverrides
