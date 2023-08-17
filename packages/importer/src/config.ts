@@ -5,7 +5,7 @@ export type Hex = `#${string}`
 /**
  * Type with options for mapping strategy customization
  */
-export type MappingStrategy = "exact" | "fuzzy" | "historical"
+export type MappingStrategy = "exact" | "fuzzy" | "historical_user" | "historical_org" | "historical" // historical is deprecated
 /**
  * Type with options for skipping the header row step
  */
