@@ -155,10 +155,26 @@ export interface OneSchemaTemplateColumnToRemove {
   key: string
 }
 
+/**
+ * Type with options for sidebar details customization
+ */
+export type ValidationHookType = "row" | "column"
+
+export interface OneSchemaValidationHooksToAdd {
+  name: string
+  url: string
+  column_keys?: string[]
+  custom_column_keys?: string[]
+  hook_type?: ValidationHookType
+  secret_key?: string
+  batch_size?: number
+}
+
 export interface OneSchemaTemplateOverrides {
   columns_to_add: OneSchemaTemplateColumnToAdd[]
   columns_to_update: OneSchemaTemplateColumnToUpdate[]
   columns_to_remove: OneSchemaTemplateColumnToRemove[]
+  validation_hooks_to_add: OneSchemaValidationHooksToAdd[]
 }
 
 /**
