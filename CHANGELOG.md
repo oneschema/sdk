@@ -4,6 +4,10 @@ This log is intended to keep track of package changes, including
 but not limited to API changes and file location changes. Minor behavioral
 changes may not be included if they are not expected to break existing code.
 
+## 0.4.3 (2023-08-29)
+
+- Add support for creating new validation hooks in through template overrides
+
 ## 0.4.2 (2023-08-17)
 
 - Update type definitions `MappingStrategy` in `OneSchemaCustomization` to split `historical` into `historical_user` and `historical_org`.
