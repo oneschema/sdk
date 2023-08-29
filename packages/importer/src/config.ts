@@ -107,16 +107,25 @@ export interface OneSchemaCustomization {
   aiSuggestedMappings?: AiSuggestedMappings[]
 }
 
+/**
+ * Configuration for importing data through a webhook.
+ */
 export interface WebhookImportConfig {
   type: "webhook"
   key: string
 }
 
+/**
+ * Configuration for importing local data.
+ */
 export interface LocalImportConfig {
   type: "local"
   metadataOnly?: boolean
 }
 
+/**
+ * Configuration for importing data through file upload.
+ */
 export interface FileUploadImportConfig {
   type: "file-upload"
   url: string
@@ -124,11 +133,17 @@ export interface FileUploadImportConfig {
   headers?: { [headerName: string]: string }
 }
 
+/**
+ * Configuration for importing data, supporting various destination types.
+ */
 export type ImportConfig =
   | WebhookImportConfig
   | LocalImportConfig
   | FileUploadImportConfig
 
+/**
+ * Params for updating a column in a template
+ */
 export interface OneSchemaTemplateColumnToUpdate {
   key: string
   label?: string
@@ -147,19 +162,31 @@ export interface OneSchemaTemplateColumnToUpdate {
   mapping_hints?: string[]
 }
 
+/**
+ * Params for adding a column to a template
+ */
 export interface OneSchemaTemplateColumnToAdd extends Omit<OneSchemaTemplateColumnToUpdate, "label"> {
   label: string
 }
 
+/**
+ * Params for removing a column from a template
+ */
 export interface OneSchemaTemplateColumnToRemove {
   key: string
 }
 
 /**
- * Type with options for sidebar details customization
+ * Type of validation hook: either "row" or "column". 
+ * For row hooks, each request sends a batch of rows.
+ * For column hooks, each request will be sent with all rows. 
+ * For more information on a particular setting see https://docs.oneschema.co/docs/validation-webhook#validation-webhook
  */
 export type ValidationHookType = "row" | "column"
 
+/**
+ * Params for adding a validation hook to a template
+ */
 export interface OneSchemaValidationHooksToAdd {
   name: string
   url: string
@@ -170,6 +197,10 @@ export interface OneSchemaValidationHooksToAdd {
   batch_size?: number
 }
 
+/**
+ * Overrides for a template
+ * For more information on a particular setting see https://docs.oneschema.co/docs/per-customer-overrides-v2
+ */
 export interface OneSchemaTemplateOverrides {
   columns_to_add: OneSchemaTemplateColumnToAdd[]
   columns_to_update: OneSchemaTemplateColumnToUpdate[]
