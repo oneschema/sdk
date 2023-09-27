@@ -106,8 +106,13 @@ export default function OneSchemaImporter({
         onRequestClose && onRequestClose()
       })
 
-      importer.on("launched", (data: { sessionToken: string, embedId: string }) => {
-        onLaunched && onLaunched({ success: true, sessionToken: data.sessionToken, embedId: data.embedId })
+      importer.on("launched", (data: { sessionToken: string; embedId: string }) => {
+        onLaunched &&
+          onLaunched({
+            success: true,
+            sessionToken: data.sessionToken,
+            embedId: data.embedId,
+          })
       })
     }
 

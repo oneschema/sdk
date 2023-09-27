@@ -5,7 +5,7 @@ const importer = oneSchemaImporter({
   className: "oneschema-iframe",
   parentId: "oneschema-container",
   baseUrl: "http://embed.localschema.co:9450",
-  templateKey: "crm_test",
+  templateKey: "crm_testt",
   userJwt:
     "eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI2N2JiMmU1Zi1mMGY3LTQyYTYtYTUxMS0xOGIyNWU2N2I4YzQiLCJ1c2VyX2lkIjoxMjM0fQ.MaxfODdhWqVamNgK7l8mZrR-A4B2uGDuPWLOreu7dQI",
 })
@@ -16,16 +16,19 @@ function start() {
 
 importer.on("launched", (data) => {
   console.log(data)
-});
+})
 
 importer.on("success", (data) => {
   console.log(data)
   alert("success!")
 })
 
-importer.on("cancel", () => {})
+importer.on("cancel", () => {
+  console.log("cancel")
+})
 
-importer.on("error", () => {
+importer.on("error", (e) => {
+  console.log(e)
   alert("error!")
 })
 

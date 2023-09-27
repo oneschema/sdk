@@ -200,6 +200,7 @@ export class OneSchemaImporterClass extends EventEmitter {
       }
       if (!message.userJwt) {
         console.error("OneSchema config error: missing userJwt")
+        console.log(OneSchemaLaunchError.MissingJwt)
         return { success: false, error: OneSchemaLaunchError.MissingJwt }
       }
 
@@ -354,7 +355,7 @@ export class OneSchemaImporterClass extends EventEmitter {
         }
         this.emit("launched", {
           sessionToken,
-          embedId
+          embedId,
         })
         this.#show()
         break
@@ -402,6 +403,7 @@ export class OneSchemaImporterClass extends EventEmitter {
       }
       case "error": {
         this.emit("error", event.data.message)
+        console.log("inside of error", event.data.message)
         if (this.#params.autoClose) {
           this.close()
         }
