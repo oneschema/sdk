@@ -5,7 +5,12 @@ export type Hex = `#${string}`
 /**
  * Type with options for mapping strategy customization
  */
-export type MappingStrategy = "exact" | "fuzzy" | "historical_user" | "historical_org" | "historical" // historical is deprecated
+export type MappingStrategy =
+  | "exact"
+  | "fuzzy"
+  | "historical_user"
+  | "historical_org"
+  | "historical" // historical is deprecated
 /**
  * Type with options for skipping the header row step
  */
@@ -126,12 +131,35 @@ export interface LocalImportConfig {
 /**
  * Configuration for importing data through file upload.
  */
-export interface FileUploadImportConfig {
+export interface BaseFileUploadImportConfig {
   type: "file-upload"
   url: string
-  format?: "json" | "csv"
   headers?: { [headerName: string]: string }
 }
+
+/*
+ * Configuration for importing data through CSV file upload.
+ */
+export interface CsvFileUploadImportConfig extends BaseFileUploadImportConfig {
+  format: "csv"
+  formatOptions?: {
+    headerStyle?: "names" | "keys"
+  }
+}
+
+/*
+ * Configuration for importing data through JSON file upload.
+ */
+export interface JsonFileUploadImportConfig extends BaseFileUploadImportConfig {
+  format: "json"
+}
+
+/*
+ * Configuration for importing data through file upload.
+ */
+export type FileUploadImportConfig =
+  | CsvFileUploadImportConfig
+  | JsonFileUploadImportConfig
 
 /**
  * Configuration for importing data, supporting various destination types.
@@ -165,7 +193,8 @@ export interface OneSchemaTemplateColumnToUpdate {
 /**
  * Params for adding a column to a template
  */
-export interface OneSchemaTemplateColumnToAdd extends Omit<OneSchemaTemplateColumnToUpdate, "label"> {
+export interface OneSchemaTemplateColumnToAdd
+  extends Omit<OneSchemaTemplateColumnToUpdate, "label"> {
   label: string
 }
 
@@ -177,9 +206,9 @@ export interface OneSchemaTemplateColumnToRemove {
 }
 
 /**
- * Type of validation hook: either "row" or "column". 
+ * Type of validation hook: either "row" or "column".
  * For row hooks, each request sends a batch of rows.
- * For column hooks, each request will be sent with all rows. 
+ * For column hooks, each request will be sent with all rows.
  * For more information on a particular setting see https://docs.oneschema.co/docs/validation-webhook#validation-webhook
  */
 export type ValidationHookType = "row" | "column"
