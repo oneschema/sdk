@@ -82,7 +82,7 @@ export interface OneSchemaCustomization {
   uploaderSidebarBannerText?: string
 
   includeExcelTemplate?: boolean
-  importExperience?: ImportExperience
+  importErrorUX?: ImportExperience
 
   /**
    * text overrides
@@ -302,6 +302,7 @@ export enum OneSchemaLaunchError {
   MissingJwt,
   MissingSessionToken,
   MissingTemplateGroup,
+  LaunchError,
 }
 
 export interface OneSchemaLaunchStatus {

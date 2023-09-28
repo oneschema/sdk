@@ -12,6 +12,7 @@ import {
   OneSchemaLaunchError,
   OneSchemaInitSimpleMessage,
   OneSchemaInitSessionMessage,
+  FileUploadImportConfig,
 } from "./config"
 import { version } from "../package.json"
 
@@ -179,12 +180,11 @@ export class OneSchemaImporterClass extends EventEmitter {
       }
       if (!message.userJwt) {
         console.error("OneSchema config error: missing userJwt")
+        this.emit("launched", {
+          success: false,
+          error: OneSchemaLaunchError.MissingJwt,
+        })
         return { success: false, error: OneSchemaLaunchError.MissingJwt }
-      }
-
-      if (!message.templateGroupKey) {
-        console.error("OneSchema config error: missing templateGroupKey")
-        return { success: false, error: OneSchemaLaunchError.MissingTemplateGroup }
       }
     } else {
       message = {
@@ -200,11 +200,19 @@ export class OneSchemaImporterClass extends EventEmitter {
       }
       if (!message.userJwt) {
         console.error("OneSchema config error: missing userJwt")
+        this.emit("launched", {
+          success: false,
+          error: OneSchemaLaunchError.MissingJwt,
+        })
         return { success: false, error: OneSchemaLaunchError.MissingJwt }
       }
 
       if (!message.templateKey) {
         console.error("OneSchema config error: missing templateKey")
+        this.emit("launched", {
+          success: false,
+          error: OneSchemaLaunchError.MissingTemplate,
+        })
         return { success: false, error: OneSchemaLaunchError.MissingTemplate }
       }
 
@@ -226,7 +234,7 @@ export class OneSchemaImporterClass extends EventEmitter {
       mergedParams.importConfig.type === "file-upload" &&
       !mergedParams.importConfig.format
     ) {
-      mergedParams.importConfig.format = "csv"
+      ;(mergedParams.importConfig as FileUploadImportConfig).format = "csv"
     }
 
     this._initMessage = message as OneSchemaInitMessage
@@ -353,10 +361,21 @@ export class OneSchemaImporterClass extends EventEmitter {
             (this._initMessage as OneSchemaInitSessionMessage)?.sessionToken
         }
         this.emit("launched", {
+          success: true,
           sessionToken,
-          embedId
+          embedId,
         })
         this.#show()
+        break
+      }
+      case "launch-error": {
+        this.emit("launched", {
+          success: false,
+          error: OneSchemaLaunchError.LaunchError,
+        })
+        if (this.#params.autoClose) {
+          this.close()
+        }
         break
       }
       case "complete": {
