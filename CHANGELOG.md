@@ -6,7 +6,8 @@ changes may not be included if they are not expected to break existing code.
 
 ## 0.4.4 (2023-09-28)
 
-- Enable `onLaunched` to surface internal server errors (such as 422s)
+- Enable `onLaunched` to surface internal server errors (such as 422s).
+- Enable customization of headers in CSV file upload imports.
 
 ## 0.4.3 (2023-08-29)
 
