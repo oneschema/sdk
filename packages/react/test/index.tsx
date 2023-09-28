@@ -11,14 +11,7 @@ function ImportTester() {
 
   return (
     <div>
-      <button
-        onClick={() => {
-          console.log("wtf is haoppening")
-          setIsOpen(true)
-        }}
-      >
-        Start!
-      </button>
+      <button onClick={() => setIsOpen(true)}>Start!</button>
       <OneSchemaImporter
         isOpen={isOpen}
         onRequestClose={() => setIsOpen(false)}

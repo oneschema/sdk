@@ -107,7 +107,6 @@ export default function OneSchemaImporter({
       })
 
       importer.on("launched", (data: { sessionToken: string; embedId: string }) => {
-        console.log("inside regular launch", data)
         onLaunched &&
           onLaunched({
             success: true,
@@ -137,15 +136,12 @@ export default function OneSchemaImporter({
   useEffect(() => {
     if (importer) {
       if (isOpen) {
-        console.log("right before importer.launch react")
         const result = importer.launch(params)
-        console.log("launchresult", result)
 
         // if there is a invalid config when launch is done
         // it will fail and we give reason back as to why here
         if (result && !result.success) {
           importer.on("launched", () => {
-            console.log("error launch", result)
             onLaunched && onLaunched(result)
           })
         }

@@ -195,7 +195,6 @@ export class OneSchemaImporterClass extends EventEmitter {
       }
       if (!message.userJwt) {
         console.error("OneSchema config error: missing userJwt")
-        console.log(OneSchemaLaunchError.MissingJwt)
         return { success: false, error: OneSchemaLaunchError.MissingJwt }
       }
 
@@ -225,10 +224,7 @@ export class OneSchemaImporterClass extends EventEmitter {
       mergedParams.importConfig.format = "csv"
     }
 
-    console.log("so it fails init?")
-
     this._initMessage = message as OneSchemaInitMessage
-    console.log("right before _launch")
     this._launch()
     return { success: true }
   }
@@ -246,20 +242,16 @@ export class OneSchemaImporterClass extends EventEmitter {
 
   _launch() {
     window.addEventListener("message", this.#eventListener)
-    console.log("in _launch")
 
     const postInit = () => {
       this._hasCancelled = false
-      const bleh = this._initWithRetry()
-      console.log("initw/retry result ", bleh)
+      this._initWithRetry()
       OneSchemaImporterClass.#isLoaded = true
     }
 
     if (OneSchemaImporterClass.#isLoaded) {
-      console.log("do we postInit?")
       postInit()
     } else if (this.iframe) {
-      console.log("we in else onload")
       this.iframe.onload = postInit
     }
   }
@@ -363,7 +355,6 @@ export class OneSchemaImporterClass extends EventEmitter {
         break
       }
       case "launch-error": {
-        console.log("in launch-error case")
         this.emit("launched", {
           success: false,
           error: OneSchemaLaunchError.LaunchError,
@@ -416,7 +407,6 @@ export class OneSchemaImporterClass extends EventEmitter {
       }
       case "error": {
         this.emit("error", event.data.message)
-        console.log("inside of error", event.data.message)
         if (this.#params.autoClose) {
           this.close()
         }

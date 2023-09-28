@@ -12,8 +12,7 @@ const importer = oneSchemaImporter({
 })
 
 function start() {
-  const test = importer.launch()
-  console.log("result of launch", test)
+  importer.launch()
 }
 
 importer.on("launched", (data) => {
