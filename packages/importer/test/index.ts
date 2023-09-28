@@ -5,7 +5,7 @@ const importer = oneSchemaImporter({
   className: "oneschema-iframe",
   parentId: "oneschema-container",
   baseUrl: "http://embed.localschema.co:9450",
-  // templateKey: "crm_testt",
+  templateKey: "crm_test",
   userJwt:
     "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI4MDMyYWY0Yi1lMmQ5LTQwYWQtODE0Mi1lNjgwMTFkOTRkOWMiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-In0.UHcGqI6HutinJNCxO32dWNDBbfUJVVqrvmA_GLpLf50",
   devMode: true,

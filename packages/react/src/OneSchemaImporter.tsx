@@ -106,13 +106,8 @@ export default function OneSchemaImporter({
         onRequestClose && onRequestClose()
       })
 
-      importer.on("launched", (data: { sessionToken: string; embedId: string }) => {
-        onLaunched &&
-          onLaunched({
-            success: true,
-            sessionToken: data.sessionToken,
-            embedId: data.embedId,
-          })
+      importer.on("launched", (data: OneSchemaLaunchStatus) => {
+        onLaunched && onLaunched(data)
       })
     }
 
@@ -136,15 +131,7 @@ export default function OneSchemaImporter({
   useEffect(() => {
     if (importer) {
       if (isOpen) {
-        const result = importer.launch(params)
-
-        // if there is a invalid config when launch is done
-        // it will fail and we give reason back as to why here
-        if (result && !result.success) {
-          importer.on("launched", () => {
-            onLaunched && onLaunched(result)
-          })
-        }
+        importer.launch(params)
       } else {
         importer.close()
       }

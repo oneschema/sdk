@@ -179,6 +179,10 @@ export class OneSchemaImporterClass extends EventEmitter {
       }
       if (!message.userJwt) {
         console.error("OneSchema config error: missing userJwt")
+        this.emit("launched", {
+          success: false,
+          error: OneSchemaLaunchError.MissingJwt,
+        })
         return { success: false, error: OneSchemaLaunchError.MissingJwt }
       }
     } else {
@@ -195,11 +199,19 @@ export class OneSchemaImporterClass extends EventEmitter {
       }
       if (!message.userJwt) {
         console.error("OneSchema config error: missing userJwt")
+        this.emit("launched", {
+          success: false,
+          error: OneSchemaLaunchError.MissingJwt,
+        })
         return { success: false, error: OneSchemaLaunchError.MissingJwt }
       }
 
       if (!message.templateKey) {
         console.error("OneSchema config error: missing templateKey")
+        this.emit("launched", {
+          success: false,
+          error: OneSchemaLaunchError.MissingTemplate,
+        })
         return { success: false, error: OneSchemaLaunchError.MissingTemplate }
       }
 
@@ -348,6 +360,7 @@ export class OneSchemaImporterClass extends EventEmitter {
             (this._initMessage as OneSchemaInitSessionMessage)?.sessionToken
         }
         this.emit("launched", {
+          success: true,
           sessionToken,
           embedId,
         })
@@ -359,9 +372,9 @@ export class OneSchemaImporterClass extends EventEmitter {
           success: false,
           error: OneSchemaLaunchError.LaunchError,
         })
-        // if (this.#params.autoClose) {
-        //   this.close()
-        // }
+        if (this.#params.autoClose) {
+          this.close()
+        }
         break
       }
       case "complete": {
