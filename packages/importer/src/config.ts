@@ -126,29 +126,35 @@ export interface LocalImportConfig {
 /**
  * Configuration for importing data through file upload.
  */
-export interface FileUploadImportConfig {
+interface BaseFileUploadImportConfig {
   type: "file-upload"
   url: string
   headers?: { [headerName: string]: string }
 }
 
-
-/**
+/*
  * Configuration for importing data through CSV file upload.
  */
-export interface CsvFileUploadImportConfig extends FileUploadImportConfig {
+interface CsvFileUploadImportConfig extends BaseFileUploadImportConfig {
   format: "csv"
   formatOptions?: {
     headerStyle?: "names" | "keys"
   }
 }
 
-/**
+/*
  * Configuration for importing data through JSON file upload.
  */
-export interface JsonFileUploadImportConfig extends FileUploadImportConfig {
+interface JsonFileUploadImportConfig extends BaseFileUploadImportConfig {
   format: "json"
 }
+
+/*
+ * Configuration for importing data through file upload.
+ */
+export type FileUploadImportConfig =
+  | CsvFileUploadImportConfig
+  | JsonFileUploadImportConfig
 
 /**
  * Configuration for importing data, supporting various destination types.
