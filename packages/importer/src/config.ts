@@ -302,6 +302,7 @@ export enum OneSchemaLaunchError {
   MissingJwt,
   MissingSessionToken,
   MissingTemplateGroup,
+  LaunchError,
 }
 
 export interface OneSchemaLaunchStatus {

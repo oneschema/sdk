@@ -181,11 +181,6 @@ export class OneSchemaImporterClass extends EventEmitter {
         console.error("OneSchema config error: missing userJwt")
         return { success: false, error: OneSchemaLaunchError.MissingJwt }
       }
-
-      if (!message.templateGroupKey) {
-        console.error("OneSchema config error: missing templateGroupKey")
-        return { success: false, error: OneSchemaLaunchError.MissingTemplateGroup }
-      }
     } else {
       message = {
         messageType: "init",
@@ -230,7 +225,10 @@ export class OneSchemaImporterClass extends EventEmitter {
       mergedParams.importConfig.format = "csv"
     }
 
+    console.log("so it fails init?")
+
     this._initMessage = message as OneSchemaInitMessage
+    console.log("right before _launch")
     this._launch()
     return { success: true }
   }
@@ -248,16 +246,20 @@ export class OneSchemaImporterClass extends EventEmitter {
 
   _launch() {
     window.addEventListener("message", this.#eventListener)
+    console.log("in _launch")
 
     const postInit = () => {
       this._hasCancelled = false
-      this._initWithRetry()
+      const bleh = this._initWithRetry()
+      console.log("initw/retry result ", bleh)
       OneSchemaImporterClass.#isLoaded = true
     }
 
     if (OneSchemaImporterClass.#isLoaded) {
+      console.log("do we postInit?")
       postInit()
     } else if (this.iframe) {
+      console.log("we in else onload")
       this.iframe.onload = postInit
     }
   }
@@ -358,6 +360,17 @@ export class OneSchemaImporterClass extends EventEmitter {
           embedId,
         })
         this.#show()
+        break
+      }
+      case "launch-error": {
+        console.log("in launch-error case")
+        this.emit("launched", {
+          success: false,
+          error: OneSchemaLaunchError.LaunchError,
+        })
+        // if (this.#params.autoClose) {
+        //   this.close()
+        // }
         break
       }
       case "complete": {
