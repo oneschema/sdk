@@ -30,7 +30,6 @@ function ImportTester() {
           width: "100vw",
           height: "100vh",
         }}
-        // devMode={false}
       />
     </div>
   )
