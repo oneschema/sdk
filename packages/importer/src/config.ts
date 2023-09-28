@@ -82,7 +82,7 @@ export interface OneSchemaCustomization {
   uploaderSidebarBannerText?: string
 
   includeExcelTemplate?: boolean
-  importExperience?: ImportExperience
+  importErrorUX?: ImportExperience
 
   /**
    * text overrides

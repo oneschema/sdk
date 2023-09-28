@@ -12,6 +12,7 @@ import {
   OneSchemaLaunchError,
   OneSchemaInitSimpleMessage,
   OneSchemaInitSessionMessage,
+  FileUploadImportConfig,
 } from "./config"
 import { version } from "../package.json"
 
@@ -233,7 +234,7 @@ export class OneSchemaImporterClass extends EventEmitter {
       mergedParams.importConfig.type === "file-upload" &&
       !mergedParams.importConfig.format
     ) {
-      mergedParams.importConfig.format = "csv"
+      ;(mergedParams.importConfig as FileUploadImportConfig).format = "csv"
     }
 
     this._initMessage = message as OneSchemaInitMessage
