@@ -8,6 +8,7 @@ changes may not be included if they are not expected to break existing code.
 
 - Enable `onLaunched` to surface internal server errors (such as 422s).
 - Enable customization of headers in CSV file upload imports.
+- Change `importExperience` to `importErrorUX` for `CustomizationOverrides`
 
 ## 0.4.3 (2023-08-29)
 
