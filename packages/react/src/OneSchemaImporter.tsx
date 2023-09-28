@@ -1,9 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react"
-import oneschemaImporter, {
-  OneSchemaLaunchParamOptions,
-  OneSchemaLaunchStatus,
-} from "@oneschema/importer"
+import { OneSchemaLaunchParamOptions, OneSchemaLaunchStatus } from "@oneschema/importer"
 import { version } from "../package.json"
+import oneschemaImporter from "../../importer/src/importer"
 
 export interface OneSchemaImporterBaseProps {
   /**
