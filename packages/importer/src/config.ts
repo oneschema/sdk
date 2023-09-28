@@ -129,8 +129,25 @@ export interface LocalImportConfig {
 export interface FileUploadImportConfig {
   type: "file-upload"
   url: string
-  format?: "json" | "csv"
   headers?: { [headerName: string]: string }
+}
+
+
+/**
+ * Configuration for importing data through CSV file upload.
+ */
+export interface CsvFileUploadImportConfig extends FileUploadImportConfig {
+  format: "csv"
+  formatOptions?: {
+    headerStyle?: "names" | "keys"
+  }
+}
+
+/**
+ * Configuration for importing data through JSON file upload.
+ */
+export interface JsonFileUploadImportConfig extends FileUploadImportConfig {
+  format: "json"
 }
 
 /**
@@ -139,7 +156,8 @@ export interface FileUploadImportConfig {
 export type ImportConfig =
   | WebhookImportConfig
   | LocalImportConfig
-  | FileUploadImportConfig
+  | CsvFileUploadImportConfig
+  | JsonFileUploadImportConfig
 
 /**
  * Params for updating a column in a template
