@@ -64,6 +64,7 @@ export type OneSchemaImporterProps = OneSchemaImporterBaseProps &
 export default function OneSchemaImporter({
   isOpen,
   style,
+  className,
   inline,
   onRequestClose,
   onSuccess,
@@ -108,6 +109,7 @@ export default function OneSchemaImporter({
 
       importer.on("launched", (data: OneSchemaLaunchStatus) => {
         onLaunched && onLaunched(data)
+        console.log("we in launched", importer._hasLaunched)
       })
     }
 
@@ -117,16 +119,24 @@ export default function OneSchemaImporter({
   }, [importer, onSuccess, onCancel, onError, onRequestClose, onLaunched])
 
   useEffect(() => {
-    if (params.className && importer) {
-      importer.setClassName(params.className)
+    if (className && importer) {
+      importer.setClassName(className)
     }
-  }, [importer, params.className])
+  }, [importer, className])
 
   useEffect(() => {
     if (style && importer) {
       importer.setStyles(style as Partial<CSSStyleDeclaration>)
     }
   }, [importer, style])
+
+  useEffect(() => {
+    if (importer && importer._hasLaunched) {
+      console.warn(
+        "The OneSchema importer has already launched. Updated launch params will not update the current import",
+      )
+    }
+  }, [params, importer])
 
   useEffect(() => {
     if (importer) {
