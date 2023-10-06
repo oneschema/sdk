@@ -231,10 +231,10 @@ export interface OneSchemaValidationHooksToAdd {
  * For more information on a particular setting see https://docs.oneschema.co/docs/per-customer-overrides-v2
  */
 export interface OneSchemaTemplateOverrides {
-  columns_to_add: OneSchemaTemplateColumnToAdd[]
-  columns_to_update: OneSchemaTemplateColumnToUpdate[]
-  columns_to_remove: OneSchemaTemplateColumnToRemove[]
-  validation_hooks_to_add: OneSchemaValidationHooksToAdd[]
+  columns_to_add?: OneSchemaTemplateColumnToAdd[]
+  columns_to_update?: OneSchemaTemplateColumnToUpdate[]
+  columns_to_remove?: OneSchemaTemplateColumnToRemove[]
+  validation_hooks_to_add?: OneSchemaValidationHooksToAdd[]
 }
 
 /**
