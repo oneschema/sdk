@@ -29,6 +29,7 @@ export class OneSchemaImporterClass extends EventEmitter {
   _client = "Importer"
   _version = version
   _resumeTokenKey = ""
+  _hasAttemptedLaunch = false
   _hasLaunched = false
   _hasCancelled = false
   _initMessage?: OneSchemaInitMessage
@@ -153,6 +154,8 @@ export class OneSchemaImporterClass extends EventEmitter {
       Partial<OneSchemaLaunchSessionParams> &
       Partial<OneSchemaLaunchTemplateGroupParams>,
   ): OneSchemaLaunchStatus {
+    this._hasAttemptedLaunch = true
+
     const mergedParams = merge({}, this.#params, launchParams)
     const baseMessage: OneSchemaSharedInitParams = {
       version: this._version,
@@ -308,6 +311,7 @@ export class OneSchemaImporterClass extends EventEmitter {
       )
     }
 
+    this._hasAttemptedLaunch = false
     this._hasLaunched = false
     this._hasCancelled = true
 
