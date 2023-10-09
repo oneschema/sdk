@@ -311,6 +311,7 @@ export class OneSchemaImporterClass extends EventEmitter {
       )
     }
 
+    this._hasAttemptedLaunch = false
     this._hasLaunched = false
     this._hasCancelled = true
 
