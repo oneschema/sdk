@@ -4,6 +4,12 @@ This log is intended to keep track of package changes, including
 but not limited to API changes and file location changes. Minor behavioral
 changes may not be included if they are not expected to break existing code.
 
+## 0.4.5 (2023-10-09)
+
+- Make sure keys in `OneSchemaTemplateOverries` are optional
+- Have a `console.warn` upon changing launch params after an importer has launched in
+  React SDK.
+
 ## 0.4.4 (2023-09-28)
 
 - Enable `onLaunched` to surface internal server errors (such as 422s).
