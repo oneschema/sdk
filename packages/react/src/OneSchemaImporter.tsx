@@ -3,6 +3,7 @@ import oneschemaImporter, {
   OneSchemaLaunchParamOptions,
   OneSchemaLaunchStatus,
 } from "@oneschema/importer"
+
 import { version } from "../package.json"
 
 export interface OneSchemaImporterBaseProps {
@@ -109,7 +110,6 @@ export default function OneSchemaImporter({
 
       importer.on("launched", (data: OneSchemaLaunchStatus) => {
         onLaunched && onLaunched(data)
-        console.log("we in launched", importer._hasLaunched)
       })
     }
 
@@ -131,12 +131,12 @@ export default function OneSchemaImporter({
   }, [importer, style])
 
   useEffect(() => {
-    if (importer && importer._hasLaunched) {
+    if (importer && importer._hasAttemptedLaunch && isOpen) {
       console.warn(
         "The OneSchema importer has already launched. Updated launch params will not update the current import",
       )
     }
-  }, [params, importer])
+  }, [params, importer, isOpen])
 
   useEffect(() => {
     if (importer) {
