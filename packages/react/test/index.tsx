@@ -1,19 +1,9 @@
-import React, { useEffect, useState } from "react"
+import React, { useState } from "react"
 import { createRoot } from "react-dom/client"
 import OneSchemaImporter from "../src"
 
 function ImportTester() {
   const [isOpen, setIsOpen] = useState(false)
-  const [templateKey, setTemplateKey] = useState("crm_test")
-
-  useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => {
-        setTemplateKey("crm_testt")
-        console.log("key", templateKey)
-      }, 10)
-    }
-  }, [isOpen])
 
   const handleData = (data: any) => {
     console.log(data)
@@ -27,7 +17,7 @@ function ImportTester() {
         onRequestClose={() => setIsOpen(false)}
         clientId="8032af4b-e2d9-40ad-8142-e68011d94d9c"
         userJwt="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI4MDMyYWY0Yi1lMmQ5LTQwYWQtODE0Mi1lNjgwMTFkOTRkOWMiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-In0.UHcGqI6HutinJNCxO32dWNDBbfUJVVqrvmA_GLpLf50"
-        templateKey={templateKey}
+        templateKey="crm_test"
         onLaunched={(result) => console.log("onlaunch", result)}
         onSuccess={handleData}
         onCancel={() => console.log("cancelled")}
