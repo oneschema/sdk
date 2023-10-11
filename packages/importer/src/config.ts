@@ -98,6 +98,10 @@ export interface OneSchemaCustomization {
   mappingTemplateColumnText?: string
   cleaningPaneHeaderText?: string
   cleaningConfirmButtonText?: string
+  picklistMappingHeaderText?: string
+  picklistMappingSubheaderText?: string
+  picklistMappingUploadedColumnText?: string
+  picklistMappingTemplateColumnText?: string
 
   /**
    * importer options
