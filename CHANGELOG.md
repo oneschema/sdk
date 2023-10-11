@@ -4,7 +4,7 @@ This log is intended to keep track of package changes, including
 but not limited to API changes and file location changes. Minor behavioral
 changes may not be included if they are not expected to break existing code.
 
-## 0.4.5 (2023-10-11)
+## 0.4.6 (2023-10-11)
 
 - Add picklist related keys to `OneSchemaCustomization` for use in customization overrides.
 
