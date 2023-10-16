@@ -220,7 +220,7 @@ export type ValidationHookType = "row" | "column"
 /**
  * Params for adding a validation hook to a template
  */
-export interface OneSchemaValidationHooksToAdd {
+export interface OneSchemaValidationHookToAdd {
   name: string
   url: string
   column_keys?: string[]
@@ -228,6 +228,11 @@ export interface OneSchemaValidationHooksToAdd {
   hook_type?: ValidationHookType
   secret_key?: string
   batch_size?: number
+}
+
+export type OneSchemaMappingValidationToAdd = {
+  type: "required-column-group"
+  columns: string[]
 }
 
 /**
@@ -238,7 +243,8 @@ export interface OneSchemaTemplateOverrides {
   columns_to_add?: OneSchemaTemplateColumnToAdd[]
   columns_to_update?: OneSchemaTemplateColumnToUpdate[]
   columns_to_remove?: OneSchemaTemplateColumnToRemove[]
-  validation_hooks_to_add?: OneSchemaValidationHooksToAdd[]
+  validation_hooks_to_add?: OneSchemaValidationHookToAdd[]
+  mapping_validations_to_add?: OneSchemaMappingValidationToAdd[]
 }
 
 /**
