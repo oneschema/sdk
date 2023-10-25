@@ -33,6 +33,7 @@ export class OneSchemaImporterClass extends EventEmitter {
   _hasLaunched = false
   _hasCancelled = false
   _initMessage?: OneSchemaInitMessage
+  _hasAppRecievedInitMessage = false
   static #isLoaded = false
 
   constructor(params: OneSchemaParams) {
@@ -273,7 +274,7 @@ export class OneSchemaImporterClass extends EventEmitter {
   }
 
   _initWithRetry(count = 1) {
-    if (this._hasLaunched || this._hasCancelled) {
+    if (this._hasLaunched || this._hasCancelled || this._hasAppRecievedInitMessage) {
       return
     }
 
@@ -346,6 +347,10 @@ export class OneSchemaImporterClass extends EventEmitter {
     }
 
     switch (event.data.messageType) {
+      case "init-recieved": {
+        this._hasAppRecievedInitMessage = true
+        break
+      }
       case "launched": {
         this._hasLaunched = true
         let sessionToken = event.data.sessionToken
