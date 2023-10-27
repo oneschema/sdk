@@ -28,6 +28,11 @@ importer.on("cancel", () => {
   console.log("cancel")
 })
 
+importer.on("http-error", (e) => {
+  console.log(e)
+  alert("http error!")
+})
+
 importer.on("error", (e) => {
   console.log(e)
   alert("error!")

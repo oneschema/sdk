@@ -435,6 +435,10 @@ export class OneSchemaImporterClass extends EventEmitter {
         }
         break
       }
+      case "http-error": {
+        this.emit("http-error", event.data.data)
+        break
+      }
     }
   }
 }
