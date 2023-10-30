@@ -304,13 +304,13 @@ export interface OneSchemaLaunchTemplateGroupParams {
   templateGroupKey: string
 }
 
-export interface ErrorPayload {
-  code: ErrorCode
+export interface OneSchemaError {
+  code: OneSchemaErrorCode
   message: string
   data?: { [key: string]: any }
 }
 
-export enum ErrorCode {
+export enum OneSchemaErrorCode {
   INITIALIZATION_ERROR = "initialization_error",
   HTTP = "http",
 }
@@ -331,7 +331,7 @@ export interface OneSchemaLaunchStatus {
   /**
    * If success is false, this will be why it failed
    */
-  error?: ErrorPayload
+  error?: OneSchemaError
 }
 
 /**

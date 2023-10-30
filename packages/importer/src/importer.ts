@@ -12,8 +12,8 @@ import {
   OneSchemaInitSimpleMessage,
   OneSchemaInitSessionMessage,
   FileUploadImportConfig,
-  ErrorPayload,
-  ErrorCode,
+  OneSchemaError,
+  OneSchemaErrorCode,
 } from "./config"
 import { version } from "../package.json"
 
@@ -185,7 +185,7 @@ export class OneSchemaImporterClass extends EventEmitter {
       }
       if (!message.userJwt) {
         const error = {
-          code: ErrorCode.INITIALIZATION_ERROR,
+          code: OneSchemaErrorCode.INITIALIZATION_ERROR,
           message: "OneSchema config error: missing userJwt",
         }
         this.emitErrorEvent(error)
@@ -205,7 +205,7 @@ export class OneSchemaImporterClass extends EventEmitter {
       }
       if (!message.userJwt) {
         const error = {
-          code: ErrorCode.INITIALIZATION_ERROR,
+          code: OneSchemaErrorCode.INITIALIZATION_ERROR,
           message: "OneSchema config error: missing userJwt",
         }
         this.emitErrorEvent(error)
@@ -214,7 +214,7 @@ export class OneSchemaImporterClass extends EventEmitter {
 
       if (!message.templateKey) {
         const error = {
-          code: ErrorCode.INITIALIZATION_ERROR,
+          code: OneSchemaErrorCode.INITIALIZATION_ERROR,
           message: "OneSchema config error: missing templateKey",
         }
         this.emitErrorEvent(error)
@@ -287,7 +287,7 @@ export class OneSchemaImporterClass extends EventEmitter {
         this.#show()
       } else {
         this.emitErrorEvent({
-          code: ErrorCode.INITIALIZATION_ERROR,
+          code: OneSchemaErrorCode.INITIALIZATION_ERROR,
           message: msg,
         })
         if (this.#params.autoClose) {
@@ -383,7 +383,7 @@ export class OneSchemaImporterClass extends EventEmitter {
       case "launch-error": {
         // need to update OS before message will be there
         this.emitErrorEvent({
-          code: ErrorCode.INITIALIZATION_ERROR,
+          code: OneSchemaErrorCode.INITIALIZATION_ERROR,
           message: event.data.message.message,
         })
         if (this.#params.autoClose) {
@@ -432,10 +432,10 @@ export class OneSchemaImporterClass extends EventEmitter {
 
         break
       }
-      // Only use for initialization errors
+      // Only used for initialization errors
       case "error": {
         this.emitErrorEvent({
-          code: ErrorCode.INITIALIZATION_ERROR,
+          code: OneSchemaErrorCode.INITIALIZATION_ERROR,
           message: event.data.message,
         })
 
@@ -446,7 +446,7 @@ export class OneSchemaImporterClass extends EventEmitter {
       }
       case "http-error": {
         this.emitErrorEvent({
-          code: ErrorCode.HTTP,
+          code: OneSchemaErrorCode.HTTP,
           message: event.data.data.message,
         })
         break
@@ -454,7 +454,7 @@ export class OneSchemaImporterClass extends EventEmitter {
     }
   }
 
-  emitErrorEvent(payload: ErrorPayload) {
+  emitErrorEvent(payload: OneSchemaError) {
     console.error(payload.message)
     this.emit("error", payload)
   }
