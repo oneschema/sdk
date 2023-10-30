@@ -304,15 +304,15 @@ export interface OneSchemaLaunchTemplateGroupParams {
   templateGroupKey: string
 }
 
-/**
- * Possible errors when launching OneSchema
- */
-export enum OneSchemaLaunchError {
-  MissingTemplate,
-  MissingJwt,
-  MissingSessionToken,
-  MissingTemplateGroup,
-  LaunchError,
+export interface ErrorPayload {
+  code: ErrorCode
+  message: string
+  data?: { [key: string]: any }
+}
+
+export enum ErrorCode {
+  INITIALIZATION_ERROR = "initialization_error",
+  HTTP = "http",
 }
 
 export interface OneSchemaLaunchStatus {
@@ -331,7 +331,7 @@ export interface OneSchemaLaunchStatus {
   /**
    * If success is false, this will be why it failed
    */
-  error?: OneSchemaLaunchError
+  error?: ErrorPayload
 }
 
 /**
