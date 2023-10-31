@@ -185,7 +185,7 @@ export class OneSchemaImporterClass extends EventEmitter {
       }
       if (!message.userJwt) {
         const error = {
-          code: OneSchemaErrorCode.INITIALIZATION_ERROR,
+          code: OneSchemaErrorCode.INITIALIZATION,
           message: "OneSchema config error: missing userJwt",
         }
         this.emitErrorEvent(error)
@@ -205,7 +205,7 @@ export class OneSchemaImporterClass extends EventEmitter {
       }
       if (!message.userJwt) {
         const error = {
-          code: OneSchemaErrorCode.INITIALIZATION_ERROR,
+          code: OneSchemaErrorCode.INITIALIZATION,
           message: "OneSchema config error: missing userJwt",
         }
         this.emitErrorEvent(error)
@@ -214,7 +214,7 @@ export class OneSchemaImporterClass extends EventEmitter {
 
       if (!message.templateKey) {
         const error = {
-          code: OneSchemaErrorCode.INITIALIZATION_ERROR,
+          code: OneSchemaErrorCode.INITIALIZATION,
           message: "OneSchema config error: missing templateKey",
         }
         this.emitErrorEvent(error)
@@ -287,7 +287,7 @@ export class OneSchemaImporterClass extends EventEmitter {
         this.#show()
       } else {
         this.emitErrorEvent({
-          code: OneSchemaErrorCode.INITIALIZATION_ERROR,
+          code: OneSchemaErrorCode.INITIALIZATION,
           message: msg,
         })
         if (this.#params.autoClose) {
@@ -381,9 +381,8 @@ export class OneSchemaImporterClass extends EventEmitter {
         break
       }
       case "launch-error": {
-        // need to update OS before message will be there
         this.emitErrorEvent({
-          code: OneSchemaErrorCode.INITIALIZATION_ERROR,
+          code: OneSchemaErrorCode.INITIALIZATION,
           message: event.data.message.message,
         })
         if (this.#params.autoClose) {
@@ -435,7 +434,7 @@ export class OneSchemaImporterClass extends EventEmitter {
       // Only used for initialization errors
       case "error": {
         this.emitErrorEvent({
-          code: OneSchemaErrorCode.INITIALIZATION_ERROR,
+          code: OneSchemaErrorCode.INITIALIZATION,
           message: event.data.message,
         })
 

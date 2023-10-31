@@ -311,7 +311,7 @@ export interface OneSchemaError {
 }
 
 export enum OneSchemaErrorCode {
-  INITIALIZATION_ERROR = "initialization_error",
+  INITIALIZATION = "initialization",
   HTTP = "http",
 }
 
