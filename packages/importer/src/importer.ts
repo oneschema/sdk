@@ -9,10 +9,11 @@ import {
   OneSchemaInitMessage,
   OneSchemaLaunchTemplateGroupParams,
   OneSchemaSharedInitParams,
-  OneSchemaLaunchError,
   OneSchemaInitSimpleMessage,
   OneSchemaInitSessionMessage,
   FileUploadImportConfig,
+  OneSchemaError,
+  OneSchemaErrorCode,
 } from "./config"
 import { version } from "../package.json"
 
@@ -183,12 +184,12 @@ export class OneSchemaImporterClass extends EventEmitter {
         ...baseMessage,
       }
       if (!message.userJwt) {
-        console.error("OneSchema config error: missing userJwt")
-        this.emit("launched", {
-          success: false,
-          error: OneSchemaLaunchError.MissingJwt,
-        })
-        return { success: false, error: OneSchemaLaunchError.MissingJwt }
+        const error = {
+          code: OneSchemaErrorCode.INITIALIZATION,
+          message: "OneSchema config error: missing userJwt",
+        }
+        this.emitErrorEvent(error)
+        return { success: false, error }
       }
     } else {
       message = {
@@ -203,21 +204,21 @@ export class OneSchemaImporterClass extends EventEmitter {
         ...baseMessage,
       }
       if (!message.userJwt) {
-        console.error("OneSchema config error: missing userJwt")
-        this.emit("launched", {
-          success: false,
-          error: OneSchemaLaunchError.MissingJwt,
-        })
-        return { success: false, error: OneSchemaLaunchError.MissingJwt }
+        const error = {
+          code: OneSchemaErrorCode.INITIALIZATION,
+          message: "OneSchema config error: missing userJwt",
+        }
+        this.emitErrorEvent(error)
+        return { success: false, error }
       }
 
       if (!message.templateKey) {
-        console.error("OneSchema config error: missing templateKey")
-        this.emit("launched", {
-          success: false,
-          error: OneSchemaLaunchError.MissingTemplate,
-        })
-        return { success: false, error: OneSchemaLaunchError.MissingTemplate }
+        const error = {
+          code: OneSchemaErrorCode.INITIALIZATION,
+          message: "OneSchema config error: missing templateKey",
+        }
+        this.emitErrorEvent(error)
+        return { success: false, error }
       }
 
       if (mergedParams.saveSession) {
@@ -280,13 +281,15 @@ export class OneSchemaImporterClass extends EventEmitter {
 
     if (count > MAX_LAUNCH_RETRY) {
       const msg = "OneSchema failed to respond for initialization"
-      console.error(msg)
       if (this.#params.devMode) {
         // there might be some error in which case,
         // it's good to surface to devs
         this.#show()
       } else {
-        this.emit("error", msg)
+        this.emitErrorEvent({
+          code: OneSchemaErrorCode.INITIALIZATION,
+          message: msg,
+        })
         if (this.#params.autoClose) {
           this.close()
         }
@@ -378,9 +381,9 @@ export class OneSchemaImporterClass extends EventEmitter {
         break
       }
       case "launch-error": {
-        this.emit("launched", {
-          success: false,
-          error: OneSchemaLaunchError.LaunchError,
+        this.emitErrorEvent({
+          code: OneSchemaErrorCode.INITIALIZATION,
+          message: event.data.message.message,
         })
         if (this.#params.autoClose) {
           this.close()
@@ -428,14 +431,31 @@ export class OneSchemaImporterClass extends EventEmitter {
 
         break
       }
+      // Only used for initialization errors
       case "error": {
-        this.emit("error", event.data.message)
+        this.emitErrorEvent({
+          code: OneSchemaErrorCode.INITIALIZATION,
+          message: event.data.message,
+        })
+
         if (this.#params.autoClose) {
           this.close()
         }
         break
       }
+      case "http-error": {
+        this.emitErrorEvent({
+          code: OneSchemaErrorCode.HTTP,
+          message: event.data.data.message,
+        })
+        break
+      }
     }
+  }
+
+  emitErrorEvent(payload: OneSchemaError) {
+    console.error(payload.message)
+    this.emit("error", payload)
   }
 }
 
