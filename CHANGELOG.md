@@ -6,7 +6,7 @@ changes may not be included if they are not expected to break existing code.
 
 ## 0.4.9 (2023-11-08)
 
-- Fix bug in 0.4.9 where importer would not properly reopen after closing
+- Fix bug in 0.4.8 where importer would not properly reopen after closing
 
 ## 0.4.8 (2023-10-25) [NOT STABLE]
 
