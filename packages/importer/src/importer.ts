@@ -437,11 +437,10 @@ export class OneSchemaImporterClass extends EventEmitter {
         break
       }
       // This is temporary and will be removed when we revamp errors.
-      case "nonclosing-error":
-        {
-          this.emit("error", event.data.message)
-        }
+      case "nonclosing-error": {
+        this.emit("error", event.data.message)
         break
+      }
     }
   }
 }
