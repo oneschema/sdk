@@ -105,7 +105,15 @@ export default function OneSchemaImporter({
 
       importer.on("error", (message: string) => {
         onError && onError(message)
-        onRequestClose && onRequestClose()
+        // We don't want to close the importer on these errors.
+        // TODO: This is super hacky and we need to find a better way to emit errors
+        // without calling `onRequestClose`.
+        if (
+          !message.includes("File upload failed") &&
+          !message.includes("Validation webhook failed")
+        ) {
+          onRequestClose && onRequestClose()
+        }
       })
 
       importer.on("launched", (data: OneSchemaLaunchStatus) => {
