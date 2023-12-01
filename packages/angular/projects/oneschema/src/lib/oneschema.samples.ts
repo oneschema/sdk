@@ -33,7 +33,7 @@ export class OneSchemaListener implements OnDestroy {
     // handle success
   }
 
-  onError(message: string) {
+  onError(error: any) {
     // handle error
   }
 

@@ -15,7 +15,7 @@
       // TODO: handle cancel
     });
 
-    importer.on('error', (message) => {
+    importer.on('error', (error) => {
       // TODO: handle errors
       console.log(message);
     });

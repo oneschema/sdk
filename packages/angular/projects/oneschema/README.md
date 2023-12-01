@@ -80,7 +80,7 @@ export class OneSchemaButton implements OnDestroy {
     // handle success
   }
 
-  onError(message: string) {
+  onError(error: any) {
     // handle error
   }
 

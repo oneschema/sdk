@@ -4,6 +4,10 @@ This log is intended to keep track of package changes, including
 but not limited to API changes and file location changes. Minor behavioral
 changes may not be included if they are not expected to break existing code.
 
+## 0.5.0 (2023-12-04)
+
+- Update error payloads to be Objects
+
 ## 0.4.11 (2023-11-09)
 
 - Bugfix for issue with errors

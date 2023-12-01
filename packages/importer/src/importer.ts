@@ -2,6 +2,8 @@ import { EventEmitter } from "eventemitter3"
 import merge from "lodash.merge"
 import {
   DEFAULT_PARAMS,
+  OneSchemaError,
+  OneSchemaErrorSeverity,
   OneSchemaLaunchParams,
   OneSchemaLaunchSessionParams,
   OneSchemaLaunchStatus,
@@ -286,7 +288,10 @@ export class OneSchemaImporterClass extends EventEmitter {
         // it's good to surface to devs
         this.#show()
       } else {
-        this.emit("error", msg)
+        this.emitErrorEvent({
+          message: msg,
+          severity: OneSchemaErrorSeverity.Fatal,
+        })
         if (this.#params.autoClose) {
           this.close()
         }
@@ -328,6 +333,10 @@ export class OneSchemaImporterClass extends EventEmitter {
         this.iframe.dataset.count = `${parseInt(this.iframe.dataset.count || "1") - 1}`
       }
     }
+  }
+
+  emitErrorEvent(error: OneSchemaError) {
+    this.emit("error", error)
   }
 
   #hide() {
@@ -430,7 +439,10 @@ export class OneSchemaImporterClass extends EventEmitter {
         break
       }
       case "error": {
-        this.emit("error", event.data.message)
+        this.emitErrorEvent({
+          message: event.data.message,
+          severity: OneSchemaErrorSeverity.Fatal,
+        })
         if (this.#params.autoClose) {
           this.close()
         }
@@ -438,8 +450,22 @@ export class OneSchemaImporterClass extends EventEmitter {
       }
       // This is temporary and will be removed when we revamp errors.
       case "nonclosing-error": {
-        this.emit("error", event.data.message)
+        this.emitErrorEvent({
+          message: event.data.message,
+          severity: OneSchemaErrorSeverity.Error,
+        })
         break
+      }
+      case "error-v2": {
+         const severity = event.data.severity || OneSchemaErrorSeverity.Error
+         this.emitErrorEvent({
+           message: event.data.message,
+           severity,
+         })
+         if (severity === OneSchemaErrorSeverity.Fatal && this.#params.autoClose) {
+           this.close()
+         }
+         break
       }
     }
   }
