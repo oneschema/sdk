@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import oneschemaImporter, {
+  OneSchemaError,
+  OneSchemaErrorSeverity,
   OneSchemaLaunchParamOptions,
   OneSchemaLaunchStatus,
 } from "@oneschema/importer"
@@ -45,7 +47,7 @@ export interface OneSchemaImporterBaseProps {
   /**
    * Handler for when an error occurs during the import
    */
-  onError?: (message: string) => void
+  onError?: (error: OneSchemaError) => void
   /**
    * Handler for when the importer is launched (aka is ready to be shown)
    * Or when launching fails, based on result
@@ -103,15 +105,9 @@ export default function OneSchemaImporter({
         onRequestClose && onRequestClose()
       })
 
-      importer.on("error", (message: string) => {
-        onError && onError(message)
-        // We don't want to close the importer on these errors.
-        // TODO: This is super hacky and we need to find a better way to emit errors
-        // without calling `onRequestClose`.
-        if (
-          !message.includes("File upload failed") &&
-          !message.includes("Validation webhook failed")
-        ) {
+      importer.on("error", (error: OneSchemaError) => {
+        onError && onError(error)
+        if (error.severity === OneSchemaErrorSeverity.Fatal) {
           onRequestClose && onRequestClose()
         }
       })

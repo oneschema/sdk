@@ -466,3 +466,13 @@ export const DEFAULT_PARAMS: Partial<OneSchemaParams> = {
   manageDOM: true,
   saveSession: true,
 }
+
+export enum OneSchemaErrorSeverity {
+    Error = "error",
+    Fatal = "fatal",
+}
+
+export interface OneSchemaError {
+  message: string
+  severity: OneSchemaErrorSeverity
+}

@@ -57,7 +57,7 @@ function OneSchemaExample() {
         /* handling results */
         onSuccess={handleData}
         onCancel={() => console.log("cancelled")}
-        onError={(message) => console.log(message)}
+        onError={(error) => console.log(error)}
       />
     </div>
   )
