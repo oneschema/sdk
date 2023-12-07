@@ -16,7 +16,7 @@ function start() {
 }
 
 importer.on("launched", (data) => {
-  console.log("we have launched", data)
+  console.log("we have updatedlaunched", data)
 })
 
 importer.on("success", (data) => {
