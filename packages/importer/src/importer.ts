@@ -227,10 +227,12 @@ export class OneSchemaImporterClass extends EventEmitter {
       }
 
       if (mergedParams.saveSession) {
+        console.log("savesession true?")
         try {
           this._resumeTokenKey = `OneSchema-session-${mergedParams.userJwt}-${mergedParams.templateKey}`
           const resumeToken = window.localStorage.getItem(this._resumeTokenKey)
           if (resumeToken) {
+            console.log("we in resume token")
             message.resumeToken = resumeToken
           }
         } catch {

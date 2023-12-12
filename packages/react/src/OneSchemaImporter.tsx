@@ -4,7 +4,7 @@ import oneschemaImporter, {
   OneSchemaErrorSeverity,
   OneSchemaLaunchParamOptions,
   OneSchemaLaunchStatus,
-} from "@oneschema/importer"
+} from "../../importer/src"
 
 import { version } from "../package.json"
 

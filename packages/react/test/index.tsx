@@ -4,6 +4,7 @@ import OneSchemaImporter from "../src"
 
 function ImportTester() {
   const [isOpen, setIsOpen] = useState(false)
+  const [customizationOverrides, setCustomizationOverrides] = useState({})
 
   const handleData = (data: any) => {
     console.log(data)
@@ -18,7 +19,15 @@ function ImportTester() {
         clientId="8032af4b-e2d9-40ad-8142-e68011d94d9c"
         userJwt="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI4MDMyYWY0Yi1lMmQ5LTQwYWQtODE0Mi1lNjgwMTFkOTRkOWMiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-In0.UHcGqI6HutinJNCxO32dWNDBbfUJVVqrvmA_GLpLf50"
         templateKey="crm_test"
-        onLaunched={(result) => console.log("onlaunch", result)}
+        onLaunched={(result) => {
+          console.log("onlaunch", result)
+          setTimeout(() => {
+            console.log("in the settimeout")
+            setCustomizationOverrides({
+              uploaderShowSidebar: false,
+            })
+          }, 5000)
+        }}
         onSuccess={handleData}
         onCancel={() => console.log("cancelled")}
         onError={(message) => console.log(message)}
@@ -30,6 +39,7 @@ function ImportTester() {
           width: "100vw",
           height: "100vh",
         }}
+        customizationOverrides={customizationOverrides}
       />
     </div>
   )
