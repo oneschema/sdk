@@ -10,15 +10,9 @@ const importer = oneSchemaImporter({
     "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI4MDMyYWY0Yi1lMmQ5LTQwYWQtODE0Mi1lNjgwMTFkOTRkOWMiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-In0.UHcGqI6HutinJNCxO32dWNDBbfUJVVqrvmA_GLpLf50",
   devMode: true,
 })
-let customizationOverrides = {}
 
 function start() {
-  importer.launch(customizationOverrides)
-  setTimeout(() => {
-    customizationOverrides = {
-      backgroundPrimaryColor: "#FFAAFF",
-    }
-  }, 5000)
+  importer.launch()
 }
 
 importer.on("launched", (data) => {
