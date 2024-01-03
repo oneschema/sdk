@@ -12,7 +12,13 @@ const importer = oneSchemaImporter({
 })
 
 function start() {
-  importer.launch()
+  let customizationOverrides = {}
+  importer.launch(customizationOverrides)
+  setTimeout(() => {
+    customizationOverrides = {
+      backgroundPrimaryColor: "#FFAAFF",
+    }
+  }, 5000)
 }
 
 importer.on("launched", (data) => {
