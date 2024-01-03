@@ -7,6 +7,7 @@ changes may not be included if they are not expected to break existing code.
 ## 0.5.1 (2024-01-03)
 
 - Add education widget customizations to `OneSchemaCustomization` type
+- Enable manual session reset in `devMode`.
 
 ## 0.5.0 (2023-12-04)
 

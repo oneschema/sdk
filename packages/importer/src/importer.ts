@@ -304,6 +304,24 @@ export class OneSchemaImporterClass extends EventEmitter {
     setTimeout(() => this._initWithRetry(count + 1), 500)
   }
 
+  _resetSession(
+    launchParams?: Partial<OneSchemaLaunchParams> &
+      Partial<OneSchemaLaunchSessionParams> &
+      Partial<OneSchemaLaunchTemplateGroupParams>,
+  ) {
+    if (this._resumeTokenKey) {
+      try {
+        window.localStorage.removeItem(this._resumeTokenKey)
+      } catch {
+        /* local storage is not available, don't sweat it */
+      }
+    }
+    this.close()
+    setTimeout(() => {
+      this.launch(launchParams)
+    })
+  }
+
   /**
    * Close will stop the importing session and hide the OneSchema window
    * @param clean will remove the iframe and event listeners if true
@@ -438,6 +456,10 @@ export class OneSchemaImporterClass extends EventEmitter {
 
         break
       }
+      case "reset-embed": {
+        this._resetSession(event.data.embedSessionConfig)
+        break
+      }
       case "error": {
         this.emitErrorEvent({
           message: event.data.message,
@@ -457,15 +479,15 @@ export class OneSchemaImporterClass extends EventEmitter {
         break
       }
       case "error-v2": {
-         const severity = event.data.severity || OneSchemaErrorSeverity.Error
-         this.emitErrorEvent({
-           message: event.data.message,
-           severity,
-         })
-         if (severity === OneSchemaErrorSeverity.Fatal && this.#params.autoClose) {
-           this.close()
-         }
-         break
+        const severity = event.data.severity || OneSchemaErrorSeverity.Error
+        this.emitErrorEvent({
+          message: event.data.message,
+          severity,
+        })
+        if (severity === OneSchemaErrorSeverity.Fatal && this.#params.autoClose) {
+          this.close()
+        }
+        break
       }
     }
   }
