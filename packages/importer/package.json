@@ -1,7 +1,7 @@
 {
   "name": "@oneschema/importer",
   "private": false,
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Importer for using OneSchema",
   "author": "OneSchema",
   "license": "MIT",
