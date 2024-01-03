@@ -310,6 +310,24 @@ export class OneSchemaImporterClass extends EventEmitter {
     setTimeout(() => this._initWithRetry(count + 1), 500)
   }
 
+  _resetSession(
+    launchParams?: Partial<OneSchemaLaunchParams> &
+      Partial<OneSchemaLaunchSessionParams> &
+      Partial<OneSchemaLaunchTemplateGroupParams>,
+  ) {
+    if (this._resumeTokenKey) {
+      try {
+        window.localStorage.removeItem(this._resumeTokenKey)
+      } catch {
+        /* local storage is not available, don't sweat it */
+      }
+    }
+    this.close()
+    setTimeout(() => {
+      this.launch(launchParams)
+    })
+  }
+
   /**
    * Close will stop the importing session and hide the OneSchema window
    * @param clean will remove the iframe and event listeners if true
