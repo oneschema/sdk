@@ -464,6 +464,10 @@ export class OneSchemaImporterClass extends EventEmitter {
 
         break
       }
+      case "reset-embed": {
+        this._resetSession(event.data.embedSessionConfig)
+        break
+      }
       case "error": {
         this.emitErrorEvent({
           message: event.data.message,
