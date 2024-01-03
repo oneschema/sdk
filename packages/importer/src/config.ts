@@ -77,6 +77,7 @@ export interface OneSchemaCustomization {
    * options
    */
   // IMPORTER OPTIONS
+  hideLogo?: boolean
   modalFullscreen?: boolean
   hideCloseButton?: boolean
   modalMaskColor?: Hex
