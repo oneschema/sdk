@@ -166,13 +166,9 @@ export class OneSchemaImporterClass extends EventEmitter {
       manualClose: true,
     }
 
-    console.log("merged", mergedParams)
-    console.log("launchparams", launchParams)
-
     let message: Partial<OneSchemaInitMessage>
 
     if (mergedParams.sessionToken) {
-      console.log("we have session token")
       message = {
         messageType: "init-session",
         sessionToken: mergedParams.sessionToken,
@@ -227,12 +223,10 @@ export class OneSchemaImporterClass extends EventEmitter {
       }
 
       if (mergedParams.saveSession) {
-        console.log("savesession true?")
         try {
           this._resumeTokenKey = `OneSchema-session-${mergedParams.userJwt}-${mergedParams.templateKey}`
           const resumeToken = window.localStorage.getItem(this._resumeTokenKey)
           if (resumeToken) {
-            console.log("we in resume token")
             message.resumeToken = resumeToken
           }
         } catch {
@@ -451,9 +445,7 @@ export class OneSchemaImporterClass extends EventEmitter {
         if (this._resumeTokenKey) {
           try {
             window.localStorage.removeItem(this._resumeTokenKey)
-            console.log("inside cancel?")
           } catch {
-            console.log("local storage fcking up?")
             /* local storage is not available, don't sweat it */
           }
         }
@@ -465,7 +457,6 @@ export class OneSchemaImporterClass extends EventEmitter {
         break
       }
       case "reset-embed": {
-        console.log("reset-embed message recieved")
         this._resetSession(event.data.embedSessionConfig)
         break
       }
