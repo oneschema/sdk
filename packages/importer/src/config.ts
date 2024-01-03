@@ -16,6 +16,10 @@ export type MappingStrategy =
  */
 export type SkipHeaderRowStrategy = "always" | "detect" | "never"
 /**
+ * Type with options for allowing row deletion
+ */
+export type RowDeletionStrategy = "selection" | "errors"
+/**
  * Type with options for AI suggested mappings customization
  */
 export type AiSuggestedMappings = "column" | "picklist"
@@ -69,23 +73,66 @@ export interface OneSchemaCustomization {
   fontColorSecondary?: Hex
   fontColorPlaceholder?: Hex
 
-  // MODAL
+  /**
+   * options
+   */
+  // IMPORTER OPTIONS
+  hideLogo?: boolean
   modalFullscreen?: boolean
+  hideCloseButton?: boolean
   modalMaskColor?: Hex
   modalBorderRadius?: string
-  hideLogo?: boolean
-  illustrationUrl?: string
 
+  // UPLOAD PANE
+  fileSizeLimit?: number
+  illustrationUrl?: string
   uploaderShowSidebar?: boolean
   uploaderSidebarDetails?: SidebarDetails
   uploaderShowSidebarBanner?: boolean
   uploaderSidebarBannerText?: string
-
   includeExcelTemplate?: boolean
+
+  // SELECT HEADER ROW PANE
+  skipHeaderRow?: SkipHeaderRowStrategy
+
+  // MAP COLUMNS PANE
+  includeUnmappedColumns?: boolean
+  mappingStrategy?: MappingStrategy[]
+  skipMapping?: MappingStrategy[]
+  aiSuggestedMappings?: AiSuggestedMappings[]
+  oneClickMode?: boolean
+  mappingShowSidebar?: boolean
+  mappingSidebarDetails?: SidebarDetails
+  mappingShowSidebarBanner?: boolean
+  mappingSidebarBannerText?: string | null
+
+  // REVIEW AND FINALIZE PANE
+  autofixAfterMapping?: boolean
+  acceptCodeHookSuggestions?: boolean
+  preventRowDeletion?: RowDeletionStrategy[]
   importErrorUX?: ImportExperience
+  skipCleaning?: boolean
+  allowEmptyImports?: boolean
+  importMaxRowLimit?: number | null
+  importRowLimitHeader?: string | null
+  importRowLimitDescription?: string | null
+
+  // EDUCATION WIDGET
+  showUploadEducationWidget?: boolean
+  uploadEducationWidgetMessage?: string
+  uploadEducationWidgetAutoOpen?: boolean
+  showSetHeaderEducationWidget?: boolean
+  setHeaderEducationWidgetMessage?: string
+  setHeaderEducationWidgetAutoOpen?: boolean
+  showMappingEducationWidget?: boolean
+  mappingEducationWidgetMessage?: string
+  mappingEducationWidgetAutoOpen?: boolean
+  showCleaningEducationWidget?: boolean
+  cleaningEducationWidgetMessage?: string
+  cleaningEducationWidgetAutoOpen?: boolean
 
   /**
-   * text overrides
+   * Text overrides
    */
   backButtonText?: string
   nextButtonText?: string
@@ -102,18 +149,6 @@ export interface OneSchemaCustomization {
   picklistMappingSubheaderText?: string
   picklistMappingUploadedColumnText?: string
   picklistMappingTemplateColumnText?: string
-
-  /**
-   * importer options
-   */
-  includeUnmappedColumns?: boolean
-  mappingStrategy?: MappingStrategy[]
-  skipMapping?: MappingStrategy[]
-  skipHeaderRow?: SkipHeaderRowStrategy
-  acceptCodeHookSuggestions?: boolean
-  autofixAfterMapping?: boolean
-  fileSizeLimit?: number
-  aiSuggestedMappings?: AiSuggestedMappings[]
 }
 
 /**
@@ -468,8 +503,8 @@ export const DEFAULT_PARAMS: Partial<OneSchemaParams> = {
 }
 
 export enum OneSchemaErrorSeverity {
-    Error = "error",
-    Fatal = "fatal",
+  Error = "error",
+  Fatal = "fatal",
 }
 
 export interface OneSchemaError {
