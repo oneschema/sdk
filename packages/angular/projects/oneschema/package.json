@@ -6,8 +6,8 @@
   "author": "OneSchema",
   "license": "MIT",
   "peerDependencies": {
-    "@angular/common": "^14.1.0",
-    "@angular/core": "^14.1.0",
+    "@angular/common": "^15.2.10",
+    "@angular/core": "^15.2.10",
     "@oneschema/importer": "^0.5.1"
   },
   "dependencies": {
