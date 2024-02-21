@@ -6,7 +6,6 @@ import { OneSchemaButton } from "./oneschema.button"
 
 @NgModule({
   declarations: [OneSchemaButton],
-  // imports: [OneSchemaImporterClass],
   exports: [OneSchemaButton],
 })
 export class OneSchemaModule {
@@ -14,7 +13,6 @@ export class OneSchemaModule {
     return {
       ngModule: OneSchemaModule,
       providers: [
-        // OneSchemaJSClass,
         OneSchemaService,
         {
           provide: OneSchemaParamsService,

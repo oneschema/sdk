@@ -3,11 +3,6 @@ import { OneSchemaImporterClass, OneSchemaParams } from "@oneschema/importer"
 import { OneSchemaParamsService } from "./oneschema.params"
 import packjson from "../../package.json"
 
-// @Injectable({
-//   providedIn: "root",
-// })
-// export class OneSchemaJSClass extends OneSchemaImporterClass {}
-
 @Injectable({
   providedIn: "root",
 })
