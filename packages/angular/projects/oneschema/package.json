@@ -1,14 +1,14 @@
 {
   "name": "@oneschema/angular",
   "private": false,
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Angular module for using OneSchema",
   "author": "OneSchema",
   "license": "MIT",
   "peerDependencies": {
     "@angular/common": "^16.2.12",
     "@angular/core": "^16.2.12",
-    "@oneschema/importer": "^0.5.1"
+    "@oneschema/importer": "^0.5.2"
   },
   "dependencies": {
     "tslib": "^2.3.0"
