@@ -6,7 +6,7 @@ changes may not be included if they are not expected to break existing code.
 
 ## 0.5.2 (2024-02-21)
 
-- Update Angular SDK to Angular 16.2.12 from Angular 14
+- Update Angular SDK to Angular 16.2.12 from Angular 14.1.0
 
 ## 0.5.1 (2024-01-03)
 
