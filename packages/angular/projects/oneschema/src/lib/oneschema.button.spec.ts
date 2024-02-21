@@ -3,7 +3,6 @@ import { ComponentFixture, TestBed } from "@angular/core/testing"
 import { OneSchemaButton } from "./oneschema.button"
 import { OneSchemaService } from "./oneschema.service"
 import { OneSchemaParamsService } from "./oneschema.params"
-import { By } from "@angular/platform-browser"
 
 describe("OneSchemaButton", () => {
   let component: OneSchemaButton

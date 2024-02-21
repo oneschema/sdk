@@ -3,15 +3,11 @@ import { OneSchemaService } from "./oneschema.service"
 
 @Component({
   selector: "lib-oneschema-button",
-  template: `<button id="oneschema-launch-button" (click)="click()">
+  template: `<button id="oneschema-launch-button" (click)="oneschema.launch()">
     Open OneSchema
   </button>`,
   styles: [],
 })
 export class OneSchemaButton {
-  constructor(public oneschema: OneSchemaService) {
-    const click = () => {
-      oneschema.launch()
-    }
-  }
+  constructor(public oneschema: OneSchemaService) {}
 }
