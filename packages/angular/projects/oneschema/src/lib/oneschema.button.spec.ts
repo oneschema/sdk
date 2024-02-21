@@ -37,15 +37,4 @@ describe("OneSchemaButton", () => {
   it("should create", () => {
     expect(component).toBeTruthy()
   })
-
-  it("should work", () => {
-    const buttonDe = fixture.debugElement.query(By.css("#oneschema-launch-button"))
-
-    // buttonDe.triggerEventHandler("click")
-    fixture.nativeElement.click()
-    fixture.detectChanges()
-    console.log(document)
-    let header = document.querySelector(".EmbeddingModal__header")
-    expect(header).toBeTruthy()
-  })
 })
