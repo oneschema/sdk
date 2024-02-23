@@ -4,10 +4,10 @@ This log is intended to keep track of package changes, including
 but not limited to API changes and file location changes. Minor behavioral
 changes may not be included if they are not expected to break existing code.
 
-## 0.5.2 (2024-02-21)
+## 0.5.2 (2024-02-23)
 
-- Update Angular SDK to Angular 16.2.12 from Angular 14.1.0
 - Update peerDependencies for Angular SDK and React SDK to be more flexible for different versions.
+- Update from Angular 14.1.0 to Angular 16.2.12 for Angular example project
 
 ## 0.5.1 (2024-01-03)
 
