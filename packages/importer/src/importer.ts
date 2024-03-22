@@ -410,7 +410,9 @@ export class OneSchemaImporterClass extends EventEmitter {
           success: false,
           error: OneSchemaLaunchError.LaunchError,
         })
-        if (this.#params.autoClose) {
+        if (this.#params.devMode) {
+          this.#show()
+        } else if (this.#params.autoClose) {
           this.close()
         }
         break
