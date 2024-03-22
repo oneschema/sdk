@@ -4,6 +4,10 @@ This log is intended to keep track of package changes, including
 but not limited to API changes and file location changes. Minor behavioral
 changes may not be included if they are not expected to break existing code.
 
+## 0.5.3 (2024-03-22)
+
+- Bugfix for issue with `EmbedMisconfiguredPage` not appearing
+
 ## 0.5.2 (2024-02-23)
 
 - Update peerDependencies for Angular SDK and React SDK to be more flexible for different versions.
