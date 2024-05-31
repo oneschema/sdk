@@ -7,7 +7,7 @@
   "license": "MIT",
   "main": "dist/main.js",
   "module": "dist/module.js",
-  "types": "dist/src/index.d.ts",
+  "types": "dist/index.d.ts",
   "targets": {
     "main": false,
     "module": false,
