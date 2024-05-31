@@ -33,7 +33,8 @@
   },
   "dependencies": {
     "eventemitter3": "^4.0.7",
-    "lodash.merge": "^4.6.2"
+    "lodash.merge": "^4.6.2",
+    "tslib": "^2.4.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^22.0.0",
@@ -53,7 +54,6 @@
     "rollup-plugin-dts": "^4.2.2",
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript2": "^0.32.1",
-    "tslib": "^2.4.0",
     "typescript": "^4.7.3"
   }
 }

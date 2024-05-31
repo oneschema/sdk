@@ -5,12 +5,19 @@
   "description": "Angular module for using OneSchema",
   "author": "OneSchema",
   "license": "MIT",
-  "peerDependencies": {
-    "@angular/common": ">=15",
-    "@angular/core": ">=15",
-    "@oneschema/importer": "^0.5.3"
+  "homepage": "https://www.oneschema.co/",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/oneschema/sdk",
+    "directory": "packages/angular/projects/oneschema",
+    "web": "https://docs.oneschema.co/"
   },
   "dependencies": {
+    "@oneschema/importer": "^0.5.3",
     "tslib": "^2.3.0"
+  },
+  "peerDependencies": {
+    "@angular/common": ">=15",
+    "@angular/core": ">=15"
   }
 }
