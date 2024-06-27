@@ -1,11 +1,11 @@
-import { OneSchemaImporterClass, OneSchemaParams } from "@oneschema/importer"
-import { OneSchemaPlugin } from "./plugin"
+import { OneSchemaImporterClass, OneSchemaParams } from "@oneschema/importer";
+import { OneSchemaPlugin } from "./plugin";
 
-import { inject } from "vue"
+import { inject } from "vue";
 
-export * from "@oneschema/importer"
-
-export function createOneSchemaImporter(createParams: OneSchemaParams) {
+export function createOneSchemaImporter(
+  createParams: OneSchemaParams
+) {
   return new OneSchemaPlugin(createParams)
 }
 
