@@ -1,10 +1,10 @@
-import nodeResolve from "@rollup/plugin-node-resolve"
 import commonjs from "@rollup/plugin-commonjs"
-import typescript from "rollup-plugin-typescript2"
-import dts from "rollup-plugin-dts"
 import json from "@rollup/plugin-json"
+import nodeResolve from "@rollup/plugin-node-resolve"
 import replace from "@rollup/plugin-replace"
+import dts from "rollup-plugin-dts"
 import { terser } from "rollup-plugin-terser"
+import typescript from "rollup-plugin-typescript2"
 
 import pkg from "./package.json"
 
