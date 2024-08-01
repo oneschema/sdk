@@ -1,18 +1,16 @@
-import { App } from "vue";
-import { version } from "../package.json"
 import { OneSchemaImporterClass, OneSchemaParams } from "@oneschema/importer"
+import { App } from "vue"
+import { version } from "../package.json"
 
 function bindPluginMethods(plugin: any, exclude: string[]) {
   Object.getOwnPropertyNames(Object.getPrototypeOf(plugin))
-    .filter(method => !exclude.includes(method))
-    .forEach(method => (plugin[method] = plugin[method].bind(plugin)));
+    .filter((method) => !exclude.includes(method))
+    .forEach((method) => (plugin[method] = plugin[method].bind(plugin)))
 }
 
 export class OneSchemaPlugin {
-  constructor(
-    private initOptions : OneSchemaParams
-  ) {
-    bindPluginMethods(this, ['constructor'])
+  constructor(private initOptions: OneSchemaParams) {
+    bindPluginMethods(this, ["constructor"])
   }
 
   install(app: App) {
@@ -22,4 +20,4 @@ export class OneSchemaPlugin {
     importer.setClient("Vue", version)
     app.provide("os-importer", importer)
   }
-};
+}

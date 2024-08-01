@@ -1,22 +1,21 @@
 import { EventEmitter } from "eventemitter3"
 import merge from "lodash.merge"
+import { version } from "../package.json"
 import {
   DEFAULT_PARAMS,
+  FileUploadImportConfig,
   OneSchemaError,
   OneSchemaErrorSeverity,
+  OneSchemaInitMessage,
+  OneSchemaInitSessionMessage,
+  OneSchemaInitSimpleMessage,
+  OneSchemaLaunchError,
   OneSchemaLaunchParams,
   OneSchemaLaunchSessionParams,
   OneSchemaLaunchStatus,
   OneSchemaParams,
-  OneSchemaInitMessage,
-  OneSchemaLaunchTemplateGroupParams,
   OneSchemaSharedInitParams,
-  OneSchemaLaunchError,
-  OneSchemaInitSimpleMessage,
-  OneSchemaInitSessionMessage,
-  FileUploadImportConfig,
 } from "./config"
-import { version } from "../package.json"
 
 const MAX_LAUNCH_RETRY = 10
 
@@ -153,9 +152,7 @@ export class OneSchemaImporterClass extends EventEmitter {
    * @param launchParams optionally pass in parameter overrides or values not passed into constructor
    */
   launch(
-    launchParams?: Partial<OneSchemaLaunchParams> &
-      Partial<OneSchemaLaunchSessionParams> &
-      Partial<OneSchemaLaunchTemplateGroupParams>,
+    launchParams?: Partial<OneSchemaLaunchParams> & Partial<OneSchemaLaunchSessionParams>,
   ): OneSchemaLaunchStatus {
     this._hasAttemptedLaunch = true
 
@@ -173,24 +170,6 @@ export class OneSchemaImporterClass extends EventEmitter {
         messageType: "init-session",
         sessionToken: mergedParams.sessionToken,
         ...baseMessage,
-      }
-    } else if (mergedParams.templateGroupKey) {
-      message = {
-        messageType: "init-template-group",
-        userJwt: mergedParams.userJwt,
-        templateGroupKey: mergedParams.templateGroupKey,
-        importConfig: mergedParams.importConfig,
-        customizationKey: mergedParams.customizationKey,
-        customizationOverrides: mergedParams.customizationOverrides,
-        ...baseMessage,
-      }
-      if (!message.userJwt) {
-        console.error("OneSchema config error: missing userJwt")
-        this.emit("launched", {
-          success: false,
-          error: OneSchemaLaunchError.MissingJwt,
-        })
-        return { success: false, error: OneSchemaLaunchError.MissingJwt }
       }
     } else {
       message = {
@@ -305,9 +284,7 @@ export class OneSchemaImporterClass extends EventEmitter {
   }
 
   _resetSession(
-    launchParams?: Partial<OneSchemaLaunchParams> &
-      Partial<OneSchemaLaunchSessionParams> &
-      Partial<OneSchemaLaunchTemplateGroupParams>,
+    launchParams?: Partial<OneSchemaLaunchParams> & Partial<OneSchemaLaunchSessionParams>,
   ) {
     if (this._resumeTokenKey) {
       try {
