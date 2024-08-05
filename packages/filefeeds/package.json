@@ -1,0 +1,59 @@
+{
+  "name": "@oneschema/filefeeds",
+  "private": false,
+  "version": "0.1.0",
+  "description": "OneSchema FileFeeds embedding library",
+  "author": "OneSchema",
+  "license": "MIT",
+  "main": "dist/main.js",
+  "module": "dist/module.js",
+  "types": "dist/index.d.ts",
+  "targets": {
+    "main": false,
+    "module": false,
+    "types": false,
+    "test": {
+      "distDir": "./test/dist"
+    }
+  },
+  "homepage": "https://docs.oneschema.co/",
+  "bugs": "https://github.com/oneschema/sdk/issues",
+  "repository": {
+    "type": "git",
+    "url": "github:oneschema/sdk",
+    "directory": "packages/filefeeds"
+  },
+  "scripts": {
+    "dev": "rollup -c -w",
+    "build": "yarn run clean && rollup -c",
+    "build-test": "parcel build test/index.html",
+    "test": "parcel serve test/index.html -p 4242 --open",
+    "lint": "eslint './src/**/**.{ts,js}'",
+    "clean": "npx rimraf dist"
+  },
+  "dependencies": {
+    "eventemitter3": "^4.0.7",
+    "lodash.merge": "^4.6.2",
+    "tslib": "^2.4.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^22.0.0",
+    "@rollup/plugin-json": "^5.0.0",
+    "@rollup/plugin-node-resolve": "^13.3.0",
+    "@rollup/plugin-replace": "^4.0.0",
+    "@types/lodash.merge": "^4.6.7",
+    "@typescript-eslint/eslint-plugin": "^5.30.0",
+    "@typescript-eslint/parser": "^5.30.0",
+    "eslint": "^8.18.0",
+    "eslint-import-resolver-typescript": "^3.1.1",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-unused-imports": "^2.0.0",
+    "express": "^4.18.1",
+    "parcel": "^2.8.3",
+    "rollup": "^2.75.6",
+    "rollup-plugin-dts": "^4.2.2",
+    "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-typescript2": "^0.32.1",
+    "typescript": "^4.7.3"
+  }
+}
