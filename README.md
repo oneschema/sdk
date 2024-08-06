@@ -11,14 +11,22 @@ This repository contains tools to help you embed OneSchema products into your ap
 
 - [📑 Importer](https://github.com/oneschema/sdk/tree/main/packages/importer),
   a plain Javascript library for embedding OneSchema Importer.
-- [⚛ React](https://github.com/oneschema/sdk/tree/main/packages/react), a React
+  ![NPM Version](https://img.shields.io/npm/v/@oneschema/importer)
+- [⚛ Importer React](https://github.com/oneschema/sdk/tree/main/packages/importer-react), a React
   component library for embedding OneSchema Importer.
-- [🅰️ Angular](https://github.com/oneschema/sdk/tree/main/packages/angular/projects/oneschema),
+  ![NPM Version](https://img.shields.io/npm/v/@oneschema/react)
+- [🅰️ Importer Angular](https://github.com/oneschema/sdk/tree/main/packages/importer-angular/projects/oneschema),
   an Angular module for embedding OneSchema Importer.
-- [🧩 Vue](https://github.com/oneschema/sdk/tree/main/packages/vue), a Vue
+  ![NPM Version](https://img.shields.io/npm/v/@oneschema/angular)
+- [🧩 Importer Vue](https://github.com/oneschema/sdk/tree/main/packages/importer-vue), a Vue
   plugin for embedding OneSchema Importer.
+  ![NPM Version](https://img.shields.io/npm/v/@oneschema/vue)
 
 ## OneSchema FileFeeds
 
 - [📑 FileFeeds](https://github.com/oneschema/sdk/tree/main/packages/filefeeds),
   a plain Javascript library for embedding OneSchema FileFeeds.
+  ![NPM Version](https://img.shields.io/npm/v/@oneschema/filefeeds)
+- [⚛ FileFeeds React](https://github.com/oneschema/sdk/tree/main/packages/filefeeds-react),
+  a React component library for embedding OneSchema FileFeeds.
+  ![NPM Version](https://img.shields.io/npm/v/@oneschema/filefeeds-react)

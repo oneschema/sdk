@@ -1,8 +1,9 @@
 import { EventEmitter } from "eventemitter3"
 import merge from "lodash.merge"
 
-import { version as PACKAGE_VERSION } from "../package.json"
+import { name as PACKAGE_NAME, version as PACKAGE_VERSION } from "../package.json"
 import { DEFAULT_PARAMS, FileFeedsParams } from "./config"
+import { FileFeedsEvent } from "./events"
 
 const LAUNCH_RETRY_MAX_COUNT = 10
 const LAUNCH_RETRY_DELAY_MS = 500
@@ -15,10 +16,10 @@ const FILE_FEEDS_TRANSFORMS_EMBED_MARKER = "transforms.filefeeds.oneschema.co"
  */
 export class OneSchemaFileFeedsClass extends EventEmitter {
   #params: FileFeedsParams
-  iframe?: HTMLIFrameElement
+  iframe: HTMLIFrameElement | undefined
 
-  _client = "sdk.filefeeds.oneschema.co"
-  _version = PACKAGE_VERSION
+  #client = PACKAGE_NAME
+  #version = PACKAGE_VERSION
 
   static #iframeIsLoaded = false
   _iframeInitStarted = false
@@ -38,16 +39,14 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
     }
 
     if (this.#params.manageDOM) {
-      const iframeId = "_oneschema-iframe"
-      this.iframe = document.getElementById(iframeId) as HTMLIFrameElement
-      if (this.iframe) {
-        this.iframe.dataset.count = `${parseInt(this.iframe.dataset.count || "0") + 1}`
-      } else {
+      const iframeId = "_oneschema_filefeeds_iframe"
+      this.iframe = document.getElementById(iframeId) as HTMLIFrameElement | undefined
+      if (!this.iframe) {
         const iframe = document.createElement("iframe")
         iframe.id = iframeId
-        iframe.dataset.count = "1"
         this.setIframe(iframe)
       }
+      this.#iframeCount += 1
 
       const parent =
         (this.#params.parentId && document.getElementById(this.#params.parentId)) ||
@@ -60,8 +59,8 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
    * Set the name and version of the client, used for logging/debugging.
    */
   setClient(client: string, version: string) {
-    this._client = client
-    this._version = version
+    this.#client = client
+    this.#version = version
   }
 
   /**
@@ -148,15 +147,13 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
 
     this.#show()
 
-    const postInit = () => {
-      this._initWithRetry()
-      OneSchemaFileFeedsClass.#iframeIsLoaded = true
-    }
-
     if (OneSchemaFileFeedsClass.#iframeIsLoaded) {
-      postInit()
+      this._initWithRetry()
     } else if (this.iframe) {
-      this.iframe.onload = postInit
+      this.iframe.onload = () => {
+        OneSchemaFileFeedsClass.#iframeIsLoaded = true
+        this._initWithRetry()
+      }
     }
   }
 
@@ -172,11 +169,11 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
     if (retryCount > LAUNCH_RETRY_MAX_COUNT) {
       const message = "OneSchema failed to respond for initialization"
       console.error(message)
-      this.emit("init-failed", { error: { message } })
+      this.emitEvent("init-failed", { error: { message } })
       return
     }
 
-    this.#iframeEventEmitter("init", {})
+    this.#iframeEventEmit("init", {})
 
     setTimeout(() => this._initWithRetry(retryCount + 1), LAUNCH_RETRY_DELAY_MS)
   }
@@ -195,24 +192,33 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
     this.#hide()
 
     if (OneSchemaFileFeedsClass.#iframeIsLoaded) {
-      this.#iframeEventEmitter("destroy", {})
+      this.#iframeEventEmit("destroy", {})
     }
 
-    this.emit("destroyed", {})
+    this.emitEvent("destroyed", {})
 
     this._iframeInitStarted = false
     this._iframeInitSucceeded = false
     window.removeEventListener("message", this.#iframeEventListener)
 
     if (this.iframe) {
-      if (!this.iframe.dataset.count || this.iframe.dataset.count === "1") {
+      this.#iframeCount -= 1
+      if (this.#iframeCount < 1) {
         this.removeAllListeners()
         if (this.#params.manageDOM) {
           this.iframe.remove()
         }
-      } else {
-        this.iframe.dataset.count = `${parseInt(this.iframe.dataset.count || "1") - 1}`
       }
+    }
+  }
+
+  get #iframeCount() {
+    return parseInt(this.iframe?.dataset.count || "0")
+  }
+
+  set #iframeCount(value: number) {
+    if (this.iframe) {
+      this.iframe.dataset.count = `${value}`
     }
   }
 
@@ -232,7 +238,7 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
       return
     }
     this.#hide()
-    this.emit("hidden", {})
+    this.emitEvent("hidden", {})
   }
 
   #hide() {
@@ -241,7 +247,7 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
     }
 
     if (OneSchemaFileFeedsClass.#iframeIsLoaded) {
-      this.#iframeEventEmitter("hide", {})
+      this.#iframeEventEmit("hide", {})
     }
 
     this._iframeIsShown = false
@@ -257,24 +263,32 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
     }
 
     if (OneSchemaFileFeedsClass.#iframeIsLoaded) {
-      this.#iframeEventEmitter("show", {})
+      this.#iframeEventEmit("show", {})
     }
 
     this._iframeIsShown = true
-    this.emit("shown", {})
+    this.emitEvent("shown", {})
   }
 
-  // == Messaging with the ifram ==
+  // == Messaging with the app ==
+
+  emitEvent<T extends FileFeedsEvent>(
+    eventType: T["type"],
+    eventData: T["data"],
+  ): boolean {
+    return this.emit(eventType, eventData)
+  }
+
+  // == Messaging with the iframe ==
 
   #iframeEventListener = ({
     source,
     data: { "@from": sender, type: eventType, data: eventData },
   }: MessageEvent) => {
-    if (source !== this.iframe?.contentWindow) {
-      return
-    }
-
-    if (sender !== FILE_FEEDS_TRANSFORMS_EMBED_MARKER) {
+    if (
+      source !== this.iframe?.contentWindow ||
+      sender !== FILE_FEEDS_TRANSFORMS_EMBED_MARKER
+    ) {
       return
     }
 
@@ -290,17 +304,18 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
       }
     }
 
-    this.emit(eventType, eventData)
+    this.emitEvent(eventType, eventData)
   }
 
-  #iframeEventEmitter = (type: string, data: Record<string, any>) => {
+  #iframeEventEmit = (type: string, data: Record<string, any>) => {
     this.iframe?.contentWindow?.postMessage(
       {
+        version: this.#version,
+        client: this.#client,
+        "@from": `${this.#client}#${this.#version}`,
         "@to": FILE_FEEDS_TRANSFORMS_EMBED_MARKER,
         type,
         data,
-        version: this._version,
-        client: this._client,
       },
       this.#params.baseUrl!,
     )

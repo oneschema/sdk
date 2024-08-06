@@ -2573,7 +2573,7 @@
 
 "@rollup/plugin-node-resolve@^15.0.0":
   version "15.2.3"
-  resolved "https://registry.npmjs.org/@rollup/plugin-node-resolve/-/plugin-node-resolve-15.2.3.tgz"
+  resolved "https://registry.yarnpkg.com/@rollup/plugin-node-resolve/-/plugin-node-resolve-15.2.3.tgz#e5e0b059bd85ca57489492f295ce88c2d4b0daf9"
   integrity sha512-j/lym8nf5E21LwBT4Df1VD6hRO2L2iwUeUmP7litikRsVp1H6NWx20NEp0Y7su+7XGc476GnXXc4kFeZNGmaSQ==
   dependencies:
     "@rollup/pluginutils" "^5.0.1"
@@ -7595,6 +7595,11 @@ pako@^1.0.3:
   version "1.0.11"
   resolved "https://registry.npmjs.org/pako/-/pako-1.0.11.tgz"
   integrity sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==
+
+parcel-plugin-import-maps@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/parcel-plugin-import-maps/-/parcel-plugin-import-maps-0.3.1.tgz#34d0135b5363324ca8b88e37072848cf5fe37cc3"
+  integrity sha512-P4F3ehheamfwkJx+UoRrr8/7/uWhFDLaOFgrrYhvtdo3irq0WTh2XavMQ48W3G+CUgVosm4hbq8EhGNgGEjHng==
 
 parcel@^2.8.3:
   version "2.8.3"

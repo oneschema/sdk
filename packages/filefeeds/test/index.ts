@@ -57,12 +57,8 @@ fileFeeds.on("init-succeeded", (data) => {
   log("Initialization succeeded.", data)
 })
 
-fileFeeds.on("save", (data) => {
-  log("Transforms saved.", data)
-})
-
-fileFeeds.on("revert", (data) => {
-  log("Transforms reverted.", data)
+fileFeeds.on("destroyed", (data) => {
+  log("Destroyed.", { sessionId: "", ...data })
 })
 
 fileFeeds.on("hidden", (data) => {
@@ -73,8 +69,16 @@ fileFeeds.on("shown", (data) => {
   log("Shown.", data)
 })
 
-fileFeeds.on("destroyed", (data) => {
-  log("Destroyed.", { sessionId: "", ...data })
+fileFeeds.on("saved", (data) => {
+  log("Transforms saved.", data)
+})
+
+fileFeeds.on("reverted", (data) => {
+  log("Transforms reverted.", data)
+})
+
+fileFeeds.on("session-invalidated", (data) => {
+  log("Session invalidated.", data)
 })
 
 // parcel

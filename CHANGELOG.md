@@ -1,4 +1,4 @@
-# CHANGELOG
+# CHANGELOG for OneSchema Importer SDKs
 
 This log is intended to keep track of package changes, including
 but not limited to API changes and file location changes. Minor behavioral
