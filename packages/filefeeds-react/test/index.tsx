@@ -45,6 +45,7 @@ function TestApp() {
           }}
           isOpen={isOpen}
           onPageLoad={(data) => updateStatus("iframe page loaded.", data)}
+          onSessionInvalidate={(data) => updateStatus("Session invalidated.", data)}
           onInitStart={(data) => updateStatus("Initialization failed.", data)}
           onInitFail={(data) => updateStatus("Initialization failed.", data)}
           onInitSucceed={(data) => {
@@ -59,7 +60,6 @@ function TestApp() {
           onShow={(data) => updateStatus("Shown.", data)}
           onSave={(data) => updateStatus("Saved.", data)}
           onRevert={(data) => updateStatus("Reverted.", data)}
-          onSessionInvalidate={(data) => updateStatus("Session invalidated.", data)}
         />
       </section>
     </>

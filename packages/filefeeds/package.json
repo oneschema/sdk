@@ -1,7 +1,7 @@
 {
   "name": "@oneschema/filefeeds",
   "private": false,
-  "version": "0.2.0",
+  "version": "0.2.3",
   "description": "OneSchema FileFeeds embedding library",
   "author": "OneSchema",
   "license": "MIT",
@@ -16,7 +16,7 @@
       "distDir": "./test/dist"
     }
   },
-  "homepage": "https://docs.oneschema.co/",
+  "homepage": "https://www.oneschema.co/",
   "bugs": "https://github.com/oneschema/sdk/issues",
   "repository": {
     "type": "git",

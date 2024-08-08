@@ -1,7 +1,7 @@
 {
   "name": "@oneschema/filefeeds-react",
   "private": false,
-  "version": "0.2.0",
+  "version": "0.2.3",
   "description": "React component for embedding OneSchema FileFeeds",
   "author": "OneSchema",
   "license": "MIT",
@@ -17,11 +17,11 @@
     }
   },
   "homepage": "https://www.oneschema.co/",
+  "bugs": "https://github.com/oneschema/sdk/issues",
   "repository": {
     "type": "git",
-    "url": "git://github.com/oneschema/sdk",
-    "directory": "packages/filefeeds-reac",
-    "web": "https://docs.oneschema.co/"
+    "url": "github:oneschema/sdk",
+    "directory": "packages/filefeeds-reac"
   },
   "scripts": {
     "dev": "rollup -c -w",
@@ -32,7 +32,7 @@
     "clean": "npx rimraf dist"
   },
   "dependencies": {
-    "@oneschema/filefeeds": "^0.2.0",
+    "@oneschema/filefeeds": "^0.2.3",
     "tslib": "^2.4.0"
   },
   "devDependencies": {

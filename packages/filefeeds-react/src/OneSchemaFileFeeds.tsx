@@ -15,7 +15,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react"
 
 import { name as PACKAGE_NAME, version as PACKAGE_VERSION } from "../package.json"
 
-export interface OneSchemaFileFeedsBaseProps {
+export interface OneSchemaFileFeedsProps {
   /**
    * These props are passed directly into the OneSchemaFileFeeds as params.
    *
@@ -110,11 +110,6 @@ export interface OneSchemaFileFeedsBaseProps {
    */
   onSessionInvalidate?: (data: SessionInvalidatedEventData) => void
 }
-
-/**
- * Combined props for OneSchemaImporter
- */
-export type OneSchemaFileFeedsProps = OneSchemaFileFeedsBaseProps
 
 /**
  * Component for importing data with OneSchema
