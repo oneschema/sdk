@@ -5,7 +5,12 @@
   </a>
 </p>
 
-A tool for embedding OneSchema into your application with React. This library contains a React component which will allow you to add an iframe to your application which can open OneSchema and import data into your application.
+A tool for embedding [OneSchema FileFeeds](https://www.oneschema.co/filefeeds)
+into your application with React.
+
+This library contains a React component which will allow you to add an iframe to
+your application which can create new OneSchema FileFeeds and edit their
+transforms.
 
 ## Getting Started
 
@@ -21,9 +26,9 @@ npm i --save @oneschema/filefeeds-react
 
 ```javascript
 import React, { useState } from "react"
-import OneSchemaImporter from "@oneschema/filefeeds-react"
+import OneSchemaFileFeeds from "@oneschema/filefeeds-react"
 
-function OneSchemaExample() {
+function OneSchemaFileFeedsExample() {
   const [isOpen, setIsOpen] = useState(false)
 
   const handleData = (data) => {
@@ -32,20 +37,15 @@ function OneSchemaExample() {
 
   return (
     <div>
-      <button onClick={() => setIsOpen(true)}>Import</button>
+      <button onClick={() => setIsOpen(true)}>Open the file feed transforms</button>
 
-      <OneSchemaImporter
+      <OneSchemaFileFeeds
         /* managing state from your application */
         isOpen={isOpen}
-        onRequestClose={() => setIsOpen(false)}
         /* required config values */
-        clientId={clientId}
-        userJwt={token}
-        templateKey={templateKey}
+        userJwt={userJwt}
         /* optional config values */
-        importConfig={{ type: "local", metadataOnly: false }}
         devMode={process.env.NODE_ENV !== "production"}
-        className="oneschema-importer"
         style={{
           position: "fixed",
           top: 0,
@@ -55,9 +55,12 @@ function OneSchemaExample() {
         }}
         inline={false}
         /* handling results */
-        onSuccess={handleData}
-        onCancel={() => console.log("cancelled")}
-        onError={(error) => console.log(error)}
+        onInitFail={(data) => updateStatus("Initialization failed.", data)}
+        onInitSucceed={(data) => {
+          setSessionId(data.sessionId)
+          updateStatus("Initialization succeeded.", data)
+        }}
+        onSave={(data) => updateStatus("Saved.", data)}
       />
     </div>
   )
@@ -66,4 +69,7 @@ function OneSchemaExample() {
 
 ## Documentation
 
-Please see [📚 OneSchema's documentation](https://docs.oneschema.co/) for [📒 API reference](https://docs.oneschema.co/docs/#TBD) and other helpful guides.
+Please see [📚 OneSchema's documentation](https://docs.oneschema.co/) for
+[▶️ Getting Started](https://docs.oneschema.co/docs/filefeeds-getting-started),
+[📒 API reference](https://docs.oneschema.co/docs/javascript#api-reference) and
+other helpful guides.
