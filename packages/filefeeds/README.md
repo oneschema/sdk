@@ -48,12 +48,8 @@ osff.on("init-succeeded", (data) => {
   // handle embedding session updates.
 })
 
-osff.on("save", (data) => {
+osff.on("saved", (data) => {
   // handle FileFeeds transforms being saved.
-})
-
-osff.on("revert", (data) => {
-  // handle FileFeeds transforms being reverted.
 })
 ```
 
