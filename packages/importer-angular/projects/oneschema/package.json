@@ -1,22 +1,22 @@
 {
   "name": "@oneschema/angular",
   "private": false,
-  "version": "0.5.3",
+  "version": "0.6.0",
   "description": "Angular module for using OneSchema",
   "author": "OneSchema",
   "license": "MIT",
   "homepage": "https://www.oneschema.co/",
+  "bugs": "https://github.com/oneschema/sdk/issues",
   "repository": {
     "type": "git",
-    "url": "git://github.com/oneschema/sdk",
-    "directory": "packages/angular/projects/oneschema",
-    "web": "https://docs.oneschema.co/"
+    "url": "github:oneschema/sdk",
+    "directory": "packages/importer-angular/projects/oneschema"
   },
   "dependencies": {
-    "@oneschema/importer": "^0.5.3",
     "tslib": "^2.3.0"
   },
   "peerDependencies": {
+    "@oneschema/importer": "^0.6.0",
     "@angular/common": ">=15",
     "@angular/core": ">=15"
   }

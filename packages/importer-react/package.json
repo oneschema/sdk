@@ -1,7 +1,7 @@
 {
   "name": "@oneschema/react",
   "private": false,
-  "version": "0.5.3",
+  "version": "0.6.0",
   "description": "React component for using OneSchema",
   "author": "OneSchema",
   "license": "MIT",
@@ -17,22 +17,22 @@
     }
   },
   "homepage": "https://www.oneschema.co/",
+  "bugs": "https://github.com/oneschema/sdk/issues",
   "repository": {
     "type": "git",
-    "url": "git://github.com/oneschema/sdk",
-    "directory": "packages/react",
-    "web": "https://docs.oneschema.co/"
+    "url": "github:oneschema/sdk",
+    "directory": "packages/importer-react"
   },
   "scripts": {
     "dev": "rollup -c -w",
     "build": "yarn run clean && rollup -c",
     "build-test": "parcel build test/index.html",
-    "test": "parcel serve test/index.html -p 4242 --open",
+    "test": "parcel serve test/index.html -p 4243 --open",
     "lint": "eslint './src/**/**.{ts,tsx,js,jsx}'",
     "clean": "npx rimraf dist"
   },
   "dependencies": {
-    "@oneschema/importer": "^0.5.3",
+    "@oneschema/importer": "^0.6.0",
     "tslib": "^2.4.0"
   },
   "devDependencies": {

@@ -4,6 +4,13 @@ This log is intended to keep track of package changes, including
 but not limited to API changes and file location changes. Minor behavioral
 changes may not be included if they are not expected to break existing code.
 
+## 0.6.0 (2024-08-12)
+
+- Add compatibility with OneSchema FileFeeds packages.
+- Drop TemplateGroups feature.
+- Export TypeScript types in Importer React package.
+- Add tslib as direct dependency.
+
 ## 0.5.3 (2024-03-22)
 
 - Bugfix for issue with `EmbedMisconfiguredPage` not appearing

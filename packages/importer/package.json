@@ -1,7 +1,7 @@
 {
   "name": "@oneschema/importer",
   "private": false,
-  "version": "0.5.3",
+  "version": "0.6.0",
   "description": "Importer for using OneSchema",
   "author": "OneSchema",
   "license": "MIT",
@@ -17,11 +17,11 @@
     }
   },
   "homepage": "https://www.oneschema.co/",
+  "bugs": "https://github.com/oneschema/sdk/issues",
   "repository": {
     "type": "git",
-    "url": "git://github.com/oneschema/sdk",
-    "directory": "packages/importer",
-    "web": "https://docs.oneschema.co/"
+    "url": "github:oneschema/sdk",
+    "directory": "packages/importer"
   },
   "scripts": {
     "dev": "rollup -c -w",

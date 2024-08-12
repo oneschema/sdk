@@ -19,6 +19,8 @@ import {
 
 const MAX_LAUNCH_RETRY = 10
 
+const IMPORTER_EMBED_MARKER = "importer.oneschema.co"
+
 /**
  * OneSchemaImporter class manages the iframe
  * used for importing data in your application
@@ -27,8 +29,8 @@ const MAX_LAUNCH_RETRY = 10
 export class OneSchemaImporterClass extends EventEmitter {
   #params: OneSchemaParams
   iframe?: HTMLIFrameElement
-  _client = "Importer"
-  _version = version
+  #client = "Importer"
+  #version = version
   _resumeTokenKey = ""
   _hasAttemptedLaunch = false
   _hasLaunched = false
@@ -73,8 +75,8 @@ export class OneSchemaImporterClass extends EventEmitter {
    * @param version
    */
   setClient(client: string, version: string) {
-    this._client = client
-    this._version = version
+    this.#client = client
+    this.#version = version
   }
 
   /**
@@ -158,8 +160,8 @@ export class OneSchemaImporterClass extends EventEmitter {
 
     const mergedParams = merge({}, this.#params, launchParams)
     const baseMessage: OneSchemaSharedInitParams = {
-      version: this._version,
-      client: this._client,
+      version: this.#version,
+      client: this.#client,
       manualClose: true,
     }
 
@@ -279,7 +281,7 @@ export class OneSchemaImporterClass extends EventEmitter {
       return
     }
 
-    this.iframe?.contentWindow?.postMessage(this._initMessage, this.#params.baseUrl || "")
+    this.#iframeEventEmit(this._initMessage || {})
     setTimeout(() => this._initWithRetry(count + 1), 500)
   }
 
@@ -306,10 +308,7 @@ export class OneSchemaImporterClass extends EventEmitter {
   close(clean?: boolean) {
     this.#hide()
     if (this.iframe && OneSchemaImporterClass.#isLoaded) {
-      this.iframe.contentWindow?.postMessage(
-        { messageType: "close" },
-        this.#params.baseUrl || "",
-      )
+      this.#iframeEventEmit({ messageType: "close" })
     }
 
     this._hasAttemptedLaunch = false
@@ -328,6 +327,19 @@ export class OneSchemaImporterClass extends EventEmitter {
         this.iframe.dataset.count = `${parseInt(this.iframe.dataset.count || "1") - 1}`
       }
     }
+  }
+
+  #iframeEventEmit = (message: Record<string, any>) => {
+    this.iframe?.contentWindow?.postMessage(
+      {
+        version: this.#version,
+        client: this.#client,
+        "@from": `${this.#client}#${this.#version}`,
+        "@to": IMPORTER_EMBED_MARKER,
+        ...message,
+      },
+      this.#params.baseUrl!,
+    )
   }
 
   emitErrorEvent(error: OneSchemaError) {
