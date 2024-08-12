@@ -10,7 +10,9 @@ function ImportTester() {
   }
 
   return (
-    <div>
+    <>
+      <h1>OneSchema Importer React SDK Test</h1>
+
       <button onClick={() => setIsOpen(true)}>Start!</button>
       <OneSchemaImporter
         isOpen={isOpen}
@@ -31,7 +33,7 @@ function ImportTester() {
           height: "100vh",
         }}
       />
-    </div>
+    </>
   )
 }
 

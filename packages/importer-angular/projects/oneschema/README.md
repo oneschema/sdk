@@ -5,7 +5,9 @@
   </a>
 </p>
 
-A tool for embedding OneSchema into your application with Angular. This library contains an Angular module and service to help you use OneSchema with your application.
+A tool for embedding OneSchema into your application with Angular.
+This library contains an Angular module and service to help you use OneSchema
+with your application.
 
 ## Getting Started
 
@@ -22,12 +24,12 @@ npm i --save @oneschema/angular @oneschema/importer
 Add the OneSchemaModule to your `app.module`:
 
 ```javascript
-import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
-import { AppComponent } from './app.component';
+import { BrowserModule } from "@angular/platform-browser"
+import { NgModule } from "@angular/core"
+import { AppComponent } from "./app.component"
 
 // Import the module from the OneSchema package
-import { OneSchemaModule } from '@oneschema/angular';
+import { OneSchemaModule } from "@oneschema/angular"
 
 @NgModule({
   declarations: [AppComponent],
@@ -36,16 +38,16 @@ import { OneSchemaModule } from '@oneschema/angular';
 
     // Import the module into the application, with configuration
     OneSchemaModule.forRoot({
-      clientId: 'CLIENT_ID',
-      templateKey: 'TEMPLATE_KEY',
-      userJwt: 'USER_JWT',
+      clientId: "CLIENT_ID",
+      templateKey: "TEMPLATE_KEY",
+      userJwt: "USER_JWT",
       styles: {
-        position: 'fixed',
-        top: '0',
-        left: '0',
-        width: '100vw',
-        height: '100vh',
-      }
+        position: "fixed",
+        top: "0",
+        left: "0",
+        width: "100vw",
+        height: "100vh",
+      },
     }),
   ],
 
@@ -97,6 +99,7 @@ export class OneSchemaButton implements OnDestroy {
 ```
 
 To style the iframe, either pass in `styles` prop to the module, add CSS to your global stylesheet, or to a component with [ViewEncapsulation.None](https://angular.io/guide/view-encapsulation). The iframe's class will be what is passed to the module as the `className` prop or `oneschema-iframe` by default. Sample CSS for the iframe to take up the full viewport is:
+
 ```css
 .oneschema-iframe {
   position: fixed;
@@ -110,6 +113,7 @@ To style the iframe, either pass in `styles` prop to the module, add CSS to your
 ### Advanced usage
 
 Manage the iframe yourself by adding `inline` to your OneSchemaModule configuration and then making an iframe in a component:
+
 ```javascript
 import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core'
 import { OneSchemaService } from '@oneschema/angular'
@@ -143,4 +147,3 @@ export class OneSchemaIframe implements AfterViewInit {
 ## Documentation
 
 Please see [📚 OneSchema's documentation](https://docs.oneschema.co/) for [📒 API reference](https://docs.oneschema.co/docs/angular#api-reference) and other helpful guides.
-

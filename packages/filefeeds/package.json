@@ -27,7 +27,7 @@
     "dev": "rollup -c -w",
     "build": "yarn run clean && rollup -c",
     "build-test": "parcel build test/index.html",
-    "test": "parcel serve test/index.html -p 4242 --open",
+    "test": "parcel serve test/index.html -p 4252 --open",
     "lint": "eslint './src/**/**.{ts,js}'",
     "clean": "npx rimraf dist"
   },
