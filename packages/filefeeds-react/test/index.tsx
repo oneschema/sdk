@@ -19,14 +19,17 @@ function TestApp() {
       <header style={{ padding: "0 1em" }}>
         <h1>OneSchema FileFeeds React SDK Test</h1>
 
-        <p>
-          <button onClick={() => setIsOpen(true)}>Launch</button>
-          <button onClick={() => setIsOpen(false)}>Hide</button>
-          <span style={{ display: "inline-block", padding: "0 1em" }}>
-            Session ID: <code>{sessionId ?? "—"}</code>
-          </span>
-          <span style={{ display: "inline-block", padding: "0 1em" }}>
+        <p style={{ margin: "0.5em 0" }}>
+          <button onClick={() => setIsOpen(!isOpen)}>{!isOpen ? "Show" : "Hide"}</button>
+        </p>
+
+        <p style={{ margin: "0.5em 0" }}>
+          <span>
             Status: <code>{status}</code>
+          </span>
+          &nbsp; / &nbsp;
+          <span>
+            Session ID: <code>{sessionId ?? "—"}</code>
           </span>
         </p>
       </header>
@@ -35,7 +38,7 @@ function TestApp() {
         <OneSchemaFileFeeds
           baseUrl="http://embed.localschema.co:9450"
           userJwt="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI2N2JiMmU1Zi1mMGY3LTQyYTYtYTUxMS0xOGIyNWU2N2I4YzQiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-IiwiY3JlYXRlIjp7InNlc3Npb24iOnsiZmlsZV9mZWVkX2lkIjoyOTM3Nn19fQ.BgpLx_kmW2HWMu2dzcw1pMKBm3LNsXXJzAgmZt1rNuA"
-          inline
+          devMode
           style={{
             border: "0",
             display: "flex",

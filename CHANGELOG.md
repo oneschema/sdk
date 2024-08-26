@@ -1,8 +1,15 @@
 # CHANGELOG for OneSchema Importer SDKs
 
+Note: Please see [CHANGELOG-filefeeds.md](./CHANGELOG-filefeeds.md) for history
+of OneSchema FileFeeds packages.
+
 This log is intended to keep track of package changes, including
 but not limited to API changes and file location changes. Minor behavioral
 changes may not be included if they are not expected to break existing code.
+
+## Next
+
+- React: `inline` prop is defaulted to true.
 
 ## 0.6.0 (2024-08-12)
 

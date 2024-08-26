@@ -13,11 +13,13 @@ export interface OneSchemaImporterBaseProps {
    * Whether to show the iframe or not
    */
   isOpen: boolean
+
   /**
    * Whether the iframe should be rendered in the component tree
    * If false or not set, the iframe will append to document.body
    */
   inline?: boolean
+
   /**
    * These props are passed directly into the OneSchemaImporter as params
    */
@@ -27,27 +29,38 @@ export interface OneSchemaImporterBaseProps {
   languageCode?: string
   saveSession?: boolean
   baseUrl?: string
+
   /**
    * CSS styles that should be applied to the iframe
    */
   style?: React.CSSProperties
+
   /**
    * Handler for when the importer wants to close
    * should set isOpen prop to false
    */
   onRequestClose?: () => void
+
   /**
    * Handler for when the importing flow completes successfully
    */
   onSuccess?: (data: any) => void
+
   /**
    * Handler for when the importing flow is cancelled by user
    */
   onCancel?: () => void
+
   /**
    * Handler for when an error occurs during the import
    */
   onError?: (error: OneSchemaError) => void
+
+  /**
+   * Handler for when the embedded Importer page is loaded behind the scenes.
+   */
+  onPageLoad?: () => void
+
   /**
    * Handler for when the importer is launched (aka is ready to be shown)
    * Or when launching fails, based on result
@@ -68,11 +81,12 @@ export default function OneSchemaImporter({
   isOpen,
   style,
   className,
-  inline,
+  inline = true,
   onRequestClose,
   onSuccess,
   onCancel,
   onError,
+  onPageLoad,
   onLaunched,
   ...params
 }: OneSchemaImporterProps) {
@@ -89,48 +103,52 @@ export default function OneSchemaImporter({
 
   useEffect(() => {
     return () => {
-      importer && importer.close(true)
+      importer?.close(true)
     }
   }, [importer])
 
   useEffect(() => {
     if (importer) {
       importer.on("success", (data: any) => {
-        onSuccess && onSuccess(data)
-        onRequestClose && onRequestClose()
+        onSuccess?.(data)
+        onRequestClose?.()
       })
 
       importer.on("cancel", () => {
-        onCancel && onCancel()
-        onRequestClose && onRequestClose()
+        onCancel?.()
+        onRequestClose?.()
       })
 
       importer.on("error", (error: OneSchemaError) => {
-        onError && onError(error)
+        onError?.(error)
         if (error.severity === OneSchemaErrorSeverity.Fatal) {
-          onRequestClose && onRequestClose()
+          onRequestClose?.()
         }
       })
 
+      importer.on("page-loaded", () => {
+        onPageLoad?.()
+      })
+
       importer.on("launched", (data: OneSchemaLaunchStatus) => {
-        onLaunched && onLaunched(data)
+        onLaunched?.(data)
       })
     }
 
     return () => {
-      importer && importer.removeAllListeners()
+      importer?.removeAllListeners()
     }
-  }, [importer, onSuccess, onCancel, onError, onRequestClose, onLaunched])
+  }, [importer, onSuccess, onCancel, onError, onRequestClose, onLaunched, onPageLoad])
 
   useEffect(() => {
-    if (className && importer) {
-      importer.setClassName(className)
+    if (className) {
+      importer?.setClassName(className)
     }
   }, [importer, className])
 
   useEffect(() => {
-    if (style && importer) {
-      importer.setStyles(style as Partial<CSSStyleDeclaration>)
+    if (style) {
+      importer?.setStyles(style as Partial<CSSStyleDeclaration>)
     }
   }, [importer, style])
 
@@ -154,13 +172,15 @@ export default function OneSchemaImporter({
   }, [importer, isOpen])
 
   const iframeRef = useRef<HTMLIFrameElement>()
-  const setIframeRef = useCallback((iframe: HTMLIFrameElement) => {
-    if (iframe && importer) {
-      importer.setIframe(iframe)
-    }
-
-    iframeRef.current = iframe
-  }, [])
+  const setIframeRef = useCallback(
+    (iframe: HTMLIFrameElement) => {
+      if (iframe) {
+        importer?.setIframe(iframe)
+      }
+      iframeRef.current = iframe
+    },
+    [importer],
+  )
 
   if (inline) {
     return <Iframe ref={setIframeRef} />

@@ -1,5 +1,12 @@
 import oneSchemaImporter from "../src"
 
+const statusEl = document.getElementById("status")!
+
+function updateStatus(message: string, data?: Record<string, any>) {
+  console.log("[Test]", message, "data:", data)
+  statusEl.innerHTML = message
+}
+
 const importer = oneSchemaImporter({
   className: "oneschema-iframe",
   parentId: "oneschema-container",
@@ -9,34 +16,43 @@ const importer = oneSchemaImporter({
   userJwt:
     "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI2N2JiMmU1Zi1mMGY3LTQyYTYtYTUxMS0xOGIyNWU2N2I4YzQiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-IiwiY3JlYXRlIjp7InNlc3Npb24iOnsiZmlsZV9mZWVkX2lkIjoyOTM3Nn19fQ.BgpLx_kmW2HWMu2dzcw1pMKBm3LNsXXJzAgmZt1rNuA",
   devMode: true,
+  styles: {
+    display: "flex",
+    height: "100%",
+    width: "100%",
+    flex: "1",
+    position: "initial",
+  },
 })
 
-function start() {
+document.getElementById("launch-button")!.onclick = () => {
   importer.launch()
 }
 
+document.getElementById("close-button")!.onclick = () => {
+  importer.close()
+}
+
+importer.on("page-loaded", (data) => {
+  updateStatus("iframe page loaded.", data)
+})
+
 importer.on("launched", (data) => {
-  console.log("we have launched", data)
+  updateStatus("launched.", data)
 })
 
 importer.on("success", (data) => {
-  console.log(data)
-  alert("success!")
+  updateStatus("import success.", data)
+  alert(data)
 })
 
 importer.on("cancel", () => {
-  console.log("cancel")
+  updateStatus("import cancelled.")
 })
 
-importer.on("error", (e) => {
-  console.log(e)
-  alert("error!")
+importer.on("error", (data) => {
+  updateStatus("error.", data)
 })
-
-const startbutton = document.getElementById("start-button")
-if (startbutton) {
-  startbutton.onclick = start
-}
 
 if ((module as any)?.hot) {
   ;(module as any)?.hot.accept()

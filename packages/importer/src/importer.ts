@@ -22,31 +22,35 @@ const MAX_LAUNCH_RETRY = 10
 const IMPORTER_EMBED_MARKER = "importer.oneschema.co"
 
 /**
- * OneSchemaImporter class manages the iframe
- * used for importing data in your application
- * and emits events based on what happens
+ * OneSchemaImporter class manages the iframe used for importing data in your
+ * application and emits events based on what happens.
  */
 export class OneSchemaImporterClass extends EventEmitter {
   #params: OneSchemaParams
   iframe?: HTMLIFrameElement
+
   #client = "Importer"
   #version = version
-  _resumeTokenKey = ""
+
+  #resumeTokenKey = ""
   _hasAttemptedLaunch = false
-  _hasLaunched = false
-  _hasCancelled = false
-  _initMessage?: OneSchemaInitMessage
-  _hasAppRecievedInitMessage = false
-  static #isLoaded = false
+  #hasLaunched = false
+  #hasCancelled = false
+  #initMessage?: OneSchemaInitMessage
+  #hasAppRecievedInitMessage = false
+  static #iframeIsLoaded = false
 
   constructor(params: OneSchemaParams) {
     super()
 
     this.#params = merge({}, DEFAULT_PARAMS, params)
 
+    // Limit usage to browser only.
     if (typeof window === "undefined") {
       return
     }
+
+    window.addEventListener("message", this.#iframeEventListener.bind(this))
 
     if (this.#params.manageDOM) {
       const iframeId = "_oneschema-iframe"
@@ -106,16 +110,17 @@ export class OneSchemaImporterClass extends EventEmitter {
       this.setStyles(this.#params.styles)
     }
 
-    OneSchemaImporterClass.#isLoaded = false
+    OneSchemaImporterClass.#iframeIsLoaded = false
     this.iframe.onload = () => {
-      OneSchemaImporterClass.#isLoaded = true
+      OneSchemaImporterClass.#iframeIsLoaded = true
     }
 
     this.#hide()
   }
 
   /**
-   * Will change the CSS class of the iframe
+   * Will change the CSS class of the iframe.
+   *
    * @param className the new CSS class
    */
   setClassName(className: string) {
@@ -125,7 +130,8 @@ export class OneSchemaImporterClass extends EventEmitter {
   }
 
   /**
-   * Will change the styles of the iframe
+   * Will change the styles of the iframe.
+   *
    * @param styles the styles to apply
    */
   setStyles(styles: Partial<CSSStyleDeclaration>) {
@@ -205,8 +211,8 @@ export class OneSchemaImporterClass extends EventEmitter {
 
       if (mergedParams.saveSession) {
         try {
-          this._resumeTokenKey = `OneSchema-session-${mergedParams.userJwt}-${mergedParams.templateKey}`
-          const resumeToken = window.localStorage.getItem(this._resumeTokenKey)
+          this.#resumeTokenKey = `OneSchema-session-${mergedParams.userJwt}-${mergedParams.templateKey}`
+          const resumeToken = window.localStorage.getItem(this.#resumeTokenKey)
           if (resumeToken) {
             message.resumeToken = resumeToken
           }
@@ -224,7 +230,7 @@ export class OneSchemaImporterClass extends EventEmitter {
       ;(mergedParams.importConfig as FileUploadImportConfig).format = "csv"
     }
 
-    this._initMessage = message as OneSchemaInitMessage
+    this.#initMessage = message as OneSchemaInitMessage
     this._launch()
     return { success: true }
   }
@@ -241,15 +247,13 @@ export class OneSchemaImporterClass extends EventEmitter {
   }
 
   _launch() {
-    window.addEventListener("message", this.#eventListener)
-
     const postInit = () => {
-      this._hasCancelled = false
+      this.#hasCancelled = false
       this._initWithRetry()
-      OneSchemaImporterClass.#isLoaded = true
+      OneSchemaImporterClass.#iframeIsLoaded = true
     }
 
-    if (OneSchemaImporterClass.#isLoaded) {
+    if (OneSchemaImporterClass.#iframeIsLoaded) {
       postInit()
     } else if (this.iframe) {
       this.iframe.onload = postInit
@@ -257,7 +261,7 @@ export class OneSchemaImporterClass extends EventEmitter {
   }
 
   _initWithRetry(count = 1) {
-    if (this._hasLaunched || this._hasCancelled || this._hasAppRecievedInitMessage) {
+    if (this.#hasLaunched || this.#hasCancelled || this.#hasAppRecievedInitMessage) {
       return
     }
 
@@ -281,16 +285,16 @@ export class OneSchemaImporterClass extends EventEmitter {
       return
     }
 
-    this.#iframeEventEmit(this._initMessage || {})
+    this.#iframeEventEmit(this.#initMessage || {})
     setTimeout(() => this._initWithRetry(count + 1), 500)
   }
 
   _resetSession(
     launchParams?: Partial<OneSchemaLaunchParams> & Partial<OneSchemaLaunchSessionParams>,
   ) {
-    if (this._resumeTokenKey) {
+    if (this.#resumeTokenKey) {
       try {
-        window.localStorage.removeItem(this._resumeTokenKey)
+        window.localStorage.removeItem(this.#resumeTokenKey)
       } catch {
         /* local storage is not available, don't sweat it */
       }
@@ -307,19 +311,19 @@ export class OneSchemaImporterClass extends EventEmitter {
    */
   close(clean?: boolean) {
     this.#hide()
-    if (this.iframe && OneSchemaImporterClass.#isLoaded) {
+    if (this.iframe && OneSchemaImporterClass.#iframeIsLoaded) {
       this.#iframeEventEmit({ messageType: "close" })
     }
 
     this._hasAttemptedLaunch = false
-    this._hasAppRecievedInitMessage = false
-    this._hasLaunched = false
-    this._hasCancelled = true
+    this.#hasAppRecievedInitMessage = false
+    this.#hasLaunched = false
+    this.#hasCancelled = true
 
     if (clean && this.iframe) {
       if (!this.iframe.dataset.count || this.iframe.dataset.count === "1") {
         this.removeAllListeners()
-        window.removeEventListener("message", this.#eventListener)
+        window.removeEventListener("message", this.#iframeEventListener)
         if (this.#params.manageDOM) {
           this.iframe.remove()
         }
@@ -329,7 +333,7 @@ export class OneSchemaImporterClass extends EventEmitter {
     }
   }
 
-  #iframeEventEmit = (message: Record<string, any>) => {
+  #iframeEventEmit(message: Record<string, any>) {
     this.iframe?.contentWindow?.postMessage(
       {
         version: this.#version,
@@ -358,23 +362,29 @@ export class OneSchemaImporterClass extends EventEmitter {
     }
   }
 
-  #eventListener = (event: MessageEvent) => {
-    if (event.source !== this.iframe?.contentWindow) {
+  #iframeEventListener({ source, data }: MessageEvent) {
+    if (source !== this.iframe?.contentWindow) {
       return
     }
 
-    switch (event.data.messageType) {
-      case "init-recieved": {
-        this._hasAppRecievedInitMessage = true
-        break
+    switch (data.messageType) {
+      case "page-loaded": {
+        this.emit("page-loaded", {})
+        return
       }
+
+      case "init-recieved": {
+        this.#hasAppRecievedInitMessage = true
+        return
+      }
+
       case "launched": {
-        this._hasLaunched = true
-        let sessionToken = event.data.sessionToken
-        const embedId = event.data.embedId
-        if (this._resumeTokenKey && sessionToken) {
+        this.#hasLaunched = true
+        let sessionToken = data.sessionToken
+        const embedId = data.embedId
+        if (this.#resumeTokenKey && sessionToken) {
           try {
-            window.localStorage.setItem(this._resumeTokenKey, sessionToken)
+            window.localStorage.setItem(this.#resumeTokenKey, sessionToken)
           } catch {
             /* local storage is not available, don't sweat it */
           }
@@ -383,8 +393,8 @@ export class OneSchemaImporterClass extends EventEmitter {
         // and want to echo it back out
         if (!sessionToken) {
           sessionToken =
-            (this._initMessage as OneSchemaInitSimpleMessage)?.resumeToken ||
-            (this._initMessage as OneSchemaInitSessionMessage)?.sessionToken
+            (this.#initMessage as OneSchemaInitSimpleMessage)?.resumeToken ||
+            (this.#initMessage as OneSchemaInitSessionMessage)?.sessionToken
         }
         this.emit("launched", {
           success: true,
@@ -392,8 +402,9 @@ export class OneSchemaImporterClass extends EventEmitter {
           embedId,
         })
         this.#show()
-        break
+        return
       }
+
       case "launch-error": {
         this.emit("launched", {
           success: false,
@@ -404,22 +415,23 @@ export class OneSchemaImporterClass extends EventEmitter {
         } else if (this.#params.autoClose) {
           this.close()
         }
-        break
+        return
       }
+
       case "complete": {
-        if (event.data.data) {
+        if (data.data) {
           // for frontend pass through
-          this.emit("success", event.data.data)
+          this.emit("success", data.data)
         } else {
           // for webhook imports, eventId and responses are used
           this.emit("success", {
-            eventId: event.data.eventId,
-            responses: event.data.responses,
+            eventId: data.eventId,
+            responses: data.responses,
           })
         }
-        if (this._resumeTokenKey) {
+        if (this.#resumeTokenKey) {
           try {
-            window.localStorage.removeItem(this._resumeTokenKey)
+            window.localStorage.removeItem(this.#resumeTokenKey)
           } catch {
             /* local storage is not available, don't sweat it */
           }
@@ -429,13 +441,14 @@ export class OneSchemaImporterClass extends EventEmitter {
           this.close()
         }
 
-        break
+        return
       }
+
       case "cancel": {
         this.emit("cancel")
-        if (this._resumeTokenKey) {
+        if (this.#resumeTokenKey) {
           try {
-            window.localStorage.removeItem(this._resumeTokenKey)
+            window.localStorage.removeItem(this.#resumeTokenKey)
           } catch {
             /* local storage is not available, don't sweat it */
           }
@@ -445,40 +458,44 @@ export class OneSchemaImporterClass extends EventEmitter {
           this.close()
         }
 
-        break
+        return
       }
+
       case "reset-embed": {
-        this._resetSession(event.data.embedSessionConfig)
-        break
+        this._resetSession(data.embedSessionConfig)
+        return
       }
+
       case "error": {
         this.emitErrorEvent({
-          message: event.data.message,
+          message: data.message,
           severity: OneSchemaErrorSeverity.Fatal,
         })
         if (this.#params.autoClose) {
           this.close()
         }
-        break
+        return
       }
+
       // This is temporary and will be removed when we revamp errors.
       case "nonclosing-error": {
         this.emitErrorEvent({
-          message: event.data.message,
+          message: data.message,
           severity: OneSchemaErrorSeverity.Error,
         })
-        break
+        return
       }
+
       case "error-v2": {
-        const severity = event.data.severity || OneSchemaErrorSeverity.Error
+        const severity = data.severity || OneSchemaErrorSeverity.Error
         this.emitErrorEvent({
-          message: event.data.message,
+          message: data.message,
           severity,
         })
         if (severity === OneSchemaErrorSeverity.Fatal && this.#params.autoClose) {
           this.close()
         }
-        break
+        return
       }
     }
   }

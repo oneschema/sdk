@@ -3,7 +3,7 @@ import oneSchemaFileFeeds from "../src"
 const statusEl = document.getElementById("status")!
 const sessionIdEl = document.getElementById("session-id")!
 
-function log(message: string, data?: Record<string, any>) {
+function updateStatus(message: string, data?: Record<string, any>) {
   console.log("[Test]", message, "data:", data)
   statusEl.innerHTML = message
   if (data?.sessionId !== undefined) {
@@ -42,43 +42,43 @@ document.getElementById("destroy-button")!.onclick = () => {
 }
 
 fileFeeds.on("page-loaded", (data) => {
-  log("iframe page loaded.", data)
+  updateStatus("iframe page loaded.", data)
 })
 
 fileFeeds.on("init-started", (data) => {
-  log("Initialization started.", data)
+  updateStatus("Initialization started.", data)
 })
 
 fileFeeds.on("init-failed", (data) => {
-  log("Initialization failed.", data)
+  updateStatus("Initialization failed.", data)
 })
 
 fileFeeds.on("init-succeeded", (data) => {
-  log("Initialization succeeded.", data)
+  updateStatus("Initialization succeeded.", data)
 })
 
 fileFeeds.on("destroyed", (data) => {
-  log("Destroyed.", { sessionId: "", ...data })
+  updateStatus("Destroyed.", { sessionId: "", ...data })
 })
 
 fileFeeds.on("hidden", (data) => {
-  log("Hidden.", data)
+  updateStatus("Hidden.", data)
 })
 
 fileFeeds.on("shown", (data) => {
-  log("Shown.", data)
+  updateStatus("Shown.", data)
 })
 
 fileFeeds.on("saved", (data) => {
-  log("Transforms saved.", data)
+  updateStatus("Transforms saved.", data)
 })
 
 fileFeeds.on("reverted", (data) => {
-  log("Transforms reverted.", data)
+  updateStatus("Transforms reverted.", data)
 })
 
 fileFeeds.on("session-invalidated", (data) => {
-  log("Session invalidated.", data)
+  updateStatus("Session invalidated.", data)
 })
 
 // parcel
