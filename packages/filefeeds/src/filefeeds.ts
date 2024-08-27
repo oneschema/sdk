@@ -97,10 +97,13 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
     this.iframe.onload = () => {
       OneSchemaFileFeedsClass.#iframeIsLoaded = true
     }
+
+    // TODO: Enable this after testing.
+    //this.#hide()
   }
 
   /**
-   * Will change the CSS class of the iframe
+   * Will change the CSS class of the iframe.
    */
   setClassName(className: string) {
     if (this.iframe) {
@@ -109,7 +112,7 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
   }
 
   /**
-   * Will change the styles of the iframe
+   * Will change the styles of the iframe.
    */
   setStyles(styles: Partial<CSSStyleDeclaration>) {
     if (this.iframe) {

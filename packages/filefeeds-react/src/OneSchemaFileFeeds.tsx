@@ -55,7 +55,7 @@ export interface OneSchemaFileFeedsProps {
   onPageLoad?: (data: PageLoadedEventData) => void
 
   /**
-   * Handler for when the embedded FileFeeds Transforms cannot be launched.
+   * Handler for when the embedded FileFeeds Transforms launch has started.
    */
   onInitStart?: (data: InitStartedEventData) => void
 
@@ -119,7 +119,7 @@ export default function OneSchemaFileFeeds({
   userJwt,
   baseUrl,
   devMode = false,
-  inline = false,
+  inline = true,
   // Looks props
   isOpen,
   style,
