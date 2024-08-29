@@ -70,11 +70,11 @@ fileFeeds.on("shown", (data) => {
 })
 
 fileFeeds.on("saved", (data) => {
-  updateStatus("Transforms saved.", data)
+  updateStatus("Saved.", data)
 })
 
-fileFeeds.on("reverted", (data) => {
-  updateStatus("Transforms reverted.", data)
+fileFeeds.on("cancelled", (data) => {
+  updateStatus("Cancelled.", data)
 })
 
 fileFeeds.on("session-invalidated", (data) => {
