@@ -11,7 +11,7 @@ export type FileFeedsEvent =
   | { type: "shown"; data: ShownEventData }
   // Transforms
   | { type: "saved"; data: SavedEventData }
-  | { type: "reverted"; data: RevertedEventData }
+  | { type: "cancelled"; data: CancelledEventData }
 
 export interface PageLoadedEventData {
   initOnLoad: boolean
@@ -49,6 +49,6 @@ export interface SavedEventData {
   errorCountPerSampleFile: Record<string, number>
 }
 
-export interface RevertedEventData {
+export interface CancelledEventData {
   sessionId: number
 }

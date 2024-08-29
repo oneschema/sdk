@@ -1,4 +1,5 @@
 import oneschemaFileFeeds, {
+  CancelledEventData,
   DestroyedEventData,
   HiddenEventData,
   InitFailedEventData,
@@ -6,7 +7,6 @@ import oneschemaFileFeeds, {
   InitSucceededEventData,
   OneSchemaFileFeedsClass,
   PageLoadedEventData,
-  RevertedEventData,
   SavedEventData,
   SessionInvalidatedEventData,
   ShownEventData,
@@ -48,6 +48,11 @@ export interface OneSchemaFileFeedsProps {
    * CSS styles that should be applied to the iframe.
    */
   style?: React.CSSProperties
+
+  /**
+   * Handler for when the embedded iframe wants to close.
+   */
+  onRequestClose?: () => void
 
   /**
    * Handler for when the embedded FileFeeds page is loaded behind the scenes.
@@ -97,10 +102,9 @@ export interface OneSchemaFileFeedsProps {
   onSave?: (data: SavedEventData) => void
 
   /**
-   * Handler for when the FileFeeds Transforms are reverted to the initial state
-   * of the session.
+   * Handler for when the FileFeeds Transforms changes are cancelled.
    */
-  onRevert?: (data: RevertedEventData) => void
+  onCancel?: (data: CancelledEventData) => void
 
   /**
    * Handler for when the session is invalidated and cannot be resumed.
@@ -122,6 +126,7 @@ export default function OneSchemaFileFeeds({
   inline = true,
   // Looks props
   isOpen,
+  onRequestClose,
   style,
   className,
   // == Events props ==
@@ -138,7 +143,7 @@ export default function OneSchemaFileFeeds({
   onShow,
   // Transforms
   onSave,
-  onRevert,
+  onCancel,
 }: OneSchemaFileFeedsProps) {
   // Create a new instance only when primary props change.
   const [instance, setInstance] = useState<OneSchemaFileFeedsClass | null>()
@@ -178,6 +183,7 @@ export default function OneSchemaFileFeeds({
 
     instance?.on("destroyed", (data: DestroyedEventData) => {
       onDestroy?.(data)
+      onRequestClose?.()
     })
 
     instance?.on("hidden", (data: HiddenEventData) => {
@@ -190,10 +196,12 @@ export default function OneSchemaFileFeeds({
 
     instance?.on("saved", (data: SavedEventData) => {
       onSave?.(data)
+      onRequestClose?.()
     })
 
-    instance?.on("reverted", (data: RevertedEventData) => {
-      onRevert?.(data)
+    instance?.on("cancelled", (data: CancelledEventData) => {
+      onCancel?.(data)
+      onRequestClose?.()
     })
 
     instance?.on("session-invalidated", (data: SessionInvalidatedEventData) => {
@@ -205,6 +213,7 @@ export default function OneSchemaFileFeeds({
     }
   }, [
     instance,
+    onRequestClose,
     onPageLoad,
     onInitFail,
     onInitStart,
@@ -213,7 +222,8 @@ export default function OneSchemaFileFeeds({
     onHide,
     onShow,
     onSave,
-    onRevert,
+    onCancel,
+    onSessionInvalidate,
   ])
 
   // Manage show and hide of the iframe.

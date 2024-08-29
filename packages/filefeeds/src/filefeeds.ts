@@ -148,8 +148,6 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
       return
     }
 
-    this.#show()
-
     if (OneSchemaFileFeedsClass.#iframeIsLoaded) {
       this._initWithRetry()
     } else if (this.iframe) {
@@ -162,6 +160,7 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
 
   _initWithRetry(retryCount = 1) {
     if (this._iframeInitStarted || this._iframeInitSucceeded) {
+      this.#show()
       return
     }
 
@@ -176,6 +175,7 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
       return
     }
 
+    this.#show()
     this.#iframeEventEmit("init", {})
 
     setTimeout(() => this._initWithRetry(retryCount + 1), LAUNCH_RETRY_DELAY_MS)
@@ -303,6 +303,11 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
 
       case "init-succeeded": {
         this._iframeInitSucceeded = true
+        break
+      }
+
+      case "cancelled": {
+        this.#hide()
         break
       }
     }
