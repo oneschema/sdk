@@ -1,7 +1,7 @@
 {
   "name": "@oneschema/filefeeds-react",
   "private": false,
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "React component for embedding OneSchema FileFeeds",
   "author": "OneSchema",
   "license": "MIT",
