@@ -7,7 +7,7 @@ This log is intended to keep track of package changes, including
 but not limited to API changes and file location changes. Minor behavioral
 changes may not be included if they are not expected to break existing code.
 
-## Next
+## 0.3.0 (2024-08-29)
 
 - Support `cancelled` event. (React: `onCancel` callback.)
 - React: `inline` prop is defaulted to true.
