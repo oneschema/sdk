@@ -2,7 +2,7 @@ import { EventEmitter } from "eventemitter3"
 import merge from "lodash.merge"
 
 import { name as PACKAGE_NAME, version as PACKAGE_VERSION } from "../package.json"
-import { DEFAULT_PARAMS, FileFeedsParams } from "./config"
+import { DEFAULT_PARAMS, FileFeedsLaunchParams, FileFeedsParams } from "./config"
 import { FileFeedsEvent } from "./events"
 
 const LAUNCH_RETRY_MAX_COUNT = 10
@@ -16,6 +16,7 @@ const FILE_FEEDS_TRANSFORMS_EMBED_MARKER = "transforms.filefeeds.oneschema.co"
  */
 export class OneSchemaFileFeedsClass extends EventEmitter {
   #params: FileFeedsParams
+  #launchParams: Partial<FileFeedsLaunchParams> = {}
   iframe: HTMLIFrameElement | undefined
 
   #client = PACKAGE_NAME
@@ -140,13 +141,15 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
   /**
    * Launch will show the OneSchema window and initialize the FileFeeds session.
    */
-  launch(): void {
+  launch(params: Partial<FileFeedsLaunchParams>): void {
     if (this._iframeIsDestroyed) {
       if (this.#params.devMode) {
         console.error("[OSFF] Instance has been destroyed.")
       }
       return
     }
+
+    this.#launchParams = params
 
     if (OneSchemaFileFeedsClass.#iframeIsLoaded) {
       this._initWithRetry()
@@ -176,7 +179,7 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
     }
 
     this.#show()
-    this.#iframeEventEmit("init", {})
+    this.#iframeEventEmit("init", this.#launchParams || {})
 
     setTimeout(() => this._initWithRetry(retryCount + 1), LAUNCH_RETRY_DELAY_MS)
   }
