@@ -10,7 +10,9 @@ import oneschemaFileFeeds, {
   SavedEventData,
   SessionInvalidatedEventData,
   ShownEventData,
+  OneSchemaCustomization,
 } from "@oneschema/filefeeds"
+
 import React, { useCallback, useEffect, useRef, useState } from "react"
 
 import { name as PACKAGE_NAME, version as PACKAGE_VERSION } from "../package.json"
@@ -54,6 +56,15 @@ export interface OneSchemaFileFeedsProps {
    */
   onRequestClose?: () => void
 
+  /**
+   * The customization key to use when launching the FileFeeds Transforms.
+   */
+  customizationKey?: string
+
+  /**
+   * The customization overrides to use when launching
+   */
+  customizationOverrides?: OneSchemaCustomization
   /**
    * Handler for when the embedded FileFeeds page is loaded behind the scenes.
    */
@@ -129,6 +140,9 @@ export default function OneSchemaFileFeeds({
   onRequestClose,
   style,
   className,
+  // Launch props
+  customizationKey,
+  customizationOverrides,
   // == Events props ==
   // Iframe
   onPageLoad,
@@ -229,7 +243,7 @@ export default function OneSchemaFileFeeds({
   // Manage show and hide of the iframe.
   useEffect(() => {
     if (isOpen) {
-      instance?.launch()
+      instance?.launch({ userJwt, customizationKey, customizationOverrides })
     } else {
       instance?.hide()
     }
