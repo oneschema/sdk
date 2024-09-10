@@ -16,7 +16,7 @@ const fileFeeds = oneSchemaFileFeeds({
   parentId: "oneschema-container",
   baseUrl: "http://embed.localschema.co:9450",
   userJwt:
-    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI2N2JiMmU1Zi1mMGY3LTQyYTYtYTUxMS0xOGIyNWU2N2I4YzQiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-IiwiY3JlYXRlIjp7InNlc3Npb24iOnsiZmlsZV9mZWVkX2lkIjoyOTM3Nn19fQ.BgpLx_kmW2HWMu2dzcw1pMKBm3LNsXXJzAgmZt1rNuA",
+    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI4MDMyYWY0Yi1lMmQ5LTQwYWQtODE0Mi1lNjgwMTFkOTRkOWMiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-IiwiY3JlYXRlIjp7ImZpbGVfZmVlZCI6eyJuYW1lIjoiY3JtX3Rlc3RfMTcyNTQ5MTQ1ODA1OCIsInRlbXBsYXRlX2tleSI6ImNybV90ZXN0IiwiY3VzdG9tX21ldGFkYXRhIjp7fX19fQ.4izMP5MzlfxryMqpsJWW1o_fnpyMpG_EYLN12jObO-g",
   devMode: true,
   styles: {
     display: "flex",
@@ -30,7 +30,7 @@ const fileFeeds = oneSchemaFileFeeds({
 statusEl.innerHTML = "Loading in the background."
 
 document.getElementById("launch-button")!.onclick = () => {
-  fileFeeds.launch()
+  fileFeeds.launch({ customizationOverrides: { backgroundPrimaryColor: "#FF00FF" } })
 }
 
 document.getElementById("hide-button")!.onclick = () => {
