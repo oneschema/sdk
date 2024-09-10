@@ -214,9 +214,18 @@ export interface FileFeedsLaunchParams {
    * The JSON Web Token authenticating the user, and authorizing them to access
    * specific OneSchema FileFeeds embedding intents.
    */
-  userJwt: string
-  customizationKey: string
-  customizationOverrides: OneSchemaCustomization
+  userJwt?: string
+
+  /**
+   * The customization key. Use this to specify which OneSchema customization to use. Use
+   * the default customization if none specified.
+   */
+  customizationKey?: string
+
+  /**
+   * A hash of overrides to modify specific customization values.
+   */
+  customizationOverrides?: OneSchemaCustomization
 }
 
 /**
