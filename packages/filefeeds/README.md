@@ -32,23 +32,23 @@ or with a script tag:
 ```javascript
 import oneschemaFileFeeds from "@oneschema/filefeeds"
 
-const osff = oneschemaFileFeeds({
+const fileFeeds = oneschemaFileFeeds({
   userJwt: "YOUR_USER_JWT",
   devMode: true,
   className: "oneschema-filefeeds",
 })
 
-osff.launch()
+fileFeeds.launch()
 
-osff.on("init-failed", (data) => {
+fileFeeds.on("init-failed", (data) => {
   // handle failures.
 })
 
-osff.on("init-succeeded", (data) => {
+fileFeeds.on("init-succeeded", (data) => {
   // handle embedding session updates.
 })
 
-osff.on("saved", (data) => {
+fileFeeds.on("saved", (data) => {
   // handle FileFeeds transforms being saved.
 })
 ```
