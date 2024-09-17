@@ -24,7 +24,7 @@ npm i --save @oneschema/filefeeds
 or with a script tag:
 
 ```html
-<script src="https://d3ah8o189k1llu.cloudfront.net/oneschema-filefeeds-0.1.latest.min.js"></script>
+<script src="https://d3ah8o189k1llu.cloudfront.net/oneschema-filefeeds-0.4.latest.min.js"></script>
 ```
 
 ### Sample usage
