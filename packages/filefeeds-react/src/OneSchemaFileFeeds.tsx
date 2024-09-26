@@ -1,6 +1,7 @@
 import oneschemaFileFeeds, {
   CancelledEventData,
   DestroyedEventData,
+  FileFeedCustomization,
   HiddenEventData,
   InitFailedEventData,
   InitStartedEventData,
@@ -10,7 +11,6 @@ import oneschemaFileFeeds, {
   SavedEventData,
   SessionInvalidatedEventData,
   ShownEventData,
-  OneSchemaCustomization,
 } from "@oneschema/filefeeds"
 
 import React, { useCallback, useEffect, useRef, useState } from "react"
@@ -64,7 +64,7 @@ export interface OneSchemaFileFeedsProps {
   /**
    * The customization overrides to use when launching
    */
-  customizationOverrides?: OneSchemaCustomization
+  customizationOverrides?: FileFeedCustomization
   /**
    * Handler for when the embedded FileFeeds page is loaded behind the scenes.
    */
@@ -87,7 +87,7 @@ export interface OneSchemaFileFeedsProps {
   onInitSucceed?: (data: InitSucceededEventData) => void
 
   /**
-   * Handler for when the embedded FileFeeds is destroyed. This happenes when
+   * Handler for when the embedded FileFeeds is destroyed. This happens when
    * any of the primary props change.
    *
    * This can be used to clean up the Embedded FileFeeds Session, for example.
@@ -147,7 +147,7 @@ export default function OneSchemaFileFeeds({
   // Iframe
   onPageLoad,
   onDestroy,
-  // Data init
+  // Session
   onInitStart,
   onInitFail,
   onInitSucceed,
@@ -241,13 +241,17 @@ export default function OneSchemaFileFeeds({
   ])
 
   // Manage show and hide of the iframe.
-  useEffect(() => {
-    if (isOpen) {
-      instance?.launch({ userJwt, customizationKey, customizationOverrides })
-    } else {
-      instance?.hide()
-    }
-  }, [instance, isOpen])
+  useEffect(
+    () => {
+      if (isOpen) {
+        instance?.launch({ userJwt, customizationKey, customizationOverrides })
+      } else {
+        instance?.hide()
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [instance, isOpen],
+  )
 
   useEffect(() => {
     if (className) {

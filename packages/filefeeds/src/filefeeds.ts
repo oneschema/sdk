@@ -1,14 +1,18 @@
 import { EventEmitter } from "eventemitter3"
-import merge from "lodash.merge"
 
 import { name as PACKAGE_NAME, version as PACKAGE_VERSION } from "../package.json"
-import { DEFAULT_PARAMS, FileFeedsLaunchParams, FileFeedsParams } from "./config"
+import { DEFAULT_PARAMS, FileFeedsParams } from "./config"
 import { FileFeedsEvent } from "./events"
 
 const LAUNCH_RETRY_MAX_COUNT = 10
 const LAUNCH_RETRY_DELAY_MS = 500
 
 const FILE_FEEDS_TRANSFORMS_EMBED_MARKER = "transforms.filefeeds.oneschema.co"
+
+type FileFeedsLaunchParams = Pick<
+  FileFeedsParams,
+  "userJwt" | "customizationKey" | "customizationOverrides"
+>
 
 /**
  * OneSchemaFileFeeds class manages the iframe used for interacting with the
@@ -29,11 +33,11 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
   _iframeIsShown = false
   _iframeIsDestroyed = false
 
-  constructor(params: FileFeedsParams) {
+  constructor(initParams: FileFeedsParams) {
     super()
     window.addEventListener("message", this.#iframeEventListener.bind(this))
 
-    this.#params = merge({}, DEFAULT_PARAMS, params)
+    this.#params = { ...DEFAULT_PARAMS, ...initParams }
 
     if (typeof window === "undefined") {
       return
@@ -67,7 +71,7 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
   /**
    * Set the iframe to be used by the OneSchema FileFeeds.
    *
-   * Should only be used in conjuction with the param of `manageDOM` false.
+   * Should only be used in conjunction with the param of `manageDOM` false.
    */
   setIframe(iframe: HTMLIFrameElement) {
     // just in case..
@@ -81,8 +85,6 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
 
     const srcUrl = new URL(this.#params.baseUrl!)
     srcUrl.pathname = "/file-feeds-embed/launcher"
-    // TODO: Drop explicit `init` after inin-on-demand is the default.
-    srcUrl.searchParams.append("init", "false")
     srcUrl.searchParams.append("user_jwt", this.#params.userJwt)
     if (this.#params.devMode) {
       srcUrl.searchParams.append("dev_mode", "true")
@@ -136,12 +138,12 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
     }
   }
 
-  // == Launch-to-destory life-cycle ==
+  // == Launch-to-destroy life-cycle ==
 
   /**
    * Launch will show the OneSchema window and initialize the FileFeeds session.
    */
-  launch(params: Partial<FileFeedsLaunchParams>): void {
+  launch(launchParams: Partial<FileFeedsLaunchParams>): void {
     if (this._iframeIsDestroyed) {
       if (this.#params.devMode) {
         console.error("[OSFF] Instance has been destroyed.")
@@ -149,7 +151,7 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
       return
     }
 
-    this.#launchParams = params
+    this.#launchParams = launchParams
 
     if (OneSchemaFileFeedsClass.#iframeIsLoaded) {
       this._initWithRetry()
@@ -318,7 +320,7 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
     this.emitEvent(eventType, eventData)
   }
 
-  #iframeEventEmit = (type: string, data: Record<string, any>) => {
+  #iframeEventEmit = (type: IframeEventType, data: Record<string, any>) => {
     this.iframe?.contentWindow?.postMessage(
       {
         version: this.#version,
@@ -342,3 +344,8 @@ export default function oneSchemaFileFeeds(
 ): OneSchemaFileFeedsClass {
   return new OneSchemaFileFeedsClass(params)
 }
+
+/**
+ * The type of events that can be received by the iframe.
+ */
+type IframeEventType = "init" | "destroy" | "hide" | "show"

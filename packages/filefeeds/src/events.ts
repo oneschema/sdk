@@ -2,7 +2,7 @@ export type FileFeedsEvent =
   // Iframe
   | { type: "page-loaded"; data: PageLoadedEventData }
   | { type: "destroyed"; data: DestroyedEventData }
-  // Data init
+  // Session
   | { type: "init-started"; data: InitStartedEventData }
   | { type: "init-failed"; data: InitFailedEventData }
   | { type: "init-succeeded"; data: InitSucceededEventData }
