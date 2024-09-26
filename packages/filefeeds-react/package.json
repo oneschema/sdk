@@ -21,7 +21,7 @@
   "repository": {
     "type": "git",
     "url": "github:oneschema/sdk",
-    "directory": "packages/filefeeds-reac"
+    "directory": "packages/filefeeds-react"
   },
   "scripts": {
     "dev": "rollup -c -w",
