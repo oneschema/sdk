@@ -29,6 +29,11 @@ export interface OneSchemaFileFeedsProps {
   devMode?: boolean
 
   /**
+   * Whether to use a session token to resume an existing session.
+   */
+  sessionToken?: string
+
+  /**
    * Whether the iframe should be rendered in the component tree
    * If false or not set, the iframe will append to document.body
    *
@@ -143,6 +148,8 @@ export default function OneSchemaFileFeeds({
   // Launch props
   customizationKey,
   customizationOverrides,
+  // Init Session props
+  sessionToken,
   // == Events props ==
   // Iframe
   onPageLoad,
@@ -244,7 +251,7 @@ export default function OneSchemaFileFeeds({
   useEffect(
     () => {
       if (isOpen) {
-        instance?.launch({ userJwt, customizationKey, customizationOverrides })
+        instance?.launch({userJwt, sessionToken, customizationKey, customizationOverrides})
       } else {
         instance?.hide()
       }
