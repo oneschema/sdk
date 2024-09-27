@@ -28,6 +28,8 @@ export interface InitFailedEventData {
 }
 
 export interface InitSucceededEventData {
+  sessionToken: string
+  // TODO: remove session_id
   sessionId: number
   fileFeed: {
     name: string
