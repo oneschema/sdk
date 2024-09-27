@@ -229,6 +229,13 @@ export interface FileFeedsLaunchParams {
 }
 
 /**
+ * Parameters that can be set when OneSchema launches with a sessionToken
+ */
+export interface FileFeedsLaunchSessionParams {
+  sessionToken: string
+}
+
+/**
  * Possible errors when launching OneSchema
  */
 export enum FileFeedsLaunchError {
