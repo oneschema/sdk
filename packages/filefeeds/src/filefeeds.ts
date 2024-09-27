@@ -11,7 +11,7 @@ const FILE_FEEDS_TRANSFORMS_EMBED_MARKER = "transforms.filefeeds.oneschema.co"
 
 type FileFeedsLaunchParams = Pick<
   FileFeedsParams,
-  "userJwt" | "customizationKey" | "customizationOverrides"
+  "userJwt" | "customizationKey" | "customizationOverrides" | "sessionToken"
 >
 
 /**

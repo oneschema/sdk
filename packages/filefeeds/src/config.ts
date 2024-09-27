@@ -31,6 +31,11 @@ export interface FileFeedsParams {
   userJwt: string
 
   /**
+   * The session token to use when launching OneSchema FileFeeds.
+   */
+  sessionToken?: string
+
+  /**
    * Whether to launch the OneSchema FileFeeds in dev mode.
    *
    * Defaults to false when `process.env.NODE_ENV` is "production", and true
