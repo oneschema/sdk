@@ -1,5 +1,4 @@
 import { EventEmitter } from "eventemitter3"
-import merge from "lodash.merge"
 
 import { name as PACKAGE_NAME, version as PACKAGE_VERSION } from "../package.json"
 import { DEFAULT_PARAMS, FileFeedsParams } from "./config"
@@ -152,27 +151,19 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
       return
     }
 
-    this.#launchParams = merge(
-      {},
-      launchParams,
-      {
-        userJwt: this.#params.userJwt,
-        customizationKey: this.#params.customizationKey,
-        customizationOverrides: this.#params.customizationOverrides,
-      }
-    )
+    const effectiveLaunchParams = { ...this.#launchParams, ...launchParams }
 
     if (OneSchemaFileFeedsClass.#iframeIsLoaded) {
-      this._initWithRetry()
+      this._initWithRetry(effectiveLaunchParams)
     } else if (this.iframe) {
       this.iframe.onload = () => {
         OneSchemaFileFeedsClass.#iframeIsLoaded = true
-        this._initWithRetry()
+        this._initWithRetry(effectiveLaunchParams)
       }
     }
   }
 
-  _initWithRetry(retryCount = 1) {
+  _initWithRetry(params: Partial<FileFeedsLaunchParams>, retryCount = 1) {
     if (this._iframeInitStarted || this._iframeInitSucceeded) {
       this.#show()
       return
@@ -190,9 +181,9 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
     }
 
     this.#show()
-    this.#iframeEventEmit("init", this.#launchParams || {})
+    this.#iframeEventEmit("init", params)
 
-    setTimeout(() => this._initWithRetry(retryCount + 1), LAUNCH_RETRY_DELAY_MS)
+    setTimeout(() => this._initWithRetry(params, retryCount + 1), LAUNCH_RETRY_DELAY_MS)
   }
 
   /**
