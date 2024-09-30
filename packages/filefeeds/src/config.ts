@@ -1,53 +1,10 @@
-/**
- * Type for hex colors
- */
-export type Hex = `#${string}`
+import type { OneSchemaBrandingCustomizations } from "./shared/customizations"
 
 /**
  * Available customization settings for OneSchema
  * For more information on a particular setting see https://docs.oneschema.co/docs/customizations
  */
-export interface FileFeedCustomization {
-  // GENERAL
-  primaryColor?: Hex
-  backgroundPrimaryColor?: Hex
-  backgroundSecondaryColor?: Hex
-  headerColor?: Hex
-  footerColor?: Hex
-  borderColor?: Hex
-  successColor?: Hex
-  warningColor?: Hex
-  errorColor?: Hex
-
-  // BUTTONS
-  buttonBorderRadius?: string
-  buttonPrimaryFillColor?: Hex
-  buttonPrimaryStrokeColor?: Hex
-  buttonPrimaryTextColor?: Hex
-  buttonSecondaryFillColor?: Hex
-  buttonSecondaryStrokeColor?: Hex
-  buttonSecondaryTextColor?: Hex
-  buttonTertiaryFillColor?: Hex
-  buttonTertiaryStrokeColor?: Hex
-  buttonTertiaryTextColor?: Hex
-  buttonAlertFillColor?: Hex
-  buttonAlertStrokeColor?: Hex
-  buttonAlertTextColor?: Hex
-
-  // FONTS
-  fontUrl?: string
-  fontFamily?: string
-  fontColorPrimary?: Hex
-  fontColorSecondary?: Hex
-  fontColorPlaceholder?: Hex
-
-  // MODAL/FRAME OPTIONS
-  hideLogo?: boolean
-  modalFullscreen?: boolean
-  hideCloseButton?: boolean
-  modalMaskColor?: Hex
-  modalBorderRadius?: string
-
+export interface FileFeedCustomization extends OneSchemaBrandingCustomizations {
   // UPLOAD PANE
   fileSizeLimit?: number
   illustrationUrl?: string

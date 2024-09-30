@@ -1,7 +1,5 @@
-/**
- * Type for hex colors
- */
-export type Hex = `#${string}`
+import type { OneSchemaBrandingCustomizations } from "./shared/customizations"
+
 /**
  * Type with options for mapping strategy customization
  */
@@ -11,22 +9,27 @@ export type MappingStrategy =
   | "historical_user"
   | "historical_org"
   | "historical" // historical is deprecated
+
 /**
  * Type with options for skipping the header row step
  */
 export type SkipHeaderRowStrategy = "always" | "detect" | "never"
+
 /**
  * Type with options for allowing row deletion
  */
 export type RowDeletionStrategy = "selection" | "errors"
+
 /**
  * Type with options for AI suggested mappings customization
  */
 export type AiSuggestedMappings = "column" | "picklist"
+
 /**
  * Type with options for import experience customization
  */
 export type ImportExperience = "blockIfErrors" | "promptIfErrors" | "ignoreErrors"
+
 /**
  * Type with options for sidebar details customization
  */
@@ -36,56 +39,11 @@ export type SidebarDetails = "required" | "all"
  * Available customization settings for OneSchema
  * For more information on a particular setting see https://docs.oneschema.co/docs/customizations
  */
-export interface OneSchemaCustomization {
-  /**
-   * styles
-   */
-  // GENERAL
-  primaryColor?: Hex
-  backgroundPrimaryColor?: Hex
-  backgroundSecondaryColor?: Hex
-  headerColor?: Hex
-  footerColor?: Hex
-  borderColor?: Hex
-  successColor?: Hex
-  warningColor?: Hex
-  errorColor?: Hex
-
-  // BUTTONS
-  buttonBorderRadius?: string
-  buttonPrimaryFillColor?: Hex
-  buttonPrimaryStrokeColor?: Hex
-  buttonPrimaryTextColor?: Hex
-  buttonSecondaryFillColor?: Hex
-  buttonSecondaryStrokeColor?: Hex
-  buttonSecondaryTextColor?: Hex
-  buttonTertiaryFillColor?: Hex
-  buttonTertiaryStrokeColor?: Hex
-  buttonTertiaryTextColor?: Hex
-  buttonAlertFillColor?: Hex
-  buttonAlertStrokeColor?: Hex
-  buttonAlertTextColor?: Hex
-
-  // FONTS
-  fontUrl?: string
-  fontFamily?: string
-  fontColorPrimary?: Hex
-  fontColorSecondary?: Hex
-  fontColorPlaceholder?: Hex
-
-  /**
-   * options
-   */
-  // IMPORTER OPTIONS
-  hideLogo?: boolean
-  modalFullscreen?: boolean
-  hideCloseButton?: boolean
-  modalMaskColor?: Hex
-  modalBorderRadius?: string
-
+export interface ImporterCustomization extends OneSchemaBrandingCustomizations {
   // UPLOAD PANE
   fileSizeLimit?: number
   illustrationUrl?: string
+
   uploaderShowSidebar?: boolean
   uploaderSidebarDetails?: SidebarDetails
   uploaderShowSidebarBanner?: boolean
@@ -150,6 +108,11 @@ export interface OneSchemaCustomization {
   picklistMappingUploadedColumnText?: string
   picklistMappingTemplateColumnText?: string
 }
+
+/**
+ * @deprecated: Use `ImporterCustomization` instead.
+ */
+export type OneSchemaCustomization = ImporterCustomization
 
 /**
  * Configuration for importing data through a webhook.
@@ -310,7 +273,7 @@ export interface OneSchemaLaunchParams {
   /**
    * Customization options for how OneSchema will behave
    */
-  customizationOverrides?: OneSchemaCustomization
+  customizationOverrides?: ImporterCustomization
   /**
    * Event webhooks that should be used during an import session
    */
@@ -442,7 +405,7 @@ export interface OneSchemaInitSimpleMessage extends OneSchemaSharedInitParams {
   templateKey: string
   importConfig: ImportConfig
   customizationKey: string
-  customizationOverrides: OneSchemaCustomization
+  customizationOverrides: ImporterCustomization
   templateOverrides: OneSchemaTemplateOverrides
   eventWebhookKeys: string[]
   resumeToken?: string
