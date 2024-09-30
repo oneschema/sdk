@@ -154,8 +154,9 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
 
     const mergedParams = { ...this.#params, ...params }
 
+    this.#resumeTokenKey = `OneSchemaFileFeeds-session-${this.#params.userJwt}`
+
     try {
-      this.#resumeTokenKey = `OneSchemaFileFeeds-${this.#params.userJwt}`
       const resumeToken = window.localStorage.getItem(this.#resumeTokenKey)
       if (resumeToken) {
         this.#launchParams.sessionToken = resumeToken
@@ -327,13 +328,11 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
 
       case "init-succeeded": {
         this._iframeInitSucceeded = true
-        const sessionToken = eventData.sessionToken
-        if (this.#resumeTokenKey && sessionToken) {
-          try {
-            window.localStorage.setItem(this.#resumeTokenKey, sessionToken)
-          } catch {
-            /* local storage is not available, don't sweat it */
-          }
+        const { sessionToken } = eventData
+        try {
+          window.localStorage.setItem(this.#resumeTokenKey, sessionToken)
+        } catch {
+          /* local storage is not available, don't sweat it */
         }
         break
       }

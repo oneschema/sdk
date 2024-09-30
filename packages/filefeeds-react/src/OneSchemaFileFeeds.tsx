@@ -136,6 +136,7 @@ export interface OneSchemaFileFeedsProps {
  */
 export default function OneSchemaFileFeeds({
   // Primary props
+  sessionToken,
   userJwt,
   baseUrl,
   devMode = false,
@@ -148,8 +149,6 @@ export default function OneSchemaFileFeeds({
   // Launch props
   customizationKey,
   customizationOverrides,
-  // Init Session props
-  sessionToken,
   // == Events props ==
   // Iframe
   onPageLoad,
