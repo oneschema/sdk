@@ -26,6 +26,7 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
   #client = PACKAGE_NAME
   #version = PACKAGE_VERSION
 
+  #resumeTokenKey = ""
   static #iframeIsLoaded = false
   _iframeInitStarted = false
   _iframeInitSucceeded = false
@@ -153,6 +154,16 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
 
     const mergedParams = { ...this.#params, ...params }
 
+    try {
+      this.#resumeTokenKey = `OneSchemaFileFeeds-${this.#params.userJwt}`
+      const resumeToken = window.localStorage.getItem(this.#resumeTokenKey)
+      if (resumeToken) {
+        this.#launchParams.sessionToken = resumeToken
+      }
+    } catch {
+        /* local storage is not available, don't sweat it */
+    }
+
     if (OneSchemaFileFeedsClass.#iframeIsLoaded) {
       this._initWithRetry(mergedParams)
     } else if (this.iframe) {
@@ -201,6 +212,14 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
 
     if (OneSchemaFileFeedsClass.#iframeIsLoaded) {
       this.#iframeEventEmit("destroy", {})
+    }
+
+    if (this.#resumeTokenKey) {
+      try {
+        window.localStorage.removeItem(this.#resumeTokenKey)
+      } catch {
+        /* local storage is not available, don't sweat it */
+      }
     }
 
     this.emitEvent("destroyed", {})
@@ -308,6 +327,14 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
 
       case "init-succeeded": {
         this._iframeInitSucceeded = true
+        const sessionToken = eventData.sessionToken
+        if (this.#resumeTokenKey && sessionToken) {
+          try {
+            window.localStorage.setItem(this.#resumeTokenKey, sessionToken)
+          } catch {
+            /* local storage is not available, don't sweat it */
+          }
+        }
         break
       }
 
