@@ -1,4 +1,5 @@
 import { EventEmitter } from "eventemitter3"
+import merge from "lodash.merge"
 
 import { name as PACKAGE_NAME, version as PACKAGE_VERSION } from "../package.json"
 import { DEFAULT_PARAMS, FileFeedsParams } from "./config"
@@ -151,7 +152,17 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
       return
     }
 
-    this.#launchParams = launchParams
+    this.#launchParams = merge(
+      {},
+      {
+        userJwt: this.#params.userJwt,
+        customizationKey: this.#params.customizationKey,
+        customizationOverrides: this.#params.customizationOverrides,
+      },
+      launchParams
+    )
+
+    console.log("[OSFF] Launching with", this.#launchParams)
 
     if (OneSchemaFileFeedsClass.#iframeIsLoaded) {
       this._initWithRetry()
