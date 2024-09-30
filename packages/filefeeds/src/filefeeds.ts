@@ -154,15 +154,13 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
 
     this.#launchParams = merge(
       {},
+      launchParams,
       {
         userJwt: this.#params.userJwt,
         customizationKey: this.#params.customizationKey,
         customizationOverrides: this.#params.customizationOverrides,
-      },
-      launchParams
+      }
     )
-
-    console.log("[OSFF] Launching with", this.#launchParams)
 
     if (OneSchemaFileFeedsClass.#iframeIsLoaded) {
       this._initWithRetry()
