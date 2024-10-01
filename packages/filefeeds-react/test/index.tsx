@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
 
 import OneSchemaFileFeeds from "../src"
@@ -14,6 +14,15 @@ function TestApp() {
   }, [])
 
   const [sessionId, setSessionId] = useState<number | null>(null)
+  const [sessionToken, setSessionToken] = useState<string | null>(null)
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const token = params.get("sessionToken")
+    if (token) {
+      setSessionToken(token)
+    }
+  }, [])
 
   return (
     <>
@@ -38,6 +47,10 @@ function TestApp() {
           <span>
             Session ID: <code>{sessionId ?? "—"}</code>
           </span>
+          &nbsp; / &nbsp;
+          <span>
+            Session Token: <code>{sessionToken ?? "—"}</code>
+          </span>
         </p>
       </header>
 
@@ -45,7 +58,8 @@ function TestApp() {
         {preloadIframe && (
           <OneSchemaFileFeeds
             baseUrl="http://embed.localschema.co:9450"
-            userJwt="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI2N2JiMmU1Zi1mMGY3LTQyYTYtYTUxMS0xOGIyNWU2N2I4YzQiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-IiwiY3JlYXRlIjp7InNlc3Npb24iOnsiZmlsZV9mZWVkX2lkIjoyOTM3Nn19fQ.BgpLx_kmW2HWMu2dzcw1pMKBm3LNsXXJzAgmZt1rNuA"
+            userJwt="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI1ZmU4MTRjNi0zNDVlLTRhZTctYTI3YS01MDNhMzU0MzY2MjYiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-IiwiY3JlYXRlIjp7InNlc3Npb24iOnsiZmlsZV9mZWVkX2lkIjo1Mjk3Nn19fQ.9hM5ZRDWTXBHD7g0sw6G_wcI61Gl503lquXfzr-1RnI"
+            sessionToken={sessionToken ?? undefined}
             devMode
             style={{
               border: "0",
@@ -65,10 +79,12 @@ function TestApp() {
             onInitFail={(data) => updateStatus("Initialization failed.", data)}
             onInitSucceed={(data) => {
               setSessionId(data.sessionId)
+              setSessionToken(data.sessionToken)
               updateStatus("Initialization succeeded.", data)
             }}
             onDestroy={(data) => {
               setSessionId(null)
+              setSessionToken(null)
               updateStatus("Destroyed.", data)
             }}
             onHide={(data) => updateStatus("Hidden.", data)}
