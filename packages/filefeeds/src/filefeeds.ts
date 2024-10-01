@@ -154,15 +154,17 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
 
     const mergedParams = { ...this.#params, ...params }
 
-    this.#resumeTokenKey = `OneSchemaFileFeeds-session-${this.#params.userJwt}`
+    this.#resumeTokenKey = `OneSchemaFileFeeds-session-${mergedParams.userJwt}`
 
-    try {
-      const resumeToken = window.localStorage.getItem(this.#resumeTokenKey)
-      if (resumeToken) {
-        this.#launchParams.sessionToken = resumeToken
+    if (!mergedParams.sessionToken) {
+      try {
+        const resumeToken = window.localStorage.getItem(this.#resumeTokenKey)
+        if (resumeToken) {
+          mergedParams.sessionToken = resumeToken
+        }
+      } catch {
+          /* local storage is not available, don't sweat it */
       }
-    } catch {
-        /* local storage is not available, don't sweat it */
     }
 
     if (OneSchemaFileFeedsClass.#iframeIsLoaded) {
@@ -193,6 +195,11 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
     }
 
     this.#show()
+
+    if (params.sessionToken) {
+      params = { sessionToken: params.sessionToken, userJwt: params.userJwt }
+    }
+
     this.#iframeEventEmit("init", params)
 
     setTimeout(() => this._initWithRetry(params, retryCount + 1), LAUNCH_RETRY_DELAY_MS)

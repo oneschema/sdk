@@ -2,12 +2,29 @@ import oneSchemaFileFeeds from "../src"
 
 const statusEl = document.getElementById("status")!
 const sessionIdEl = document.getElementById("session-id")!
+const sessionTokenEl = document.getElementById("session-token")!
+
+function getQueryParams() {
+  const params = new URLSearchParams(window.location.search)
+  const sessionToken = params.get("sessionToken")
+
+  return { sessionToken }
+}
+
+const { sessionToken } = getQueryParams()
+
+if (sessionToken) {
+  sessionTokenEl.innerHTML = sessionToken
+}
 
 function updateStatus(message: string, data?: Record<string, any>) {
   console.log("[Test]", message, "data:", data)
   statusEl.innerHTML = message
   if (data?.sessionId !== undefined) {
     sessionIdEl.innerHTML = data?.sessionId || "&mdash;"
+  }
+  if (data?.sessionToken !== undefined) {
+    sessionTokenEl.innerHTML = data?.sessionToken || "&mdash;"
   }
 }
 
@@ -16,7 +33,7 @@ const fileFeeds = oneSchemaFileFeeds({
   parentId: "oneschema-container",
   baseUrl: "http://embed.localschema.co:9450",
   userJwt:
-    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI4MDMyYWY0Yi1lMmQ5LTQwYWQtODE0Mi1lNjgwMTFkOTRkOWMiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-IiwiY3JlYXRlIjp7ImZpbGVfZmVlZCI6eyJuYW1lIjoiY3JtX3Rlc3RfMTcyNTQ5MTQ1ODA1OCIsInRlbXBsYXRlX2tleSI6ImNybV90ZXN0IiwiY3VzdG9tX21ldGFkYXRhIjp7fX19fQ.4izMP5MzlfxryMqpsJWW1o_fnpyMpG_EYLN12jObO-g",
+    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI1ZmU4MTRjNi0zNDVlLTRhZTctYTI3YS01MDNhMzU0MzY2MjYiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-IiwiY3JlYXRlIjp7InNlc3Npb24iOnsiZmlsZV9mZWVkX2lkIjo1Mjk3Nn19fQ.9hM5ZRDWTXBHD7g0sw6G_wcI61Gl503lquXfzr-1RnI",
   devMode: true,
   styles: {
     display: "flex",
@@ -30,7 +47,7 @@ const fileFeeds = oneSchemaFileFeeds({
 statusEl.innerHTML = "Loading in the background."
 
 document.getElementById("launch-button")!.onclick = () => {
-  fileFeeds.launch({ customizationOverrides: { backgroundPrimaryColor: "#FF00FF" } })
+  fileFeeds.launch( sessionToken ? { sessionToken } : {})
 }
 
 document.getElementById("hide-button")!.onclick = () => {
@@ -58,7 +75,7 @@ fileFeeds.on("init-succeeded", (data) => {
 })
 
 fileFeeds.on("destroyed", (data) => {
-  updateStatus("Destroyed.", { sessionId: "", ...data })
+  updateStatus("Destroyed.", { sessionId: "", sessionToken: "", ...data })
 })
 
 fileFeeds.on("hidden", (data) => {
