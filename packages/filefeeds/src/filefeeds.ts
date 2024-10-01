@@ -143,7 +143,7 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
   /**
    * Launch will show the OneSchema window and initialize the FileFeeds session.
    */
-  launch(launchParams: Partial<FileFeedsLaunchParams>): void {
+  launch(params: Partial<FileFeedsLaunchParams>): void {
     if (this._iframeIsDestroyed) {
       if (this.#params.devMode) {
         console.error("[OSFF] Instance has been destroyed.")
@@ -151,19 +151,19 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
       return
     }
 
-    this.#launchParams = launchParams
+    const mergedParams = { ...this.#params, ...params }
 
     if (OneSchemaFileFeedsClass.#iframeIsLoaded) {
-      this._initWithRetry()
+      this._initWithRetry(mergedParams)
     } else if (this.iframe) {
       this.iframe.onload = () => {
         OneSchemaFileFeedsClass.#iframeIsLoaded = true
-        this._initWithRetry()
+        this._initWithRetry(mergedParams)
       }
     }
   }
 
-  _initWithRetry(retryCount = 1) {
+  _initWithRetry(params: Partial<FileFeedsLaunchParams>, retryCount = 1) {
     if (this._iframeInitStarted || this._iframeInitSucceeded) {
       this.#show()
       return
@@ -181,9 +181,9 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
     }
 
     this.#show()
-    this.#iframeEventEmit("init", this.#launchParams || {})
+    this.#iframeEventEmit("init", params)
 
-    setTimeout(() => this._initWithRetry(retryCount + 1), LAUNCH_RETRY_DELAY_MS)
+    setTimeout(() => this._initWithRetry(params, retryCount + 1), LAUNCH_RETRY_DELAY_MS)
   }
 
   /**
