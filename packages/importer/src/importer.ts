@@ -1,5 +1,4 @@
 import { EventEmitter } from "eventemitter3"
-import merge from "lodash.merge"
 import { version } from "../package.json"
 import {
   DEFAULT_PARAMS,
@@ -37,13 +36,13 @@ export class OneSchemaImporterClass extends EventEmitter {
   #hasLaunched = false
   #hasCancelled = false
   #initMessage?: OneSchemaInitMessage
-  #hasAppRecievedInitMessage = false
+  #hasAppReceivedInitMessage = false
   static #iframeIsLoaded = false
 
   constructor(params: OneSchemaParams) {
     super()
 
-    this.#params = merge({}, DEFAULT_PARAMS, params)
+    this.#params = { ...DEFAULT_PARAMS, ...params }
 
     // Limit usage to browser only.
     if (typeof window === "undefined") {
@@ -85,7 +84,7 @@ export class OneSchemaImporterClass extends EventEmitter {
 
   /**
    * Set the iframe to be used by the OneSchema importer
-   * Should only be used in conjuction with the param of manageDOM false
+   * Should only be used in conjunction with the param of manageDOM false
    * @param iframe
    */
   setIframe(iframe: HTMLIFrameElement) {
@@ -164,7 +163,7 @@ export class OneSchemaImporterClass extends EventEmitter {
   ): OneSchemaLaunchStatus {
     this._hasAttemptedLaunch = true
 
-    const mergedParams = merge({}, this.#params, launchParams)
+    const mergedParams = { ...this.#params, ...launchParams }
     const baseMessage: OneSchemaSharedInitParams = {
       version: this.#version,
       client: this.#client,
@@ -261,7 +260,7 @@ export class OneSchemaImporterClass extends EventEmitter {
   }
 
   _initWithRetry(count = 1) {
-    if (this.#hasLaunched || this.#hasCancelled || this.#hasAppRecievedInitMessage) {
+    if (this.#hasLaunched || this.#hasCancelled || this.#hasAppReceivedInitMessage) {
       return
     }
 
@@ -269,8 +268,7 @@ export class OneSchemaImporterClass extends EventEmitter {
       const msg = "OneSchema failed to respond for initialization"
       console.error(msg)
       if (this.#params.devMode) {
-        // there might be some error in which case,
-        // it's good to surface to devs
+        // Display the iframe for debugging purposes.
         this.#show()
       } else {
         this.emitErrorEvent({
@@ -316,7 +314,7 @@ export class OneSchemaImporterClass extends EventEmitter {
     }
 
     this._hasAttemptedLaunch = false
-    this.#hasAppRecievedInitMessage = false
+    this.#hasAppReceivedInitMessage = false
     this.#hasLaunched = false
     this.#hasCancelled = true
 
@@ -373,8 +371,10 @@ export class OneSchemaImporterClass extends EventEmitter {
         return
       }
 
-      case "init-recieved": {
-        this.#hasAppRecievedInitMessage = true
+      // NOTE: Was misspelled as "init-recieved" in older versions.
+      // The correct spelling added in 2024-10.
+      case "init-received": {
+        this.#hasAppReceivedInitMessage = true
         return
       }
 
