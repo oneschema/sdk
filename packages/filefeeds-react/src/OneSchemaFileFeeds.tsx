@@ -250,7 +250,12 @@ export default function OneSchemaFileFeeds({
   useEffect(
     () => {
       if (isOpen) {
-        instance?.launch({userJwt, sessionToken, customizationKey, customizationOverrides})
+        instance?.launch({
+          userJwt,
+          sessionToken,
+          customizationKey,
+          customizationOverrides,
+        })
       } else {
         instance?.hide()
       }
