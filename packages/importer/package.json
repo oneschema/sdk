@@ -29,7 +29,7 @@
     "build-test": "parcel build test/index.html",
     "test": "parcel serve test/index.html -p 4242 --open",
     "lint": "eslint './src/**/**.{ts,js}'",
-    "clean": "npx rimraf dist"
+    "clean": "npx --yes rimraf dist"
   },
   "dependencies": {
     "eventemitter3": "^4.0.7",
