@@ -29,8 +29,6 @@ export interface InitFailedEventData {
 
 export interface InitSucceededEventData {
   sessionToken: string
-  // TODO: remove sessionId
-  sessionId: number
   fileFeed: {
     name: string
     id: number
@@ -46,11 +44,9 @@ export type HiddenEventData = Record<string, never>
 export type ShownEventData = Record<string, never>
 
 export interface SavedEventData {
-  sessionId: number
+  sessionToken: string
   errorsCount: number
   errorCountPerSampleFile: Record<string, number>
 }
 
-export interface CancelledEventData {
-  sessionId: number
-}
+export type CancelledEventData = Record<string, never>

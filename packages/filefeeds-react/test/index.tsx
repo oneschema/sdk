@@ -13,7 +13,6 @@ function TestApp() {
     console.log("[Test]", message, data)
   }, [])
 
-  const [sessionId, setSessionId] = useState<number | null>(null)
   const [sessionToken, setSessionToken] = useState<string | null>(null)
 
   useEffect(() => {
@@ -42,10 +41,6 @@ function TestApp() {
         <p style={{ margin: "0.5em 0" }}>
           <span>
             Status: <code>{status}</code>
-          </span>
-          &nbsp; / &nbsp;
-          <span>
-            Session ID: <code>{sessionId ?? "—"}</code>
           </span>
           &nbsp; / &nbsp;
           <span>
@@ -78,12 +73,10 @@ function TestApp() {
             onInitStart={(data) => updateStatus("Initialization failed.", data)}
             onInitFail={(data) => updateStatus("Initialization failed.", data)}
             onInitSucceed={(data) => {
-              setSessionId(data.sessionId)
               setSessionToken(data.sessionToken)
               updateStatus("Initialization succeeded.", data)
             }}
             onDestroy={(data) => {
-              setSessionId(null)
               setSessionToken(null)
               updateStatus("Destroyed.", data)
             }}

@@ -1,7 +1,6 @@
 import oneSchemaFileFeeds from "../src"
 
 const statusEl = document.getElementById("status")!
-const sessionIdEl = document.getElementById("session-id")!
 const sessionTokenEl = document.getElementById("session-token")!
 
 function getQueryParams() {
@@ -20,9 +19,6 @@ if (sessionToken) {
 function updateStatus(message: string, data?: Record<string, any>) {
   console.log("[Test]", message, "data:", data)
   statusEl.innerHTML = message
-  if (data?.sessionId !== undefined) {
-    sessionIdEl.innerHTML = data?.sessionId || "&mdash;"
-  }
   if (data?.sessionToken !== undefined) {
     sessionTokenEl.innerHTML = data?.sessionToken || "&mdash;"
   }
@@ -33,7 +29,7 @@ const fileFeeds = oneSchemaFileFeeds({
   parentId: "oneschema-container",
   baseUrl: "http://embed.localschema.co:9450",
   userJwt:
-    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI1ZmU4MTRjNi0zNDVlLTRhZTctYTI3YS01MDNhMzU0MzY2MjYiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-IiwiY3JlYXRlIjp7InNlc3Npb24iOnsiZmlsZV9mZWVkX2lkIjo1Mjk3Nn19fQ.9hM5ZRDWTXBHD7g0sw6G_wcI61Gl503lquXfzr-1RnI",
+    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI1ZmU4MTRjNi0zNDVlLTRhZTctYTI3YS01MDNhMzU0MzY2MjYiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-IiwiZmlsZV9mZWVkX2lkIjo1Mjk3Nn0.3c7z4LHsrzDVojLaBzUuK06w3Bf3y73hLQicP3sXgCA",
   devMode: true,
   styles: {
     display: "flex",
@@ -75,7 +71,7 @@ fileFeeds.on("init-succeeded", (data) => {
 })
 
 fileFeeds.on("destroyed", (data) => {
-  updateStatus("Destroyed.", { sessionId: "", sessionToken: "", ...data })
+  updateStatus("Destroyed.", { sessionToken: "", ...data })
 })
 
 fileFeeds.on("hidden", (data) => {
