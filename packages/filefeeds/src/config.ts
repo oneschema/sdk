@@ -25,6 +25,11 @@ export const DEFAULT_PARAMS: Partial<FileFeedsParams> = {
  */
 export interface FileFeedsParams {
   /**
+   * The session token to use when launching OneSchema FileFeeds.
+   */
+  sessionToken?: string
+
+  /**
    * The JSON Web Token authenticating the user, and authorizing them to access
    * specific OneSchema FileFeeds embedding intents.
    */
