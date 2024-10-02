@@ -29,7 +29,7 @@
     "build-test": "parcel build test/index.html",
     "test": "parcel serve test/index.html -p 4244 --open",
     "lint": "eslint './src/**/**.{ts,tsx,js,jsx}'",
-    "clean": "npx rimraf dist"
+    "clean": "npx --yes rimraf dist"
   },
   "dependencies": {
     "@oneschema/importer": "^0.6.0",

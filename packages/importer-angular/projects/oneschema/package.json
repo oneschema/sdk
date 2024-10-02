@@ -12,6 +12,10 @@
     "url": "github:oneschema/sdk",
     "directory": "packages/importer-angular/projects/oneschema"
   },
+  "scripts": {
+    "build": "true",
+    "clean": "npx --yes rimraf dist"
+  },
   "dependencies": {
     "tslib": "^2.3.0"
   },

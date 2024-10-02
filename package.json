@@ -1,8 +1,18 @@
 {
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/importer",
+    "packages/importer-react",
+    "packages/filefeeds",
+    "packages/filefeeds-react",
+    "packages/importer-vue",
+    "packages/importer-angular",
+    "packages/importer-angular/projects/oneschema"
   ],
+  "scripts": {
+    "clean": "rm -rf node_modules && yarn workspaces run clean",
+    "build": "yarn workspaces run build"
+  },
   "devDependencies": {
     "@parcel/transformer-vue": "2.8.3",
     "process": "^0.11.10",
