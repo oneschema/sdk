@@ -9,10 +9,9 @@ changes may not be included if they are not expected to break existing code.
 
 ## 0.5.0 (2024-10-03)
 
-- Support `session_token` as an init and launch parameter. When the session
-  token for an existing, valid session is passed in along with a corresponding,
-  jwt, the specified session will be resumed. Session token will also be stored 
-  in localstorage upon init success and polled for when none is provided.
+- Support `session_token` as an init and launch parameter. 
+- When the `session token` for an existing, valid session is passed in along 
+  with a corresponding jwt, the specified session will be resumed.
 
 ## 0.4.0 (2024-09-06)
 
