@@ -285,7 +285,7 @@ export interface OneSchemaLaunchParams {
  */
 export interface OneSchemaLaunchSessionParams {
   /**
-   * A token for a session created through the API for initiliaizing OneSchema
+   * A token for a session created through the API for initializing OneSchema
    */
   sessionToken: string
 }

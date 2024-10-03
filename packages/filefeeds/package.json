@@ -33,7 +33,6 @@
   },
   "dependencies": {
     "eventemitter3": "^4.0.7",
-    "lodash.merge": "^4.6.2",
     "tslib": "^2.4.0"
   },
   "devDependencies": {
@@ -41,7 +40,6 @@
     "@rollup/plugin-json": "^5.0.0",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@rollup/plugin-replace": "^4.0.0",
-    "@types/lodash.merge": "^4.6.7",
     "@typescript-eslint/eslint-plugin": "^5.30.0",
     "@typescript-eslint/parser": "^5.30.0",
     "eslint": "^8.18.0",
