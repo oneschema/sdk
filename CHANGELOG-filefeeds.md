@@ -9,9 +9,14 @@ changes may not be included if they are not expected to break existing code.
 
 ## 0.5.0 (2024-10-03)
 
-- Support `session_token` as an init and launch parameter. 
-- When the `session token` for an existing, valid session is passed in along 
-  with a corresponding jwt, the specified session will be resumed.
+- Support `session_token` as an init and launch parameter. When the `session token` 
+  for an existing, valid  session is passed in along with a corresponding jwt, the 
+  specified session will be resumed. `Session token` will be provided in the 
+  `init succeeded` and `saved` event data payloads, and `session id`
+  will no longer be returned.
+- By default, OneSchema will save the session token and resume in case the session 
+  was not closed through normal means (usually the browser closing or refreshing). 
+  It will not resume if the user cancels the session or if it ends.
 
 ## 0.4.0 (2024-09-06)
 
