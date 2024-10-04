@@ -22,7 +22,6 @@ type FileFeedsLaunchParams = Pick<
  */
 export class OneSchemaFileFeedsClass extends EventEmitter {
   #params: FileFeedsParams
-  #launchParams: Partial<FileFeedsLaunchParams> = {}
   iframe: HTMLIFrameElement | undefined
 
   #client = PACKAGE_NAME
@@ -157,7 +156,7 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
     const mergedParams = { ...this.#params, ...params }
 
     this.#resumeTokenKey = `OneSchemaFileFeeds-session-${mergedParams.userJwt}`
-
+  
     if (!mergedParams.sessionToken) {
       try {
         const resumeToken = window.localStorage.getItem(this.#resumeTokenKey)

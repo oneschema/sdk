@@ -4,11 +4,18 @@ import { createRoot } from "react-dom/client"
 import OneSchemaFileFeeds from "../src"
 
 function TestApp() {
+  const userJwt = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI1ZmU4MTRjNi0zNDVlLTRhZTctYTI3YS01MDNhMzU0MzY2MjYiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-IiwiZmlsZV9mZWVkX2lkIjo1Mjk3Nn0.3c7z4LHsrzDVojLaBzUuK06w3Bf3y73hLQicP3sXgCA"
+  const resumeTokenKey = `OneSchemaFileFeeds-session-${userJwt}`
+
   const [preloadIframe, setPreloadIframe] = useState(true)
   const [showEmbed, setShowEmbed] = useState(false)
 
+  const [resumeToken, setResumeToken] = useState<string | null>(null)
+
   const [status, setStatus] = useState("Not started")
   const updateStatus = useCallback((message: string, data?: Record<string, any>) => {
+    setResumeToken(window.localStorage.getItem(resumeTokenKey))
+
     setStatus(message)
     console.log("[Test]", message, data)
   }, [])
@@ -46,6 +53,10 @@ function TestApp() {
           <span>
             Session Token: <code>{sessionToken ?? "—"}</code>
           </span>
+          &nbsp; / &nbsp;
+          <span>
+            Resume Token (local storage): <code>{resumeToken ?? "—"}</code>
+          </span>
         </p>
       </header>
 
@@ -53,7 +64,7 @@ function TestApp() {
         {preloadIframe && (
           <OneSchemaFileFeeds
             baseUrl="http://embed.localschema.co:9450"
-            userJwt="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI1ZmU4MTRjNi0zNDVlLTRhZTctYTI3YS01MDNhMzU0MzY2MjYiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-IiwiZmlsZV9mZWVkX2lkIjo1Mjk3Nn0.3c7z4LHsrzDVojLaBzUuK06w3Bf3y73hLQicP3sXgCA"
+            userJwt={userJwt}
             sessionToken={sessionToken ?? undefined}
             saveSession={true}
             devMode
