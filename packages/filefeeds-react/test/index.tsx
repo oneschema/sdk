@@ -53,8 +53,9 @@ function TestApp() {
         {preloadIframe && (
           <OneSchemaFileFeeds
             baseUrl="http://embed.localschema.co:9450"
-            userJwt="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI1ZmU4MTRjNi0zNDVlLTRhZTctYTI3YS01MDNhMzU0MzY2MjYiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-IiwiY3JlYXRlIjp7InNlc3Npb24iOnsiZmlsZV9mZWVkX2lkIjo1Mjk3Nn19fQ.9hM5ZRDWTXBHD7g0sw6G_wcI61Gl503lquXfzr-1RnI"
+            userJwt="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI1ZmU4MTRjNi0zNDVlLTRhZTctYTI3YS01MDNhMzU0MzY2MjYiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-IiwiZmlsZV9mZWVkX2lkIjo1Mjk3Nn0.3c7z4LHsrzDVojLaBzUuK06w3Bf3y73hLQicP3sXgCA"
             sessionToken={sessionToken ?? undefined}
+            saveSession={true}
             devMode
             style={{
               border: "0",

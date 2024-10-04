@@ -83,4 +83,10 @@ export interface FileFeedsParams {
    * Defaults to the US OneSchema production servers.
    */
   baseUrl?: string
+
+  /**
+   * Whether to save session information to local storage and enable resuming
+   * Defaults to false
+   */
+  saveSession?: boolean
 }

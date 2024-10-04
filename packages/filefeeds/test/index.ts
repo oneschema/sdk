@@ -38,6 +38,7 @@ const fileFeeds = oneSchemaFileFeeds({
     flex: "1",
     position: "initial",
   },
+  saveSession: true,
 })
 
 statusEl.innerHTML = "Loading in the background."

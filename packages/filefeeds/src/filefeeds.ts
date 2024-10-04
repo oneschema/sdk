@@ -12,7 +12,9 @@ const FILE_FEEDS_TRANSFORMS_EMBED_MARKER = "transforms.filefeeds.oneschema.co"
 type FileFeedsLaunchParams = Pick<
   FileFeedsParams,
   "userJwt" | "customizationKey" | "customizationOverrides" | "sessionToken"
->
+> & {
+  resumeDetected?: boolean
+}
 
 /**
  * OneSchemaFileFeeds class manages the iframe used for interacting with the
@@ -161,6 +163,7 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
         const resumeToken = window.localStorage.getItem(this.#resumeTokenKey)
         if (resumeToken) {
           mergedParams.sessionToken = resumeToken
+          mergedParams.resumeDetected = true
         }
       } catch {
           /* local storage is not available, don't sweat it */
@@ -197,7 +200,7 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
     this.#show()
 
     if (params.sessionToken) {
-      params = { sessionToken: params.sessionToken, userJwt: params.userJwt }
+      params = { sessionToken: params.sessionToken, userJwt: params.userJwt, resumeDetected: params.resumeDetected }
     }
 
     this.#iframeEventEmit("init", params)
@@ -336,16 +339,27 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
       case "init-succeeded": {
         this._iframeInitSucceeded = true
         const { sessionToken } = eventData
-        try {
-          window.localStorage.setItem(this.#resumeTokenKey, sessionToken)
-        } catch {
-          /* local storage is not available, don't sweat it */
+        if (this.#params.saveSession) {
+          try {
+            window.localStorage.setItem(this.#resumeTokenKey, sessionToken)
+          } catch {
+            /* local storage is not available, don't sweat it */
+          }
         }
         break
       }
 
       case "cancelled": {
         this.#hide()
+        break
+      }
+
+      case "saved": {
+        try {
+          window.localStorage.removeItem(this.#resumeTokenKey)
+        } catch {
+          /* local storage is not available, don't sweat it */
+        }
         break
       }
     }
