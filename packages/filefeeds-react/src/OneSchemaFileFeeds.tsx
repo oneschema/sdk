@@ -129,6 +129,12 @@ export interface OneSchemaFileFeedsProps {
    * the FileFeed Transforms, requiring a new session.
    */
   onSessionInvalidate?: (data: SessionInvalidatedEventData) => void
+
+  /**
+   * Whether to save session information to local storage and enable resuming
+   * Defaults to false
+   */
+  saveSession?: boolean
 }
 
 /**
@@ -146,6 +152,8 @@ export default function OneSchemaFileFeeds({
   onRequestClose,
   style,
   className,
+  // Resume props
+  saveSession,
   // Launch props
   customizationKey,
   customizationOverrides,
@@ -173,6 +181,7 @@ export default function OneSchemaFileFeeds({
       baseUrl,
       devMode,
       manageDOM: !inline,
+      saveSession,
     })
     newInstance?.setClient(PACKAGE_NAME, PACKAGE_VERSION)
     setInstance(newInstance)

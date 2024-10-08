@@ -2,6 +2,7 @@ import oneSchemaFileFeeds from "../src"
 
 const statusEl = document.getElementById("status")!
 const sessionTokenEl = document.getElementById("session-token")!
+const resumeTokenEl = document.getElementById("resume-token")!
 
 function getQueryParams() {
   const params = new URLSearchParams(window.location.search)
@@ -10,26 +11,21 @@ function getQueryParams() {
   return { sessionToken }
 }
 
+
 const { sessionToken } = getQueryParams()
 
 if (sessionToken) {
   sessionTokenEl.innerHTML = sessionToken
 }
 
-function updateStatus(message: string, data?: Record<string, any>) {
-  console.log("[Test]", message, "data:", data)
-  statusEl.innerHTML = message
-  if (data?.sessionToken !== undefined) {
-    sessionTokenEl.innerHTML = data?.sessionToken || "&mdash;"
-  }
-}
+const userJwt = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI1ZmU4MTRjNi0zNDVlLTRhZTctYTI3YS01MDNhMzU0MzY2MjYiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-IiwiZmlsZV9mZWVkX2lkIjo1Mjk3Nn0.3c7z4LHsrzDVojLaBzUuK06w3Bf3y73hLQicP3sXgCA"
+const resumeTokenKey = `OneSchemaFileFeeds-session-${userJwt}`
 
 const fileFeeds = oneSchemaFileFeeds({
   className: "oneschema-iframe",
   parentId: "oneschema-container",
   baseUrl: "http://embed.localschema.co:9450",
-  userJwt:
-    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI1ZmU4MTRjNi0zNDVlLTRhZTctYTI3YS01MDNhMzU0MzY2MjYiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-IiwiZmlsZV9mZWVkX2lkIjo1Mjk3Nn0.3c7z4LHsrzDVojLaBzUuK06w3Bf3y73hLQicP3sXgCA",
+  userJwt: userJwt,
   devMode: true,
   styles: {
     display: "flex",
@@ -38,9 +34,24 @@ const fileFeeds = oneSchemaFileFeeds({
     flex: "1",
     position: "initial",
   },
+  saveSession: true,
 })
 
+function getResumeToken(key: string) {
+  return window.localStorage.getItem(key) || "&mdash;"
+}
+
+function updateStatus(message: string, data?: Record<string, any>) {
+  console.log("[Test]", message, "data:", data)
+  statusEl.innerHTML = message
+  if (data?.sessionToken !== undefined) {
+    sessionTokenEl.innerHTML = data?.sessionToken || "&mdash;"
+  }
+  resumeTokenEl.innerHTML = getResumeToken(resumeTokenKey)
+}
+
 statusEl.innerHTML = "Loading in the background."
+resumeTokenEl.innerHTML = getResumeToken(resumeTokenKey)
 
 document.getElementById("launch-button")!.onclick = () => {
   fileFeeds.launch( sessionToken ? { sessionToken } : {})
