@@ -11,10 +11,8 @@ const FILE_FEEDS_TRANSFORMS_EMBED_MARKER = "transforms.filefeeds.oneschema.co"
 
 type FileFeedsLaunchParams = Pick<
   FileFeedsParams,
-  "userJwt" | "customizationKey" | "customizationOverrides" | "sessionToken"
-> & {
-  resumeDetected?: boolean
-}
+  "userJwt" | "customizationKey" | "customizationOverrides" | "sessionToken" | "resumeToken"
+>
 
 /**
  * OneSchemaFileFeeds class manages the iframe used for interacting with the
@@ -161,8 +159,7 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
       try {
         const resumeToken = window.localStorage.getItem(this.#resumeTokenKey)
         if (resumeToken) {
-          mergedParams.sessionToken = resumeToken
-          mergedParams.resumeDetected = true
+          mergedParams.resumeToken = resumeToken
         }
       } catch {
           /* local storage is not available, don't sweat it */
@@ -199,7 +196,7 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
     this.#show()
 
     if (params.sessionToken) {
-      params = { sessionToken: params.sessionToken, userJwt: params.userJwt, resumeDetected: params.resumeDetected }
+      params = { sessionToken: params.sessionToken, userJwt: params.userJwt, resumeToken: params.resumeToken }
     }
 
     this.#iframeEventEmit("init", params)

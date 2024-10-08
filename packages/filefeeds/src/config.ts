@@ -89,4 +89,10 @@ export interface FileFeedsParams {
    * Defaults to false
    */
   saveSession?: boolean
+
+  /**
+   * A session token to resume an existing session. 
+   * Automatically populated by the SDK if `saveSession` is true.
+   */
+  resumeToken?: string
 }
