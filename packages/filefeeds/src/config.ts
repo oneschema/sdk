@@ -13,27 +13,27 @@ export interface FileFeedCustomization extends OneSchemaBrandingCustomizations {
 /**
  * The default param values for the OneSchema FileFeeds.
  */
-export const DEFAULT_PARAMS: Partial<FileFeedsParams> = {
+export const DEFAULT_PARAMS: Partial<FileFeedsCommonParams> = {
   baseUrl: "https://embed.oneschema.co",
   devMode: Boolean(process.env.NODE_ENV !== "production"),
   className: "oneschema-iframe",
   manageDOM: true,
 }
 
-/**
- * Parameters that can be set when the OneSchema FileFeeds is initialized.
- */
-export interface FileFeedsParams {
-  /**
-   * The session token to use when launching OneSchema FileFeeds.
-   */
-  sessionToken?: string
+interface FileFeedsCommonParams {
+  // TODO: Add `clientId` support.
 
   /**
    * The JSON Web Token authenticating the user, and authorizing them to access
    * specific OneSchema FileFeeds embedding intents.
    */
-  userJwt: string
+  userJwt?: string
+
+  /**
+   * The Embed Session Token to use when launching OneSchema FileFeeds to resume
+   * an existing session.
+   */
+  sessionToken?: string
 
   /**
    * Whether to launch the OneSchema FileFeeds in dev mode.
@@ -91,8 +91,46 @@ export interface FileFeedsParams {
   saveSession?: boolean
 
   /**
-   * A session token to resume an existing session. 
+   * A session token to resume an existing session.
    * Automatically populated by the SDK if `saveSession` is true.
    */
   resumeToken?: string
 }
+
+interface FileFeedsCreateSessionParams extends FileFeedsCommonParams {
+  /**
+   * The User JWT is required when creating a new session.
+   */
+  userJwt: string
+}
+
+interface FileFeedsResumeSessionParams extends FileFeedsCommonParams {
+  /**
+   * The session token to use when launching OneSchema FileFeeds.
+   */
+  sessionToken: string
+}
+
+/**
+ * Parameters that can be set when the OneSchema FileFeeds embedding is
+ * initialized.
+ *
+ * NOTE: One of `userJwt` or `sessionToken` should be set. If both are present,
+ * then `userJwt` will be checked against the embed session matching the
+ * `sessionToken`, and an error will be raised if they do not match.
+ */
+export type FileFeedsParams = FileFeedsCreateSessionParams | FileFeedsResumeSessionParams
+
+/**
+ * A subset of the FileFeedsParams that can be set when launching the embedding.
+ */
+export type FileFeedsLaunchParams = Partial<
+  Pick<
+    FileFeedsCommonParams,
+    | "userJwt"
+    | "customizationKey"
+    | "customizationOverrides"
+    | "sessionToken"
+    | "resumeToken"
+  >
+>
