@@ -1,7 +1,7 @@
 {
   "name": "@oneschema/filefeeds-react",
   "private": false,
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "React component for embedding OneSchema FileFeeds",
   "author": "OneSchema",
   "license": "MIT",
@@ -32,7 +32,7 @@
     "clean": "npx --yes rimraf dist"
   },
   "dependencies": {
-    "@oneschema/filefeeds": "^0.5.0",
+    "@oneschema/filefeeds": "^0.5.1",
     "tslib": "^2.4.0"
   },
   "devDependencies": {
