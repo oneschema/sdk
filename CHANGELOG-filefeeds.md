@@ -9,7 +9,9 @@ changes may not be included if they are not expected to break existing code.
 
 ## 0.5.1 (2024-10-10)
 
-- Auto-resume can be toggled via the `saveSession` init parameter. When set as `true`, the session is eligible to be automatically resumed if not closed through normal means
+- The auto-resume behavior can be toggled via the `saveSession` init parameter.
+  When set as `true`, the session is eligible to be automatically resumed if not
+  closed through normal means.
 
 ## 0.5.0 (2024-10-03)
 
