@@ -1,18 +1,14 @@
 import { EventEmitter } from "eventemitter3"
 
 import { name as PACKAGE_NAME, version as PACKAGE_VERSION } from "../package.json"
-import { DEFAULT_PARAMS, FileFeedsParams } from "./config"
+import { DEFAULT_PARAMS, FileFeedsLaunchParams, FileFeedsParams } from "./config"
 import { FileFeedsEvent } from "./events"
+import { merged } from "./shared/utils"
 
 const LAUNCH_RETRY_MAX_COUNT = 10
 const LAUNCH_RETRY_DELAY_MS = 500
 
 const FILE_FEEDS_TRANSFORMS_EMBED_MARKER = "transforms.filefeeds.oneschema.co"
-
-type FileFeedsLaunchParams = Pick<
-  FileFeedsParams,
-  "userJwt" | "customizationKey" | "customizationOverrides" | "sessionToken" | "resumeToken"
->
 
 /**
  * OneSchemaFileFeeds class manages the iframe used for interacting with the
@@ -25,7 +21,7 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
   #client = PACKAGE_NAME
   #version = PACKAGE_VERSION
 
-  #resumeTokenKey = ""
+  #resumeTokenKey: string | null = null
   static #iframeIsLoaded = false
   _iframeInitStarted = false
   _iframeInitSucceeded = false
@@ -37,7 +33,7 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
     super()
     window.addEventListener("message", this.#iframeEventListener.bind(this))
 
-    this.#params = { ...DEFAULT_PARAMS, ...initParams }
+    this.#params = merged(DEFAULT_PARAMS, initParams)
 
     if (typeof window === "undefined") {
       return
@@ -85,7 +81,9 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
 
     const srcUrl = new URL(this.#params.baseUrl!)
     srcUrl.pathname = "/file-feeds-embed/launcher"
-    srcUrl.searchParams.append("user_jwt", this.#params.userJwt)
+    if (this.#params.userJwt) {
+      srcUrl.searchParams.append("user_jwt", this.#params.userJwt)
+    }
     if (this.#params.devMode) {
       srcUrl.searchParams.append("dev_mode", "true")
     }
@@ -143,7 +141,7 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
   /**
    * Launch will show the OneSchema window and initialize the FileFeeds session.
    */
-  launch(params: Partial<FileFeedsLaunchParams>): void {
+  launch(params: FileFeedsLaunchParams): void {
     if (this._iframeIsDestroyed) {
       if (this.#params.devMode) {
         console.error("[OSFF] Instance has been destroyed.")
@@ -151,18 +149,20 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
       return
     }
 
-    const mergedParams = { ...this.#params, ...params }
+    const mergedParams: FileFeedsParams = merged(this.#params, params)
 
-    this.#resumeTokenKey = `OneSchemaFileFeeds-session-${mergedParams.userJwt}`
-  
-    if (!mergedParams.sessionToken) {
-      try {
-        const resumeToken = window.localStorage.getItem(this.#resumeTokenKey)
-        if (resumeToken) {
-          mergedParams.resumeToken = resumeToken
-        }
-      } catch {
+    if (mergedParams.userJwt) {
+      this.#resumeTokenKey = `OneSchemaFileFeeds-session-${mergedParams.userJwt}`
+
+      if (!mergedParams.sessionToken) {
+        try {
+          const resumeToken = window.localStorage.getItem(this.#resumeTokenKey)
+          if (resumeToken) {
+            mergedParams.resumeToken = resumeToken
+          }
+        } catch {
           /* local storage is not available, don't sweat it */
+        }
       }
     }
 
@@ -176,7 +176,7 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
     }
   }
 
-  _initWithRetry(params: Partial<FileFeedsLaunchParams>, retryCount = 1) {
+  _initWithRetry(params: FileFeedsLaunchParams, retryCount = 1) {
     if (this._iframeInitStarted || this._iframeInitSucceeded) {
       this.#show()
       return
@@ -196,7 +196,11 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
     this.#show()
 
     if (params.sessionToken) {
-      params = { sessionToken: params.sessionToken, userJwt: params.userJwt, resumeToken: params.resumeToken }
+      params = {
+        sessionToken: params.sessionToken,
+        userJwt: params.userJwt,
+        resumeToken: params.resumeToken,
+      }
     }
 
     this.#iframeEventEmit("init", params)
@@ -335,7 +339,7 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
       case "init-succeeded": {
         this._iframeInitSucceeded = true
         const { sessionToken } = eventData
-        if (this.#params.saveSession) {
+        if (this.#params.saveSession && this.#resumeTokenKey) {
           try {
             window.localStorage.setItem(this.#resumeTokenKey, sessionToken)
           } catch {
@@ -351,10 +355,12 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
       }
 
       case "saved": {
-        try {
-          window.localStorage.removeItem(this.#resumeTokenKey)
-        } catch {
-          /* local storage is not available, don't sweat it */
+        if (this.#resumeTokenKey) {
+          try {
+            window.localStorage.removeItem(this.#resumeTokenKey)
+          } catch {
+            /* local storage is not available, don't sweat it */
+          }
         }
         break
       }

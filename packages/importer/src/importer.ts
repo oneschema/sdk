@@ -15,6 +15,7 @@ import {
   OneSchemaParams,
   OneSchemaSharedInitParams,
 } from "./config"
+import { merged } from "./shared/utils"
 
 const MAX_LAUNCH_RETRY = 10
 
@@ -42,7 +43,7 @@ export class OneSchemaImporterClass extends EventEmitter {
   constructor(params: OneSchemaParams) {
     super()
 
-    this.#params = { ...DEFAULT_PARAMS, ...params }
+    this.#params = merged(DEFAULT_PARAMS, params)
 
     // Limit usage to browser only.
     if (typeof window === "undefined") {
@@ -163,7 +164,7 @@ export class OneSchemaImporterClass extends EventEmitter {
   ): OneSchemaLaunchStatus {
     this._hasAttemptedLaunch = true
 
-    const mergedParams = { ...this.#params, ...launchParams }
+    const mergedParams = merged(this.#params, launchParams)
     const baseMessage: OneSchemaSharedInitParams = {
       version: this.#version,
       client: this.#client,
@@ -174,12 +175,13 @@ export class OneSchemaImporterClass extends EventEmitter {
 
     if (mergedParams.sessionToken) {
       message = {
+        ...baseMessage,
         messageType: "init-session",
         sessionToken: mergedParams.sessionToken,
-        ...baseMessage,
       }
     } else {
       message = {
+        ...baseMessage,
         messageType: "init",
         userJwt: mergedParams.userJwt,
         templateKey: mergedParams.templateKey,
@@ -188,7 +190,6 @@ export class OneSchemaImporterClass extends EventEmitter {
         customizationOverrides: mergedParams.customizationOverrides,
         templateOverrides: mergedParams.templateOverrides,
         eventWebhookKeys: mergedParams.eventWebhookKeys,
-        ...baseMessage,
       }
       if (!message.userJwt) {
         console.error("OneSchema config error: missing userJwt")
@@ -371,7 +372,9 @@ export class OneSchemaImporterClass extends EventEmitter {
         return
       }
 
+      // spell-checker: disable
       // NOTE: Was misspelled as "init-recieved" in older versions.
+      // spell-checker: enable
       // The correct spelling added in 2024-10.
       case "init-received": {
         this.#hasAppReceivedInitMessage = true

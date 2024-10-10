@@ -1,31 +1,37 @@
 import oneSchemaFileFeeds from "../src"
 
+const baseUrl =
+  process.env.ONESCHEMA_EMBED_BASE_URL || "http://embed.localschema.co:9450/"
+
+/* spell-checker: disable */
+const userJwt =
+  "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI1ZmU4MTRjNi0zNDVlLTRhZTctYTI3YS01MDNhMzU0MzY2MjYiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-IiwiZmlsZV9mZWVkX2lkIjo1Mjk3Nn0.3c7z4LHsrzDVojLaBzUuK06w3Bf3y73hLQicP3sXgCA"
+/* spell-checker: enable */
+/* TODO: Replace hard-coded userJwt with something like this:
+const { ONESCHEMA_DEV_ENV_CLIENT_ID, ONESCHEMA_DEV_ENV_CLIENT_SECRET } = process.env
+const userJwt = jwt.sign(
+  { iss: ONESCHEMA_DEV_ENV_CLIENT_ID, user_id: "<USER_ID>", file_feed_id: "1" },
+  ONESCHEMA_DEV_ENV_CLIENT_SECRET!,
+  { algorithm: "RS256" },
+)
+*/
+
 const statusEl = document.getElementById("status")!
 const sessionTokenEl = document.getElementById("session-token")!
 const resumeTokenEl = document.getElementById("resume-token")!
 
-function getQueryParams() {
-  const params = new URLSearchParams(window.location.search)
-  const sessionToken = params.get("sessionToken")
-
-  return { sessionToken }
-}
-
-
-const { sessionToken } = getQueryParams()
+const { sessionToken } = Object.fromEntries(new URLSearchParams(window.location.search))
 
 if (sessionToken) {
   sessionTokenEl.innerHTML = sessionToken
 }
 
-const userJwt = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI1ZmU4MTRjNi0zNDVlLTRhZTctYTI3YS01MDNhMzU0MzY2MjYiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-IiwiZmlsZV9mZWVkX2lkIjo1Mjk3Nn0.3c7z4LHsrzDVojLaBzUuK06w3Bf3y73hLQicP3sXgCA"
 const resumeTokenKey = `OneSchemaFileFeeds-session-${userJwt}`
 
 const fileFeeds = oneSchemaFileFeeds({
-  className: "oneschema-iframe",
   parentId: "oneschema-container",
-  baseUrl: "http://embed.localschema.co:9450",
-  userJwt: userJwt,
+  baseUrl,
+  userJwt,
   devMode: true,
   styles: {
     display: "flex",
@@ -54,7 +60,7 @@ statusEl.innerHTML = "Loading in the background."
 resumeTokenEl.innerHTML = getResumeToken(resumeTokenKey)
 
 document.getElementById("launch-button")!.onclick = () => {
-  fileFeeds.launch( sessionToken ? { sessionToken } : {})
+  fileFeeds.launch(sessionToken ? { sessionToken } : {})
 }
 
 document.getElementById("hide-button")!.onclick = () => {
@@ -82,7 +88,7 @@ fileFeeds.on("init-succeeded", (data) => {
 })
 
 fileFeeds.on("destroyed", (data) => {
-  updateStatus("Destroyed.", { sessionToken: "", ...data })
+  updateStatus("Destroyed.", { sessionToken: null, ...data })
 })
 
 fileFeeds.on("hidden", (data) => {
