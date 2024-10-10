@@ -158,20 +158,20 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
         try {
           const resumeToken = window.localStorage.getItem(this.#resumeTokenKey)
           if (resumeToken) {
-            mergedParams.resumeToken = resumeToken
+            mergedParams.sessionToken = resumeToken
           }
         } catch {
           /* local storage is not available, don't sweat it */
         }
       }
-    }
 
-    if (OneSchemaFileFeedsClass.#iframeIsLoaded) {
-      this._initWithRetry(mergedParams)
-    } else if (this.iframe) {
-      this.iframe.onload = () => {
-        OneSchemaFileFeedsClass.#iframeIsLoaded = true
+      if (OneSchemaFileFeedsClass.#iframeIsLoaded) {
         this._initWithRetry(mergedParams)
+      } else if (this.iframe) {
+        this.iframe.onload = () => {
+          OneSchemaFileFeedsClass.#iframeIsLoaded = true
+          this._initWithRetry(mergedParams)
+        }
       }
     }
   }
@@ -362,6 +362,7 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
             /* local storage is not available, don't sweat it */
           }
         }
+        this.#hide()
         break
       }
     }

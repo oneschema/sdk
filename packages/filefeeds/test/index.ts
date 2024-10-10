@@ -30,8 +30,15 @@ const resumeTokenKey = `OneSchemaFileFeeds-session-${userJwt}`
 
 const fileFeeds = oneSchemaFileFeeds({
   parentId: "oneschema-container",
+<<<<<<< HEAD
   baseUrl,
   userJwt,
+=======
+  baseUrl: "https://embed.oneschema.co",
+  userJwt:
+    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI1NTdiMTlmNS1mOGVhLTRiMzktOTRiNy00OTU1MDgwYmJiNjEiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-IiwiZmlsZV9mZWVkX2lkIjo0ODd9.6y4VCV2imYv6_UcWk-Nc1WpKDhvp3vuqe4j8NoJ5fU4",
+  sessionToken: "526a3914-aaa6-4177-b48a-1e5d9748a6fc",
+>>>>>>> e7f2299 (enable autoclose)
   devMode: true,
   styles: {
     display: "flex",
@@ -61,6 +68,10 @@ resumeTokenEl.innerHTML = getResumeToken(resumeTokenKey)
 
 document.getElementById("launch-button")!.onclick = () => {
   fileFeeds.launch(sessionToken ? { sessionToken } : {})
+<<<<<<< HEAD
+=======
+  // fileFeeds.launch({})
+>>>>>>> e7f2299 (enable autoclose)
 }
 
 document.getElementById("hide-button")!.onclick = () => {
