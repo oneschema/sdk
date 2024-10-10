@@ -16,11 +16,11 @@ export function stripUndefined<
  * skipping any entries with `undefined` values.
  */
 export function merged<T1 extends object, T2 extends object>(
-  obj1: T1,
-  obj2: T2,
+  obj1?: T1,
+  obj2?: T2,
 ): T1 & T2 {
   return {
-    ...stripUndefined(obj1),
-    ...stripUndefined(obj2),
+    ...stripUndefined(obj1 ?? {}),
+    ...stripUndefined(obj2 ?? {}),
   }
 }
