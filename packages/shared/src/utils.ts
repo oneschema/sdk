@@ -15,12 +15,12 @@ export function stripUndefined<
  * Given two objects, return a new object with all entries from both objects,
  * skipping any entries with `undefined` values.
  */
-export function merged<T1 extends object, T2 extends object>(
+export function merged<T1 extends object, T2 extends object | undefined>(
   obj1: T1,
-  obj2: T2,
+  obj2?: T2,
 ): T1 & T2 {
   return {
     ...stripUndefined(obj1),
-    ...stripUndefined(obj2),
+    ...stripUndefined(obj2 ?? {}),
   }
 }
