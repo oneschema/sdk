@@ -362,6 +362,7 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
             /* local storage is not available, don't sweat it */
           }
         }
+        this.#hide()
         break
       }
     }
