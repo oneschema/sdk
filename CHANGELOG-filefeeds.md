@@ -7,6 +7,9 @@ This log is intended to keep track of package changes, including
 but not limited to API changes and file location changes. Minor behavioral
 changes may not be included if they are not expected to break existing code.
 
+## 0.5.2 (2024-10-18)
+- Update behavior of embed to autoclose on save.
+
 ## 0.5.1 (2024-10-10)
 
 - The auto-resume behavior can be toggled via the `saveSession` init parameter.
