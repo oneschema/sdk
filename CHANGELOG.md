@@ -15,6 +15,10 @@ changes may not be included if they are not expected to break existing code.
   `inline` rendering (which is more native to React environment) and adjust your
   style attribute and CSS rules to achieve the desired looks.
 
+## 0.6.1 (2025-01-21)
+
+- Add template column data type
+
 ## 0.6.0 (2024-08-12)
 
 - Add compatibility with OneSchema FileFeeds packages.
