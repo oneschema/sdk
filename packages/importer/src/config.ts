@@ -177,9 +177,32 @@ export type ImportConfig =
   | FileUploadImportConfig
 
 /**
- * Params for updating a column in a template
+ * Interface for column validation options for data type NUMBER
  */
-export interface OneSchemaTemplateColumnToUpdate {
+interface NumberValidationOptions {
+  max_num?: number | null
+  min_num?: number | null
+  only_int?: boolean
+  allow_thousand_separators?: boolean
+  num_decimals?: number | null
+}
+
+/**
+ * Interface for column validation options for data type PICKLIST
+ */
+interface PicklistOption {
+  value: string | null,
+  color?: string | null
+}
+
+interface PicklistValidationOptions {
+  picklist_options: PicklistOption[]
+}
+
+/**
+ * Base interface for template columns with generic validation options
+ */
+interface BaseTemplateColumn {
   key: string
   label?: string
   data_type?: TemplateColumnDataType | null
@@ -196,6 +219,30 @@ export interface OneSchemaTemplateColumnToUpdate {
   default_value?: string
   mapping_hints?: string[]
 }
+
+/**
+ * Template column specifically for NUMBER type
+ */
+interface NumberTemplateColumn extends BaseTemplateColumn {
+  data_type: "NUMBER"
+  validation_options?: NumberValidationOptions
+}
+
+/**
+ * Template column specifically for PICKLIST type
+ */
+interface PicklistTemplateColumn extends BaseTemplateColumn {
+  data_type: "PICKLIST"
+  validation_options?: PicklistValidationOptions
+}
+
+/**
+ * Params for updating a column in a template
+ */
+export type OneSchemaTemplateColumnToUpdate = 
+  | NumberTemplateColumn
+  | PicklistTemplateColumn
+  | BaseTemplateColumn 
 
 /**
  * Params for adding a column to a template
