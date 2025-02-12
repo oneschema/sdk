@@ -38,7 +38,44 @@ export type SidebarDetails = "required" | "all"
 /**
  * Type with options for column data types
  */
-export type TemplateColumnDataType = "PICKLIST" | "NUMBER" | "PERCENTAGE" | "DATE_MDY" | "DATE_DMY" | "DATE_ISO" | "DATETIME_ISO" | "DATETIME_MDYHM" | "DATETIME_DMYHM" | "DATE_YMD" | "DATE_DMMMY" | "TIME_HHMM" | "UNIX_TIMESTAMP" | "URL" | "DOMAIN" | "FULL_NAME" | "EMAIL" | "UNIT_OF_MEASURE" | "CURRENCY_CODE" | "PHONE_NUMBER" | "US_PHONE_NUMBER_EXT" | "MONEY" | "IANA_TIMEZONE" | "CUSTOM_REGEX" | "ALPHABETICAL" | "TEXT" | "SSN_MASKED" | "SSN_UNMASKED" | "FILE_NAME" | "UUID" | "JSON" | "BOOLEAN" | "UPC_A" | "EAN" | "IMEI" | "ENUM_US_STATE_TERRITORY" | "ENUM_COUNTRY"
+export type TemplateColumnDataType =
+  | "PICKLIST"
+  | "NUMBER"
+  | "PERCENTAGE"
+  | "DATE_MDY"
+  | "DATE_DMY"
+  | "DATE_ISO"
+  | "DATETIME_ISO"
+  | "DATETIME_MDYHM"
+  | "DATETIME_DMYHM"
+  | "DATE_YMD"
+  | "DATE_DMMMY"
+  | "TIME_HHMM"
+  | "UNIX_TIMESTAMP"
+  | "URL"
+  | "DOMAIN"
+  | "FULL_NAME"
+  | "EMAIL"
+  | "UNIT_OF_MEASURE"
+  | "CURRENCY_CODE"
+  | "PHONE_NUMBER"
+  | "US_PHONE_NUMBER_EXT"
+  | "MONEY"
+  | "IANA_TIMEZONE"
+  | "CUSTOM_REGEX"
+  | "ALPHABETICAL"
+  | "TEXT"
+  | "SSN_MASKED"
+  | "SSN_UNMASKED"
+  | "FILE_NAME"
+  | "UUID"
+  | "JSON"
+  | "BOOLEAN"
+  | "UPC_A"
+  | "EAN"
+  | "IMEI"
+  | "ENUM_US_STATE_TERRITORY"
+  | "ENUM_COUNTRY"
 
 /**
  * Available customization settings for OneSchema
@@ -179,7 +216,7 @@ export type ImportConfig =
 /**
  * Interface for column validation options for data type NUMBER
  */
-interface NumberValidationOptions {
+export interface NumberValidationOptions {
   max_num?: number | null
   min_num?: number | null
   only_int?: boolean
@@ -188,25 +225,23 @@ interface NumberValidationOptions {
 }
 
 /**
- * Interface for column validation options for data type PICKLIST
+ * Interfaces for column validation options for data type PICKLIST
  */
 interface PicklistOption {
-  value: string | null,
+  value: string | null
   color?: string | null
 }
 
-interface PicklistValidationOptions {
+export interface PicklistValidationOptions {
   picklist_options: PicklistOption[]
 }
 
 /**
- * Base interface for template columns with generic validation options
+ * Base interface for template columns
  */
-interface BaseTemplateColumn {
+
+type BaseTemplateColumn = {
   key: string
-  label?: string
-  data_type?: TemplateColumnDataType | null
-  validation_options?: { [key: string]: any }
   description?: string
   is_custom?: boolean
   is_required?: boolean
@@ -218,44 +253,35 @@ interface BaseTemplateColumn {
   must_exist?: boolean
   default_value?: string
   mapping_hints?: string[]
-}
+} & (
+  | {
+      data_type: "NUMBER"
+      validation_options?: NumberValidationOptions
+    }
+  | {
+      data_type: "PICKLIST"
+      validation_options: PicklistValidationOptions
+    }
+)
 
 /**
- * Template column specifically for NUMBER type
+ * Params for adding a column to a template
  */
-interface NumberTemplateColumn extends BaseTemplateColumn {
-  data_type: "NUMBER"
-  validation_options?: NumberValidationOptions
-}
-
-/**
- * Template column specifically for PICKLIST type
- */
-interface PicklistTemplateColumn extends BaseTemplateColumn {
-  data_type: "PICKLIST"
-  validation_options: PicklistValidationOptions
+export type OneSchemaTemplateColumnToAdd = BaseTemplateColumn & {
+  label: string
 }
 
 /**
  * Params for updating a column in a template
  */
-export type OneSchemaTemplateColumnToUpdate = 
-  | NumberTemplateColumn
-  | PicklistTemplateColumn
-  | BaseTemplateColumn 
-
-/**
- * Params for adding a column to a template
- */
-export interface OneSchemaTemplateColumnToAdd
-  extends Omit<OneSchemaTemplateColumnToUpdate, "label"> {
-  label: string
+export type OneSchemaTemplateColumnToUpdate = BaseTemplateColumn & {
+  label?: string
 }
 
 /**
  * Params for removing a column from a template
  */
-export interface OneSchemaTemplateColumnToRemove {
+interface OneSchemaTemplateColumnToRemove {
   key: string
 }
 
