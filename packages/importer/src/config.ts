@@ -233,7 +233,7 @@ interface NumberTemplateColumn extends BaseTemplateColumn {
  */
 interface PicklistTemplateColumn extends BaseTemplateColumn {
   data_type: "PICKLIST"
-  validation_options?: PicklistValidationOptions
+  validation_options: PicklistValidationOptions
 }
 
 /**
