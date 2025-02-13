@@ -36,48 +36,6 @@ export type ImportExperience = "blockIfErrors" | "promptIfErrors" | "ignoreError
 export type SidebarDetails = "required" | "all"
 
 /**
- * Type with options for column data types
- */
-export type TemplateColumnDataType =
-  | "PICKLIST"
-  | "NUMBER"
-  | "PERCENTAGE"
-  | "DATE_MDY"
-  | "DATE_DMY"
-  | "DATE_ISO"
-  | "DATETIME_ISO"
-  | "DATETIME_MDYHM"
-  | "DATETIME_DMYHM"
-  | "DATE_YMD"
-  | "DATE_DMMMY"
-  | "TIME_HHMM"
-  | "UNIX_TIMESTAMP"
-  | "URL"
-  | "DOMAIN"
-  | "FULL_NAME"
-  | "EMAIL"
-  | "UNIT_OF_MEASURE"
-  | "CURRENCY_CODE"
-  | "PHONE_NUMBER"
-  | "US_PHONE_NUMBER_EXT"
-  | "MONEY"
-  | "IANA_TIMEZONE"
-  | "CUSTOM_REGEX"
-  | "ALPHABETICAL"
-  | "TEXT"
-  | "SSN_MASKED"
-  | "SSN_UNMASKED"
-  | "FILE_NAME"
-  | "UUID"
-  | "JSON"
-  | "BOOLEAN"
-  | "UPC_A"
-  | "EAN"
-  | "IMEI"
-  | "ENUM_US_STATE_TERRITORY"
-  | "ENUM_COUNTRY"
-
-/**
  * Available customization settings for OneSchema
  * For more information on a particular setting see https://docs.oneschema.co/docs/customizations
  */
@@ -214,6 +172,14 @@ export type ImportConfig =
   | FileUploadImportConfig
 
 /**
+ * Interface for column validation options for data type BOOLEAN
+ */
+export interface BooleanValidationOptions {
+  true_label: string
+  false_label: string
+}
+
+/**
  * Interface for column validation options for data type NUMBER
  */
 export interface NumberValidationOptions {
@@ -228,12 +194,82 @@ export interface NumberValidationOptions {
  * Interfaces for column validation options for data type PICKLIST
  */
 interface PicklistOption {
-  value: string | null
+  value: string
   color?: string | null
 }
 
 export interface PicklistValidationOptions {
   picklist_options: PicklistOption[]
+}
+
+/**
+ * Interface for column validation options for data type ENUM_COUNTRY
+ */
+export interface EnumCountryValidationOptions {
+  format: "name" | "code2" | "code3"
+  variant_set_mods?: string[] // currently not used, ignore
+}
+
+/**
+ * Interface for column validation options for data type CURRENCY_CODE
+ */
+export interface CurrencyCodeValidationOptions {
+  format?: "code"
+  variant_set_mods?: string[] // currently not used, ignore
+}
+
+/**
+ * Type for a non-empty string
+ */
+type NonEmptyString = Exclude<string, "">
+
+/**
+ * Interface for column validation options for data type CUSTOM_REGEX
+ */
+export interface CustomRegexValidationOptions {
+  regex: NonEmptyString
+  error_message: NonEmptyString
+}
+
+/**
+ * Interface for column validation options for DATE data types ("Advanced ambiguous date detection")
+ */
+export interface AdvancedAmbiguousDateDetectionValidationOptions {
+  input_date_order: "dmy" | "mdy" | "ymd"
+}
+
+/**
+ * Interface for column validation options for data type MONEY
+ */
+export interface MoneyValidationOptions {
+  currency_symbol: "dollar" | "euro" | "pound" | "yen"
+}
+
+/**
+ * Interface for column validation options for data type ALPHABETICAL
+ */
+export interface AlphabeticalValidationOptions {
+  allow_spaces?: boolean
+  allow_special?: boolean
+}
+
+/**
+ * Interface for column validation options for data type FILE_NAME
+ */
+export interface FileNameValidationOptions {
+  extensions: NonEmptyString[]
+}
+
+/**
+ * Interface for column validation options for data type "ENUM_US_STATE_TERRITORY"
+ */
+
+export interface EnumUsStateTerritoryValidationOptions {
+  format: "name" | "code"
+  variant_set_mods?:
+    | ["include_dc"]
+    | ["include_territories"]
+    | ["include_dc", "include_territories"]
 }
 
 /**
@@ -254,6 +290,72 @@ type BaseTemplateColumn = {
   default_value?: string
   mapping_hints?: string[]
 } & (
+  | {
+      data_type:
+        | "DOMAIN"
+        | "EAN"
+        | "EMAIL"
+        | "IANA_TIMEZONE"
+        | "IMEI"
+        | "JSON"
+        | "LOCATION_POSTALCODE"
+        | "PERCENTAGE"
+        | "PHONE_NUMBER"
+        | "SSN_MASKED"
+        | "SSN_UNMASKED"
+        | "TEXT"
+        | "TIME_HHMM"
+        | "UNIT_OF_MEASURE"
+        | "UPC_A"
+        | "URL"
+        | "US_PHONE_NUMBER_EXT"
+        | "UUID"
+    }
+  | {
+      data_type: "ALPHABETICAL"
+      validation_options?: AlphabeticalValidationOptions
+    }
+  | {
+      data_type: "BOOLEAN"
+      validation_options: BooleanValidationOptions
+    }
+  | {
+      data_type: "CURRENCY_CODE"
+      validation_options?: CurrencyCodeValidationOptions
+    }
+  | {
+      data_type: "CUSTOM_REGEX"
+      validation_options: CustomRegexValidationOptions
+    }
+  | {
+      data_type:
+        | "DATE_ISO"
+        | "DATE_MDY"
+        | "DATE_DMY"
+        | "DATE_YMD"
+        | "DATE_DMMMY"
+        | "DATETIME_ISO"
+        | "DATETIME_MDYHM"
+        | "DATETIME_DMYHM"
+        | "UNIX_TIMESTAMP"
+      validation_options?: AdvancedAmbiguousDateDetectionValidationOptions
+    }
+  | {
+      data_type: "ENUM_COUNTRY"
+      validation_options: EnumCountryValidationOptions
+    }
+  | {
+      data_type: "ENUM_US_STATE_TERRITORY"
+      validation_options?: EnumUsStateTerritoryValidationOptions
+    }
+  | {
+      data_type: "FILE_NAME"
+      validation_options: FileNameValidationOptions
+    }
+  | {
+      data_type: "MONEY"
+      validation_options: MoneyValidationOptions
+    }
   | {
       data_type: "NUMBER"
       validation_options?: NumberValidationOptions
@@ -281,7 +383,7 @@ export type OneSchemaTemplateColumnToUpdate = BaseTemplateColumn & {
 /**
  * Params for removing a column from a template
  */
-interface OneSchemaTemplateColumnToRemove {
+export interface OneSchemaTemplateColumnToRemove {
   key: string
 }
 
