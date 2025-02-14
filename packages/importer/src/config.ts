@@ -36,11 +36,6 @@ export type ImportExperience = "blockIfErrors" | "promptIfErrors" | "ignoreError
 export type SidebarDetails = "required" | "all"
 
 /**
- * Type with options for column data types
- */
-export type TemplateColumnDataType = "PICKLIST" | "NUMBER" | "PERCENTAGE" | "DATE_MDY" | "DATE_DMY" | "DATE_ISO" | "DATETIME_ISO" | "DATETIME_MDYHM" | "DATETIME_DMYHM" | "DATE_YMD" | "DATE_DMMMY" | "TIME_HHMM" | "UNIX_TIMESTAMP" | "URL" | "DOMAIN" | "FULL_NAME" | "EMAIL" | "UNIT_OF_MEASURE" | "CURRENCY_CODE" | "PHONE_NUMBER" | "US_PHONE_NUMBER_EXT" | "MONEY" | "IANA_TIMEZONE" | "CUSTOM_REGEX" | "ALPHABETICAL" | "TEXT" | "SSN_MASKED" | "SSN_UNMASKED" | "FILE_NAME" | "UUID" | "JSON" | "BOOLEAN" | "UPC_A" | "EAN" | "IMEI" | "ENUM_US_STATE_TERRITORY" | "ENUM_COUNTRY"
-
-/**
  * Available customization settings for OneSchema
  * For more information on a particular setting see https://docs.oneschema.co/docs/customizations
  */
@@ -177,13 +172,107 @@ export type ImportConfig =
   | FileUploadImportConfig
 
 /**
- * Params for updating a column in a template
+ * Interface for column validation options for data type BOOLEAN
  */
-export interface OneSchemaTemplateColumnToUpdate {
+export interface BooleanValidationOptions {
+  true_label: string
+  false_label: string
+}
+
+/**
+ * Interface for column validation options for data type NUMBER
+ */
+export interface NumberValidationOptions {
+  max_num?: number | null
+  min_num?: number | null
+  only_int?: boolean
+  allow_thousand_separators?: boolean
+  num_decimals?: number | null
+}
+
+/**
+ * Interfaces for column validation options for data type PICKLIST
+ */
+interface PicklistOption {
+  value: string
+  values?: string[] // deprecated
+  color?: string | null
+  alternative_names?: string[]
+}
+
+export interface PicklistValidationOptions {
+  picklist_options: PicklistOption[]
+}
+
+/**
+ * Interface for column validation options for data type ENUM_COUNTRY
+ */
+export interface EnumCountryValidationOptions {
+  format: "name" | "code2" | "code3"
+  variant_set_mods?: string[] // deprecated
+}
+
+/**
+ * Interface for column validation options for data type CURRENCY_CODE
+ */
+export interface CurrencyCodeValidationOptions {
+  format?: "code"
+  variant_set_mods?: string[] // deprecated
+}
+
+/**
+ * Interface for column validation options for data type CUSTOM_REGEX
+ */
+export interface CustomRegexValidationOptions {
+  regex: string
+  error_message: string
+}
+
+/**
+ * Interface for column validation options for DATE data types ("Advanced ambiguous date detection")
+ */
+export interface AdvancedAmbiguousDateDetectionValidationOptions {
+  input_date_order: "dmy" | "mdy" | "ymd"
+}
+
+/**
+ * Interface for column validation options for data type MONEY
+ */
+export interface MoneyValidationOptions {
+  currency_symbol: "dollar" | "euro" | "pound" | "yen"
+}
+
+/**
+ * Interface for column validation options for data type ALPHABETICAL
+ */
+export interface AlphabeticalValidationOptions {
+  allow_spaces?: boolean
+  allow_special?: boolean
+}
+
+/**
+ * Interface for column validation options for data type FILE_NAME
+ */
+export interface FileNameValidationOptions {
+  extensions: string[]
+}
+
+/**
+ * Interface for column validation options for data type "ENUM_US_STATE_TERRITORY"
+ */
+export interface EnumUsStateTerritoryValidationOptions {
+  format: "name" | "code"
+  variant_set_mods?:
+    | ["include_dc"]
+    | ["include_territories"]
+    | ["include_dc", "include_territories"]
+}
+
+/**
+ * Base interface for template columns
+ */
+type OneSchemaTemplateColumn = {
   key: string
-  label?: string
-  data_type?: TemplateColumnDataType | null
-  validation_options?: { [key: string]: any }
   description?: string
   is_custom?: boolean
   is_required?: boolean
@@ -195,14 +284,100 @@ export interface OneSchemaTemplateColumnToUpdate {
   must_exist?: boolean
   default_value?: string
   mapping_hints?: string[]
-}
+} & (
+  | {
+      data_type:
+        | "DOMAIN"
+        | "EAN"
+        | "EMAIL"
+        | "IANA_TIMEZONE"
+        | "IMEI"
+        | "JSON"
+        | "LOCATION_POSTALCODE"
+        | "PERCENTAGE"
+        | "PHONE_NUMBER"
+        | "SSN_MASKED"
+        | "SSN_UNMASKED"
+        | "TEXT"
+        | "TIME_HHMM"
+        | "UNIT_OF_MEASURE"
+        | "UPC_A"
+        | "URL"
+        | "US_PHONE_NUMBER_EXT"
+        | "UUID"
+    }
+  | {
+      data_type: "ALPHABETICAL"
+      validation_options?: AlphabeticalValidationOptions
+    }
+  | {
+      data_type: "BOOLEAN"
+      validation_options: BooleanValidationOptions
+    }
+  | {
+      data_type: "CURRENCY_CODE"
+      validation_options?: CurrencyCodeValidationOptions
+    }
+  | {
+      data_type: "CUSTOM_REGEX"
+      validation_options: CustomRegexValidationOptions
+    }
+  | {
+      data_type:
+        | "DATE_ISO"
+        | "DATE_MDY"
+        | "DATE_DMY"
+        | "DATE_YMD"
+        | "DATE_DMMMY"
+        | "DATETIME_ISO"
+        | "DATETIME_MDYHM"
+        | "DATETIME_DMYHM"
+        | "UNIX_TIMESTAMP"
+      validation_options?: AdvancedAmbiguousDateDetectionValidationOptions
+    }
+  | {
+      data_type: "ENUM_COUNTRY"
+      validation_options?: EnumCountryValidationOptions
+    }
+  | {
+      data_type: "ENUM_US_STATE_TERRITORY"
+      validation_options?: EnumUsStateTerritoryValidationOptions
+    }
+  | {
+      data_type: "FILE_NAME"
+      validation_options?: FileNameValidationOptions
+    }
+  | {
+      data_type: "MONEY"
+      validation_options?: MoneyValidationOptions
+    }
+  | {
+      data_type: "NUMBER"
+      validation_options?: NumberValidationOptions
+    }
+  | {
+      data_type: "PICKLIST"
+      validation_options: PicklistValidationOptions
+    }
+)
+
+/**
+ * To support older type from v0.6.1: https://github.com/oneschema/sdk/commit/fdb9743da6da36640352de75afc32955f668abbd
+ */
+export type TemplateColumnDataType = OneSchemaTemplateColumn['data_type']
 
 /**
  * Params for adding a column to a template
  */
-export interface OneSchemaTemplateColumnToAdd
-  extends Omit<OneSchemaTemplateColumnToUpdate, "label"> {
+export type OneSchemaTemplateColumnToAdd = OneSchemaTemplateColumn & {
   label: string
+}
+
+/**
+ * Params for updating a column in a template
+ */
+export type OneSchemaTemplateColumnToUpdate = OneSchemaTemplateColumn & {
+  label?: string
 }
 
 /**
