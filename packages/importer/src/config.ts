@@ -263,7 +263,6 @@ export interface FileNameValidationOptions {
 /**
  * Interface for column validation options for data type "ENUM_US_STATE_TERRITORY"
  */
-
 export interface EnumUsStateTerritoryValidationOptions {
   format: "name" | "code"
   variant_set_mods?:
@@ -275,8 +274,7 @@ export interface EnumUsStateTerritoryValidationOptions {
 /**
  * Base interface for template columns
  */
-
-type BaseTemplateColumn = {
+type OneSchemaTemplateColumn = {
   key: string
   description?: string
   is_custom?: boolean
@@ -367,16 +365,21 @@ type BaseTemplateColumn = {
 )
 
 /**
+ * To support legacy type from v0.6.1: https://github.com/oneschema/sdk/commit/fdb9743da6da36640352de75afc32955f668abbd
+ */
+export type TemplateColumnDataType = OneSchemaTemplateColumn['data_type']
+
+/**
  * Params for adding a column to a template
  */
-export type OneSchemaTemplateColumnToAdd = BaseTemplateColumn & {
+export type OneSchemaTemplateColumnToAdd = OneSchemaTemplateColumn & {
   label: string
 }
 
 /**
  * Params for updating a column in a template
  */
-export type OneSchemaTemplateColumnToUpdate = BaseTemplateColumn & {
+export type OneSchemaTemplateColumnToUpdate = OneSchemaTemplateColumn & {
   label?: string
 }
 
