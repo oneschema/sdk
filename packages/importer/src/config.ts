@@ -195,7 +195,9 @@ export interface NumberValidationOptions {
  */
 interface PicklistOption {
   value: string
+  values?: string[] // deprecated
   color?: string | null
+  alternative_names?: string[]
 }
 
 export interface PicklistValidationOptions {
@@ -207,7 +209,7 @@ export interface PicklistValidationOptions {
  */
 export interface EnumCountryValidationOptions {
   format: "name" | "code2" | "code3"
-  variant_set_mods?: string[] // currently not used, ignore
+  variant_set_mods?: string[] // deprecated
 }
 
 /**
@@ -215,20 +217,15 @@ export interface EnumCountryValidationOptions {
  */
 export interface CurrencyCodeValidationOptions {
   format?: "code"
-  variant_set_mods?: string[] // currently not used, ignore
+  variant_set_mods?: string[] // deprecated
 }
-
-/**
- * Type for a non-empty string
- */
-type NonEmptyString = Exclude<string, "">
 
 /**
  * Interface for column validation options for data type CUSTOM_REGEX
  */
 export interface CustomRegexValidationOptions {
-  regex: NonEmptyString
-  error_message: NonEmptyString
+  regex: string
+  error_message: string
 }
 
 /**
@@ -257,7 +254,7 @@ export interface AlphabeticalValidationOptions {
  * Interface for column validation options for data type FILE_NAME
  */
 export interface FileNameValidationOptions {
-  extensions: NonEmptyString[]
+  extensions: string[]
 }
 
 /**
@@ -340,7 +337,7 @@ type OneSchemaTemplateColumn = {
     }
   | {
       data_type: "ENUM_COUNTRY"
-      validation_options: EnumCountryValidationOptions
+      validation_options?: EnumCountryValidationOptions
     }
   | {
       data_type: "ENUM_US_STATE_TERRITORY"
@@ -348,11 +345,11 @@ type OneSchemaTemplateColumn = {
     }
   | {
       data_type: "FILE_NAME"
-      validation_options: FileNameValidationOptions
+      validation_options?: FileNameValidationOptions
     }
   | {
       data_type: "MONEY"
-      validation_options: MoneyValidationOptions
+      validation_options?: MoneyValidationOptions
     }
   | {
       data_type: "NUMBER"
@@ -365,7 +362,7 @@ type OneSchemaTemplateColumn = {
 )
 
 /**
- * To support legacy type from v0.6.1: https://github.com/oneschema/sdk/commit/fdb9743da6da36640352de75afc32955f668abbd
+ * To support older type from v0.6.1: https://github.com/oneschema/sdk/commit/fdb9743da6da36640352de75afc32955f668abbd
  */
 export type TemplateColumnDataType = OneSchemaTemplateColumn['data_type']
 
