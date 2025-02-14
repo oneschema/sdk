@@ -271,19 +271,20 @@ export interface EnumUsStateTerritoryValidationOptions {
 /**
  * Base interface for template columns
  */
-type OneSchemaTemplateColumn = {
+export type OneSchemaTemplateColumn = {
   key: string
-  description?: string
-  is_custom?: boolean
-  is_required?: boolean
-  is_unique?: boolean
-  letter_case?: string
-  min_char_limit?: number
-  max_char_limit?: number
-  delimiter?: string
-  must_exist?: boolean
-  default_value?: string
-  mapping_hints?: string[]
+  label: string
+  description: string
+  is_custom: boolean
+  is_required: boolean
+  is_unique: boolean
+  letter_case: string
+  min_char_limit: number
+  max_char_limit: number
+  delimiter: string
+  must_exist: boolean
+  default_value: string
+  mapping_hints: string[]
 } & (
   | {
       data_type:
@@ -362,30 +363,29 @@ type OneSchemaTemplateColumn = {
 )
 
 /**
- * To support older type from v0.6.1: https://github.com/oneschema/sdk/commit/fdb9743da6da36640352de75afc32955f668abbd
+ * @deprecated Use `OneSchemaTemplateColumn["data_type"]` instead.
  */
-export type TemplateColumnDataType = OneSchemaTemplateColumn['data_type']
+export type TemplateColumnDataType = OneSchemaTemplateColumn["data_type"]
 
 /**
  * Params for adding a column to a template
  */
-export type OneSchemaTemplateColumnToAdd = OneSchemaTemplateColumn & {
-  label: string
-}
+export type OneSchemaTemplateColumnToAdd = Pick<
+  OneSchemaTemplateColumn,
+  "key" | "label"
+> &
+  Partial<OneSchemaTemplateColumn>
 
 /**
  * Params for updating a column in a template
  */
-export type OneSchemaTemplateColumnToUpdate = OneSchemaTemplateColumn & {
-  label?: string
-}
+export type OneSchemaTemplateColumnToUpdate = Pick<OneSchemaTemplateColumn, "key"> &
+  Partial<OneSchemaTemplateColumn>
 
 /**
  * Params for removing a column from a template
  */
-export interface OneSchemaTemplateColumnToRemove {
-  key: string
-}
+export type OneSchemaTemplateColumnToRemove = Pick<OneSchemaTemplateColumn, "key">
 
 /**
  * Type of validation hook: either "row" or "column".
