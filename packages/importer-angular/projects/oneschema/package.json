@@ -1,8 +1,8 @@
 {
   "name": "@oneschema/angular",
   "private": false,
-  "version": "0.6.0",
-  "description": "Angular module for using OneSchema",
+  "version": "0.7.1",
+  "description": "Angular module for embedding OneSchema Importer",
   "author": "OneSchema",
   "license": "MIT",
   "homepage": "https://www.oneschema.co/",
@@ -17,7 +17,7 @@
     "clean": "npx --yes rimraf dist"
   },
   "dependencies": {
-    "tslib": "^2.3.0"
+    "tslib": "^2.x"
   },
   "peerDependencies": {
     "@oneschema/importer": "^0.6.0",
