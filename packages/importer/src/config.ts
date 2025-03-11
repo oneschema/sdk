@@ -278,6 +278,7 @@ export type OneSchemaTemplateColumn = {
   is_custom: boolean
   is_required: boolean
   is_unique: boolean
+  is_locked: boolean
   letter_case: string
   min_char_limit: number
   max_char_limit: number
