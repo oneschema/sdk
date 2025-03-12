@@ -1,8 +1,8 @@
 {
   "name": "@oneschema/vue",
   "private": false,
-  "version": "0.6.0",
-  "description": "Vue plugin for using OneSchema",
+  "version": "0.7.1",
+  "description": "Vue plugin for embedding OneSchema Importer",
   "author": "OneSchema",
   "license": "MIT",
   "main": "dist/main.js",
@@ -32,8 +32,8 @@
     "clean": "npx --yes rimraf dist"
   },
   "dependencies": {
-    "@oneschema/importer": "^0.6.0",
-    "tslib": "^2.4.0"
+    "@oneschema/importer": "^0.7.0",
+    "tslib": "^2.x"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^22.0.0",

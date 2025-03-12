@@ -7,6 +7,12 @@ This log is intended to keep track of package changes, including
 but not limited to API changes and file location changes. Minor behavioral
 changes may not be included if they are not expected to break existing code.
 
+## 0.7.1 (2025-03-11)
+
+- Add `is_locked` to `OneSchemaTemplateColumn` type.
+- Sync all Importer package versions.
+- Use laxer `tslib` dependency version.
+
 ## 0.7.0 (2024-08-29)
 
 - React: `inline` prop is defaulted to true.
@@ -17,7 +23,7 @@ changes may not be included if they are not expected to break existing code.
 
 ## 0.6.1 (2025-01-21)
 
-- Add template column data type
+- Add template column data type.
 
 ## 0.6.0 (2024-08-12)
 

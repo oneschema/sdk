@@ -1,8 +1,8 @@
 {
   "name": "@oneschema/importer",
   "private": false,
-  "version": "0.6.1",
-  "description": "Importer for using OneSchema",
+  "version": "0.7.1",
+  "description": "Vanilla JS library for embedding OneSchema Importer",
   "author": "OneSchema",
   "license": "MIT",
   "main": "dist/main.js",
@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "eventemitter3": "^4.0.7",
-    "tslib": "^2.4.0"
+    "tslib": "^2.x"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^22.0.0",
