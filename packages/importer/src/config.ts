@@ -183,6 +183,7 @@ export interface BooleanValidationOptions {
  * Interface for column validation options for data type NUMBER
  */
 export interface NumberValidationOptions {
+  format?: "eu" | "us"
   max_num?: number | null
   min_num?: number | null
   only_int?: boolean
