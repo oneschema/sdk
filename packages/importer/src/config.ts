@@ -398,6 +398,14 @@ export type OneSchemaTemplateColumnToRemove = Pick<OneSchemaTemplateColumn, "key
 export type ValidationHookType = "row" | "column"
 
 /**
+ * Type of authorization used in the header of a validation hook: either "basic" or "bearer_user_jwt".
+ * For "basic", the secret key is used to authenticate the request.
+ * For "bearer_user_jwt", the user JWT is used to authenticate the request.
+ * For more information on a particular setting see https://docs.oneschema.co/docs/validation-webhook#securing-your-validation-hook
+ */
+export type ValidationHookAuthorizationType = "basic" | "bearer_user_jwt"
+
+/**
  * Params for adding a validation hook to a template
  */
 export interface OneSchemaValidationHookToAdd {
@@ -406,6 +414,7 @@ export interface OneSchemaValidationHookToAdd {
   column_keys?: string[]
   custom_column_keys?: string[]
   hook_type?: ValidationHookType
+  authorization_type?: ValidationHookAuthorizationType
   secret_key?: string
   batch_size?: number
 }
