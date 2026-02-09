@@ -469,6 +469,10 @@ export interface OneSchemaLaunchParams {
    * Event webhooks that should be used during an import session
    */
   eventWebhookKeys?: string[]
+  /**
+   * DataDog configuration for tracking analytics
+   */
+  dataDogConfig?: Record<string, unknown>
 }
 
 /**
@@ -599,6 +603,7 @@ export interface OneSchemaInitSimpleMessage extends OneSchemaSharedInitParams {
   customizationOverrides: ImporterCustomization
   templateOverrides: OneSchemaTemplateOverrides
   eventWebhookKeys: string[]
+  dataDogConfig?: Record<string, unknown>
   resumeToken?: string
 }
 

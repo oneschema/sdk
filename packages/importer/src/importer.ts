@@ -180,6 +180,8 @@ export class OneSchemaImporterClass extends EventEmitter {
         sessionToken: mergedParams.sessionToken,
       }
     } else {
+      const dataDogConfig =
+        mergedParams.dataDogConfig ?? launchParams?.dataDogConfig
       message = {
         ...baseMessage,
         messageType: "init",
@@ -190,6 +192,7 @@ export class OneSchemaImporterClass extends EventEmitter {
         customizationOverrides: mergedParams.customizationOverrides,
         templateOverrides: mergedParams.templateOverrides,
         eventWebhookKeys: mergedParams.eventWebhookKeys,
+        ...(dataDogConfig != null && { dataDogConfig }),
       }
       if (!message.userJwt) {
         console.error("OneSchema config error: missing userJwt")
