@@ -424,16 +424,28 @@ export class OneSchemaImporterClass extends EventEmitter {
       }
 
       case "complete": {
-        if (data.data) {
-          // for frontend pass through
-          this.emit("success", data.data)
-        } else {
-          // for webhook imports, eventId and responses are used
-          this.emit("success", {
-            eventId: data.eventId,
-            responses: data.responses,
+        try {
+          if (data.data) {
+            // for frontend pass through
+            this.emit("success", data.data)
+          } else {
+            // for webhook imports, eventId and responses are used
+            this.emit("success", {
+              eventId: data.eventId,
+              responses: data.responses,
+            })
+          }
+        } catch (e) {
+          // NOTE: Catch errors thrown by "success" event listeners so that
+          // cleanup (resume-token removal, autoClose) always runs.
+          console.error("OneSchema: error in success event listener", e)
+          this.emitErrorEvent({
+            message:
+              e instanceof Error ? e.message : "Error in success event listener",
+            severity: OneSchemaErrorSeverity.Error,
           })
         }
+
         if (this.#resumeTokenKey) {
           try {
             window.localStorage.removeItem(this.#resumeTokenKey)
