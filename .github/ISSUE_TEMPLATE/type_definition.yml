@@ -1,0 +1,67 @@
+name: Type Definition Issue
+description: Report missing, incorrect, or incomplete TypeScript type definitions
+title: "[Types]: "
+labels: ["types"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Found an issue with the SDK's TypeScript types? Let us know so we can fix it.
+
+  - type: dropdown
+    id: package
+    attributes:
+      label: Package
+      description: Which SDK package is affected?
+      options:
+        - "@oneschema/importer"
+        - "@oneschema/react"
+        - "@oneschema/angular"
+        - "@oneschema/vue"
+        - "@oneschema/filefeeds"
+        - "@oneschema/filefeeds-react"
+        - Other / Multiple
+    validations:
+      required: true
+
+  - type: input
+    id: package-version
+    attributes:
+      label: Package version
+      placeholder: e.g. 0.7.2
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: |
+        Which type is wrong, missing, or incomplete? Include the relevant type name and what you expected.
+    validations:
+      required: true
+
+  - type: textarea
+    id: code-example
+    attributes:
+      label: Code example
+      description: Show a code snippet that demonstrates the issue.
+      render: typescript
+      placeholder: |
+        // e.g. This should type-check but doesn't:
+        const col: OneSchemaTemplateColumn = {
+          key: "name",
+          label: "Name",
+          data_type: "TEXT",
+          // ...
+        }
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Any other context, TypeScript version, or tsconfig details that may be relevant.
+    validations:
+      required: false
