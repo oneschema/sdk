@@ -1,0 +1,65 @@
+name: Feature Request
+description: Suggest a new feature or improvement for a OneSchema SDK package
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea to improve the SDK? We'd love to hear it.
+
+  - type: dropdown
+    id: package
+    attributes:
+      label: Package
+      description: Which SDK package does this relate to?
+      options:
+        - "@oneschema/importer"
+        - "@oneschema/react"
+        - "@oneschema/angular"
+        - "@oneschema/vue"
+        - "@oneschema/filefeeds"
+        - "@oneschema/filefeeds-react"
+        - Shared / All packages
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or motivation
+      description: |
+        What problem does this feature solve? Is this related to a frustration with the current SDK?
+      placeholder: I'm always frustrated when...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe the solution you'd like. Include API examples or code snippets if possible.
+      placeholder: |
+        ```ts
+        // Example of desired API
+        importer.launch({ ... })
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Describe any alternative solutions or workarounds you've considered.
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Add any other context, mockups, or references that would help.
+    validations:
+      required: false
