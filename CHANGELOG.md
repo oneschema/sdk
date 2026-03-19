@@ -7,6 +7,10 @@ This log is intended to keep track of package changes, including
 but not limited to API changes and file location changes. Minor behavioral
 changes may not be included if they are not expected to break existing code.
 
+## 0.7.3 (2026-03-19)
+- Add `is_hidden` to `OneSchemaTemplateColumn` type. 
+- Add `is_unmappable` to `OneSchemaTemplateColumn` type.
+
 ## 0.7.2 (2025-07-01)
 
 - Add `auth_type` to `OneSchemaValidationHookToAdd`
