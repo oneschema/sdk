@@ -371,17 +371,19 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
   }
 
   #iframeEventEmit = (type: IframeEventType, data: Record<string, any>) => {
-    this.iframe?.contentWindow?.postMessage(
-      {
+    // NOTE: Deep-clone via JSON round-trip to strip non-structurally-cloneable
+    // wrappers (e.g. Vue reactive Proxies) before passing to postMessage.
+    const payload = JSON.parse(
+      JSON.stringify({
         version: this.#version,
         client: this.#client,
         "@from": `${this.#client}#${this.#version}`,
         "@to": FILE_FEEDS_TRANSFORMS_EMBED_MARKER,
         type,
         data,
-      },
-      this.#params.baseUrl!,
+      }),
     )
+    this.iframe?.contentWindow?.postMessage(payload, this.#params.baseUrl!)
   }
 }
 

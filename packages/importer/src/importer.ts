@@ -333,16 +333,18 @@ export class OneSchemaImporterClass extends EventEmitter {
   }
 
   #iframeEventEmit(message: Record<string, any>) {
-    this.iframe?.contentWindow?.postMessage(
-      {
+    // NOTE: Deep-clone via JSON round-trip to strip non-structurally-cloneable
+    // wrappers (e.g. Vue reactive Proxies) before passing to postMessage.
+    const payload = JSON.parse(
+      JSON.stringify({
         version: this.#version,
         client: this.#client,
         "@from": `${this.#client}#${this.#version}`,
         "@to": IMPORTER_EMBED_MARKER,
         ...message,
-      },
-      this.#params.baseUrl!,
+      }),
     )
+    this.iframe?.contentWindow?.postMessage(payload, this.#params.baseUrl!)
   }
 
   emitErrorEvent(error: OneSchemaError) {
