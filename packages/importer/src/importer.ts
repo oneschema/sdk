@@ -247,6 +247,11 @@ export class OneSchemaImporterClass extends EventEmitter {
   }
 
   _launch() {
+    // Show the iframe immediately so the user sees the embed's loading
+    // state instead of staring at a blank screen while the session
+    // initializes.
+    this.#show()
+
     const postInit = () => {
       this.#hasCancelled = false
       this._initWithRetry()
