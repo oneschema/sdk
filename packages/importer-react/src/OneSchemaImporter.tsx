@@ -36,6 +36,13 @@ export interface OneSchemaImporterBaseProps {
   style?: React.CSSProperties
 
   /**
+   * An optional React element to render as a loading indicator while the
+   * importer iframe initializes. Shown when the importer is open but not
+   * yet ready.
+   */
+  importerLoadingComponent?: React.ReactNode
+
+  /**
    * Handler for when the importer wants to close
    * should set isOpen prop to false
    */
@@ -82,6 +89,7 @@ export default function OneSchemaImporter({
   style,
   className,
   inline = true,
+  importerLoadingComponent,
   onRequestClose,
   onSuccess,
   onCancel,
@@ -90,6 +98,8 @@ export default function OneSchemaImporter({
   onLaunched,
   ...params
 }: OneSchemaImporterProps) {
+  const [isLoading, setIsLoading] = useState(false)
+
   const [importer] = useState(() => {
     const instance = oneschemaImporter({
       ...params,
@@ -131,6 +141,7 @@ export default function OneSchemaImporter({
       })
 
       importer.on("launched", (data: OneSchemaLaunchStatus) => {
+        setIsLoading(false)
         onLaunched?.(data)
       })
     }
@@ -163,8 +174,10 @@ export default function OneSchemaImporter({
   useEffect(() => {
     if (importer) {
       if (isOpen) {
+        setIsLoading(true)
         importer.launch(params)
       } else {
+        setIsLoading(false)
         importer.close()
       }
     }
@@ -183,9 +196,14 @@ export default function OneSchemaImporter({
   )
 
   if (inline) {
-    return <Iframe ref={setIframeRef} />
+    return (
+      <>
+        <Iframe ref={setIframeRef} />
+        {isLoading && importerLoadingComponent}
+      </>
+    )
   } else {
-    return null
+    return isLoading && importerLoadingComponent ? <>{importerLoadingComponent}</> : null
   }
 }
 

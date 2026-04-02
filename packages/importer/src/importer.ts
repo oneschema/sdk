@@ -251,6 +251,7 @@ export class OneSchemaImporterClass extends EventEmitter {
     // state instead of staring at a blank screen while the session
     // initializes.
     this.#show()
+    this.#showLoading()
 
     const postInit = () => {
       this.#hasCancelled = false
@@ -315,6 +316,7 @@ export class OneSchemaImporterClass extends EventEmitter {
    */
   close(clean?: boolean) {
     this.#hide()
+    this.#hideLoading()
     if (this.iframe && OneSchemaImporterClass.#iframeIsLoaded) {
       this.#iframeEventEmit({ messageType: "close" })
     }
@@ -368,6 +370,20 @@ export class OneSchemaImporterClass extends EventEmitter {
     }
   }
 
+  #showLoading() {
+    const el = this.#params.importerLoadingElement
+    if (el) {
+      el.style.display = "initial"
+    }
+  }
+
+  #hideLoading() {
+    const el = this.#params.importerLoadingElement
+    if (el) {
+      el.style.display = "none"
+    }
+  }
+
   #iframeEventListener({ source, data }: MessageEvent) {
     if (source !== this.iframe?.contentWindow) {
       return
@@ -390,6 +406,7 @@ export class OneSchemaImporterClass extends EventEmitter {
 
       case "launched": {
         this.#hasLaunched = true
+        this.#hideLoading()
         let sessionToken = data.sessionToken
         const embedId = data.embedId
         if (this.#resumeTokenKey && sessionToken) {

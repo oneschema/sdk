@@ -564,6 +564,12 @@ export interface OneSchemaInitParams {
    * By default uses OneSchema's production instance
    */
   baseUrl?: string
+  /**
+   * An optional DOM element to display as a loading indicator while the
+   * importer iframe initializes. The SDK will show this element when
+   * launch() is called and hide it once the importer is ready.
+   */
+  importerLoadingElement?: HTMLElement
 }
 
 /**
