@@ -1,0 +1,40 @@
+{
+  "name": "@oneschema/mcp-server",
+  "private": false,
+  "version": "0.1.0",
+  "description": "MCP server for OneSchema Multi FileFeed (workflow) and flowgraph management",
+  "author": "OneSchema",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "oneschema-mcp-server": "./dist/index.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "homepage": "https://www.oneschema.co/",
+  "bugs": "https://github.com/oneschema/sdk/issues",
+  "repository": {
+    "type": "git",
+    "url": "github:oneschema/sdk",
+    "directory": "packages/mcp-server"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "npx --yes rimraf dist",
+    "lint": "tsc --noEmit",
+    "start": "node dist/index.js",
+    "inspect": "npx @modelcontextprotocol/inspector node dist/index.js",
+    "test": "node --test dist/__tests__/*.test.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.2",
+    "typescript": "^5.8.3"
+  }
+}

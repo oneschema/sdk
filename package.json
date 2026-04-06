@@ -7,7 +7,8 @@
     "packages/filefeeds-react",
     "packages/importer-vue",
     "packages/importer-angular",
-    "packages/importer-angular/projects/oneschema"
+    "packages/importer-angular/projects/oneschema",
+    "packages/mcp-server"
   ],
   "scripts": {
     "clean": "rm -rf node_modules && yarn workspaces run clean",
