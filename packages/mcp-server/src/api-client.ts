@@ -158,9 +158,14 @@ export class OneSchemaClient {
     if (!res.ok) {
       let details: unknown
       try {
-        details = await res.json()
+        const text = await res.text()
+        try {
+          details = JSON.parse(text)
+        } catch {
+          details = text
+        }
       } catch {
-        details = await res.text().catch(() => undefined)
+        details = undefined
       }
       const err: OneSchemaApiError = {
         status: res.status,
