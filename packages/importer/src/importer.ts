@@ -502,6 +502,11 @@ export class OneSchemaImporterClass extends EventEmitter {
         }
         return
       }
+
+      case "user-activity": {
+        this.emit("user-activity")
+        return
+      }
     }
   }
 }

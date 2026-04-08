@@ -66,6 +66,13 @@ export interface OneSchemaImporterBaseProps {
    * Or when launching fails, based on result
    */
   onLaunched?: (result: OneSchemaLaunchStatus) => void
+
+  /**
+   * Handler for when user activity is detected inside the importer iframe.
+   * Useful for resetting session idle timers in the host application.
+   * This event is throttled (fired at most once every 30 seconds).
+   */
+  onUserActivity?: () => void
 }
 
 /**
@@ -88,6 +95,7 @@ export default function OneSchemaImporter({
   onError,
   onPageLoad,
   onLaunched,
+  onUserActivity,
   ...params
 }: OneSchemaImporterProps) {
   const [importer] = useState(() => {
@@ -133,12 +141,16 @@ export default function OneSchemaImporter({
       importer.on("launched", (data: OneSchemaLaunchStatus) => {
         onLaunched?.(data)
       })
+
+      importer.on("user-activity", () => {
+        onUserActivity?.()
+      })
     }
 
     return () => {
       importer?.removeAllListeners()
     }
-  }, [importer, onSuccess, onCancel, onError, onRequestClose, onLaunched, onPageLoad])
+  }, [importer, onSuccess, onCancel, onError, onRequestClose, onLaunched, onPageLoad, onUserActivity])
 
   useEffect(() => {
     if (className) {
