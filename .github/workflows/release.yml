@@ -187,11 +187,18 @@ jobs:
           esac
 
       - name: Create GitHub Release
-        if: github.event_name == 'push' && steps.ctx.outputs.dry_run != 'true'
+        # Runs for both tag pushes and non-dry-run workflow_dispatch, so a
+        # recovery dispatch (e.g. the tag-push trigger was missed) still
+        # ends up with a GitHub Release pointing at the right tag.
+        if: steps.ctx.outputs.dry_run != 'true'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
+          # On tag push this is the tag that triggered the workflow; on
+          # dispatch we reconstruct it from the family + version inputs.
+          # If the tag does not yet exist, action-gh-release creates it
+          # against the commit the workflow was dispatched from.
+          tag_name: ${{ github.event_name == 'push' && github.ref_name || format('{0}-v{1}', steps.ctx.outputs.family, steps.ctx.outputs.version) }}
+          name: ${{ github.event_name == 'push' && github.ref_name || format('{0}-v{1}', steps.ctx.outputs.family, steps.ctx.outputs.version) }}
           generate_release_notes: true
           body: |
             Automated release of the **${{ steps.ctx.outputs.family }}** SDK family at version **${{ steps.ctx.outputs.version }}**.

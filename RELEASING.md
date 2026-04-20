@@ -55,7 +55,9 @@ a missed tag:
 - Pick `family`, type the `version`, optionally check **dry_run** to just run
   `npm publish --dry-run`.
 
-The version still has to match every package.json in the family.
+The version still has to match every package.json in the family. A non-dry-run
+dispatch also creates the matching GitHub Release (and the `…-v<version>` git
+tag if it doesn't already exist, pointing at the commit you dispatched from).
 
 ## npm authentication
 
