@@ -1,0 +1,57 @@
+name: CI
+
+# Guardrails that run on every PR and every push to main so we never tag a
+# broken commit for release. Keep this cheap: install, lint, build.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-lint:
+    name: Build & lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile --ignore-scripts
+
+      - name: Lint
+        run: |
+          set -euo pipefail
+          for dir in \
+            packages/importer \
+            packages/importer-react \
+            packages/importer-vue \
+            packages/filefeeds \
+            packages/filefeeds-react; do
+            echo "::group::lint $dir"
+            (cd "$dir" && yarn lint)
+            echo "::endgroup::"
+          done
+
+      - name: Build
+        run: |
+          set -euo pipefail
+          (cd packages/importer         && yarn build)
+          (cd packages/importer-react   && yarn build)
+          (cd packages/importer-vue     && yarn build)
+          (cd packages/filefeeds        && yarn build)
+          (cd packages/filefeeds-react  && yarn build)
+          (cd packages/importer-angular && yarn run ng build)
