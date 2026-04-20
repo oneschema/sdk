@@ -32,6 +32,20 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile --ignore-scripts
 
+      # Build core packages before anything else, because the wrappers import
+      # from `@oneschema/importer` / `@oneschema/filefeeds` and eslint's
+      # `import/no-unresolved` rule resolves those via the `main`/`module`
+      # fields which only exist after a build.
+      - name: Build
+        run: |
+          set -euo pipefail
+          (cd packages/importer         && yarn build)
+          (cd packages/filefeeds        && yarn build)
+          (cd packages/importer-react   && yarn build)
+          (cd packages/importer-vue     && yarn build)
+          (cd packages/filefeeds-react  && yarn build)
+          (cd packages/importer-angular && yarn run ng build)
+
       - name: Lint
         run: |
           set -euo pipefail
@@ -45,13 +59,3 @@ jobs:
             (cd "$dir" && yarn lint)
             echo "::endgroup::"
           done
-
-      - name: Build
-        run: |
-          set -euo pipefail
-          (cd packages/importer         && yarn build)
-          (cd packages/importer-react   && yarn build)
-          (cd packages/importer-vue     && yarn build)
-          (cd packages/filefeeds        && yarn build)
-          (cd packages/filefeeds-react  && yarn build)
-          (cd packages/importer-angular && yarn run ng build)
