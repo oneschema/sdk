@@ -33,6 +33,11 @@ This repository contains tools to help you embed OneSchema products into your ap
   [![NPM package version](https://img.shields.io/npm/v/@oneschema/vue)](https://www.npmjs.com/package/@oneschema/vue)
   [![NPM gzipped bundle size](<https://img.shields.io/bundlejs/size/@oneschema/vue?label=bundle+(gzip)>)](https://bundlejs.com/?q=@oneschema/vue)
 
+## Releasing
+
+See [RELEASING.md](./RELEASING.md) for how to cut a new release of either
+the `importer` or `filefeeds` SDK family.
+
 ## OneSchema FileFeeds
 
 - [📑 FileFeeds](https://github.com/oneschema/sdk/tree/main/packages/filefeeds),

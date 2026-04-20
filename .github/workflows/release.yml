@@ -1,0 +1,206 @@
+name: Release
+
+# Tag-driven release workflow for the two SDK families in this monorepo:
+#
+#   - `importer-vX.Y.Z`  → publishes @oneschema/importer, @oneschema/react,
+#                          @oneschema/vue, @oneschema/angular
+#   - `filefeeds-vX.Y.Z` → publishes @oneschema/filefeeds, @oneschema/filefeeds-react
+#
+# The workflow expects every package.json in the selected family to already
+# carry the version being released (the tag is the source of truth and the
+# job fails fast if they disagree).
+#
+# Auth:
+#   - Primary: npm trusted publishing via OIDC (no secret needed). Each
+#     package must be configured on npmjs.com ("Settings → Trusted Publishers")
+#     to trust this workflow on oneschema/sdk.
+#   - Fallback: set the `NPM_TOKEN` repo secret; when present it's used as
+#     a classic automation token. `--provenance` still works in both modes.
+
+on:
+  push:
+    tags:
+      - 'importer-v*'
+      - 'filefeeds-v*'
+  workflow_dispatch:
+    inputs:
+      family:
+        description: 'Package family to release'
+        required: true
+        type: choice
+        options:
+          - importer
+          - filefeeds
+      version:
+        description: 'Version to publish (must match package.json files in the family)'
+        required: true
+        type: string
+      dry_run:
+        description: 'Run npm publish --dry-run (no packages are uploaded)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write # for creating GitHub Releases on tag pushes
+  id-token: write # required for npm provenance / OIDC trusted publishing
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Release ${{ github.ref_name }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'yarn'
+
+      - name: Resolve release context
+        id: ctx
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          INPUT_FAMILY: ${{ inputs.family }}
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            family="$INPUT_FAMILY"
+            version="$INPUT_VERSION"
+            dry_run="${INPUT_DRY_RUN:-false}"
+          else
+            tag="${REF#refs/tags/}"
+            family="${tag%%-v*}"
+            version="${tag#*-v}"
+            dry_run="false"
+          fi
+          case "$family" in
+            importer|filefeeds) ;;
+            *) echo "::error::Unknown family: $family"; exit 1 ;;
+          esac
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.-]+)?$ ]]; then
+            echo "::error::Invalid semver: $version"
+            exit 1
+          fi
+          {
+            echo "family=$family"
+            echo "version=$version"
+            echo "dry_run=$dry_run"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Verify package.json versions match
+        env:
+          FAMILY: ${{ steps.ctx.outputs.family }}
+          EXPECTED: ${{ steps.ctx.outputs.version }}
+        run: |
+          set -euo pipefail
+          case "$FAMILY" in
+            importer)
+              paths=(
+                packages/importer/package.json
+                packages/importer-react/package.json
+                packages/importer-vue/package.json
+                packages/importer-angular/projects/oneschema/package.json
+              )
+              ;;
+            filefeeds)
+              paths=(
+                packages/filefeeds/package.json
+                packages/filefeeds-react/package.json
+              )
+              ;;
+          esac
+          mismatch=0
+          for p in "${paths[@]}"; do
+            v=$(node -p "require('./$p').version")
+            if [[ "$v" != "$EXPECTED" ]]; then
+              echo "::error file=$p::version is $v but release is $EXPECTED"
+              mismatch=1
+            fi
+          done
+          exit $mismatch
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile --ignore-scripts
+
+      - name: Build packages
+        env:
+          FAMILY: ${{ steps.ctx.outputs.family }}
+        run: |
+          set -euo pipefail
+          case "$FAMILY" in
+            importer)
+              (cd packages/importer         && yarn build)
+              (cd packages/importer-react   && yarn build)
+              (cd packages/importer-vue     && yarn build)
+              (cd packages/importer-angular && yarn run ng build)
+              ;;
+            filefeeds)
+              (cd packages/filefeeds        && yarn build)
+              (cd packages/filefeeds-react  && yarn build)
+              ;;
+          esac
+
+      - name: Publish to npm
+        env:
+          FAMILY: ${{ steps.ctx.outputs.family }}
+          DRY_RUN: ${{ steps.ctx.outputs.dry_run }}
+          # Present only if the NPM_TOKEN fallback secret is configured.
+          # If empty, npm CLI falls back to OIDC trusted publishing.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          args=(--access public --provenance)
+          if [[ "$DRY_RUN" == "true" ]]; then
+            args+=(--dry-run)
+          fi
+          publish() {
+            local dir="$1"
+            echo "::group::npm publish $dir"
+            (cd "$dir" && npm publish "${args[@]}")
+            echo "::endgroup::"
+          }
+          case "$FAMILY" in
+            importer)
+              # Publish the core package first so wrappers can resolve it
+              # from the registry if they ever install at publish-time.
+              publish packages/importer
+              publish packages/importer-react
+              publish packages/importer-vue
+              # ng-packagr emits a publishable package here, with its own
+              # generated package.json. Do NOT publish the workspace root.
+              publish packages/importer-angular/dist/@oneschema/angular
+              ;;
+            filefeeds)
+              publish packages/filefeeds
+              publish packages/filefeeds-react
+              ;;
+          esac
+
+      - name: Create GitHub Release
+        # Runs for both tag pushes and non-dry-run workflow_dispatch, so a
+        # recovery dispatch (e.g. the tag-push trigger was missed) still
+        # ends up with a GitHub Release pointing at the right tag.
+        if: steps.ctx.outputs.dry_run != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          # On tag push this is the tag that triggered the workflow; on
+          # dispatch we reconstruct it from the family + version inputs.
+          # If the tag does not yet exist, action-gh-release creates it
+          # against the commit the workflow was dispatched from.
+          tag_name: ${{ github.event_name == 'push' && github.ref_name || format('{0}-v{1}', steps.ctx.outputs.family, steps.ctx.outputs.version) }}
+          name: ${{ github.event_name == 'push' && github.ref_name || format('{0}-v{1}', steps.ctx.outputs.family, steps.ctx.outputs.version) }}
+          generate_release_notes: true
+          body: |
+            Automated release of the **${{ steps.ctx.outputs.family }}** SDK family at version **${{ steps.ctx.outputs.version }}**.
+
+            See [CHANGELOG.md](./CHANGELOG.md) (Importer) or [CHANGELOG-filefeeds.md](./CHANGELOG-filefeeds.md) (FileFeeds) for human-written release notes.
