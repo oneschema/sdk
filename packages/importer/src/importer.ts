@@ -17,7 +17,7 @@ import {
 } from "./config"
 import { merged } from "./shared/utils"
 
-const MAX_LAUNCH_RETRY = 20
+const MAX_LAUNCH_RETRY = 40
 
 const IMPORTER_EMBED_MARKER = "importer.oneschema.co"
 
