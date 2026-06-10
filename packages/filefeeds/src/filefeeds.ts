@@ -5,7 +5,7 @@ import { DEFAULT_PARAMS, FileFeedsLaunchParams, FileFeedsParams } from "./config
 import { FileFeedsEvent } from "./events"
 import { merged } from "./shared/utils"
 
-const LAUNCH_RETRY_MAX_COUNT = 10
+const LAUNCH_RETRY_MAX_COUNT = 40
 const LAUNCH_RETRY_DELAY_MS = 500
 
 const FILE_FEEDS_TRANSFORMS_EMBED_MARKER = "transforms.filefeeds.oneschema.co"
