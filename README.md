@@ -46,3 +46,7 @@ This repository contains tools to help you embed OneSchema products into your ap
 
   [![NPM package version](https://img.shields.io/npm/v/@oneschema/filefeeds-react)](https://www.npmjs.com/package/@oneschema/filefeeds-react)
   [![NPM gzipped bundle size](<https://img.shields.io/bundlejs/size/@oneschema/filefeeds-react?label=bundle+(gzip)>)](https://bundlejs.com/?q=@oneschema/filefeeds-react)
+
+## Development
+
+See [TESTING.md](./TESTING.md) for how to run and test the SDK packages locally.
