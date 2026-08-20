@@ -164,13 +164,24 @@ export default function OneSchemaImporter({
     }
   }, [importer, style])
 
+  const prevParamsRef = useRef<string>()
   useEffect(() => {
-    if (importer && importer._hasAttemptedLaunch && isOpen) {
+    const serializedParams = JSON.stringify(params)
+    const paramsChanged =
+      prevParamsRef.current !== undefined &&
+      prevParamsRef.current !== serializedParams
+    prevParamsRef.current = serializedParams
+
+    if (importer && importer._hasAttemptedLaunch && isOpen && paramsChanged) {
       console.warn(
         "The OneSchema importer has already launched. Updated launch params will not update the current import",
       )
     }
-  }, [params, importer, isOpen])
+    // NOTE: `params` is a new object reference on every render due to the
+    // `...rest` destructuring, so we track actual value changes via
+    // JSON.stringify instead of relying on referential equality.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(params), importer, isOpen])
 
   useEffect(() => {
     if (importer) {
