@@ -12,15 +12,19 @@
     "url": "github:oneschema/sdk",
     "directory": "packages/importer-angular/projects/oneschema"
   },
+  "publishConfig": {
+    "directory": "../../dist/@oneschema/angular"
+  },
   "scripts": {
     "build": "true",
+    "lint": "true",
     "clean": "npx --yes rimraf dist"
   },
   "dependencies": {
     "tslib": "^2.x"
   },
   "peerDependencies": {
-    "@oneschema/importer": "^0.6.0",
+    "@oneschema/importer": "^0.7.0",
     "@angular/common": ">=15",
     "@angular/core": ">=15"
   }

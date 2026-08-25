@@ -9,14 +9,23 @@
     "packages/importer-angular",
     "packages/importer-angular/projects/oneschema"
   ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "clean": "rm -rf node_modules && yarn workspaces run clean",
-    "build": "yarn workspaces run build"
+    "build": "yarn workspaces run build",
+    "lint": "yarn workspaces run lint",
+    "release": "yarn build && changeset publish"
   },
   "devDependencies": {
-    "@parcel/transformer-vue": "2.8.3",
+    "@changesets/cli": "2.31.1",
     "@parcel/core": "2.8.3",
+    "@parcel/transformer-vue": "2.8.3",
     "process": "^0.11.10",
     "react": "^18.2.0"
+  },
+  "resolutions": {
+    "human-id": "4.1.3"
   }
 }
