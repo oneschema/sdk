@@ -24,7 +24,7 @@
     "tslib": "^2.x"
   },
   "peerDependencies": {
-    "@oneschema/importer": "^0.6.0",
+    "@oneschema/importer": "^0.7.0",
     "@angular/common": ">=15",
     "@angular/core": ">=15"
   }

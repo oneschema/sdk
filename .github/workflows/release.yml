@@ -35,5 +35,5 @@ jobs:
       - name: Create release or publish packages
         uses: changesets/action@v1
         with:
-          version: yarn version
+          version: yarn changeset version
           publish: yarn release

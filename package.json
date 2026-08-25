@@ -16,7 +16,6 @@
     "clean": "rm -rf node_modules && yarn workspaces run clean",
     "build": "yarn workspaces run build",
     "lint": "yarn workspaces run lint",
-    "version": "changeset version",
     "release": "yarn build && changeset publish"
   },
   "devDependencies": {
