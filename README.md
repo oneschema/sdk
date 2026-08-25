@@ -50,3 +50,8 @@ This repository contains tools to help you embed OneSchema products into your ap
 ## Development
 
 See [TESTING.md](./TESTING.md) for how to run and test the SDK packages locally.
+
+## Releasing
+
+Add a changeset in your pull request when changing a published package. Merging
+the Version Packages pull request updates package versions and publishes them.

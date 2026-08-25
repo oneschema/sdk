@@ -12,8 +12,12 @@
     "url": "github:oneschema/sdk",
     "directory": "packages/importer-angular/projects/oneschema"
   },
+  "publishConfig": {
+    "directory": "../../dist/@oneschema/angular"
+  },
   "scripts": {
     "build": "true",
+    "lint": "true",
     "clean": "npx --yes rimraf dist"
   },
   "dependencies": {
