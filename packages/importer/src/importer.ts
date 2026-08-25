@@ -38,6 +38,9 @@ export class OneSchemaImporterClass extends EventEmitter {
   #hasCancelled = false
   #initMessage?: OneSchemaInitMessage
   #hasAppReceivedInitMessage = false
+  // NOTE: This describes the iframe, which persists across launches, so it is
+  // not reset in close().
+  #hasReceivedFrameMessage = false
   static #iframeIsLoaded = false
 
   constructor(params: OneSchemaParams) {
@@ -266,7 +269,9 @@ export class OneSchemaImporterClass extends EventEmitter {
     }
 
     if (count > MAX_LAUNCH_RETRY) {
-      const msg = "OneSchema failed to respond for initialization"
+      const msg = this.#hasReceivedFrameMessage
+        ? "OneSchema failed to respond for initialization"
+        : `OneSchema iframe was blocked: no message was ever received from ${this.iframe?.src}, so the OneSchema embed page never ran. The browser most likely blocked the iframe — check this page's console for a Content-Security-Policy "frame-ancestors" violation, and verify that this page's origin (${window.location.origin}) is on the allowed domains list for OneSchema client ID ${this.#params.clientId}.`
       console.error(msg)
       if (this.#params.devMode) {
         // Display the iframe for debugging purposes.
@@ -367,6 +372,7 @@ export class OneSchemaImporterClass extends EventEmitter {
     if (source !== this.iframe?.contentWindow) {
       return
     }
+    this.#hasReceivedFrameMessage = true
 
     switch (data.messageType) {
       case "page-loaded": {
