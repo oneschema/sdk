@@ -22,6 +22,7 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
   #version = PACKAGE_VERSION
 
   #resumeTokenKey: string | null = null
+  #hasReceivedFrameMessage = false
   static #iframeIsLoaded = false
   _iframeInitStarted = false
   _iframeInitSucceeded = false
@@ -187,7 +188,9 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
     }
 
     if (retryCount > LAUNCH_RETRY_MAX_COUNT) {
-      const message = "OneSchema failed to respond for initialization"
+      const message = this.#hasReceivedFrameMessage
+        ? "OneSchema failed to respond for initialization"
+        : `OneSchema iframe was blocked: no message was ever received from ${this.iframe?.src}, so the OneSchema embed page never ran. The browser most likely blocked the iframe — check this page's console for a Content-Security-Policy "frame-ancestors" violation, and verify that this page's origin (${window.location.origin}) is on the allowed domains list for OneSchema FileFeeds.`
       console.error(message)
       this.emitEvent("init-failed", { error: { message } })
       return
@@ -319,14 +322,14 @@ export class OneSchemaFileFeedsClass extends EventEmitter {
 
   // == Messaging with the iframe ==
 
-  #iframeEventListener = ({
-    source,
-    data: { "@from": sender, type: eventType, data: eventData },
-  }: MessageEvent) => {
-    if (
-      source !== this.iframe?.contentWindow ||
-      sender !== FILE_FEEDS_TRANSFORMS_EMBED_MARKER
-    ) {
+  #iframeEventListener = ({ source, data }: MessageEvent) => {
+    if (source !== this.iframe?.contentWindow) {
+      return
+    }
+    this.#hasReceivedFrameMessage = true
+
+    const { "@from": sender, type: eventType, data: eventData } = data
+    if (sender !== FILE_FEEDS_TRANSFORMS_EMBED_MARKER) {
       return
     }
 
