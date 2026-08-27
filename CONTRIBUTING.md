@@ -30,11 +30,11 @@ Before pushing, run from the root:
 
 ```sh
 yarn fix
-yarn run check
+yarn check
 ```
 
-CI runs `yarn build`, `yarn run check:packages`, `yarn run check`, and
-`yarn run test:ci` on every pull request, plus actionlint and a bundle-size
+CI runs `yarn build`, `yarn check:packages`, `yarn check`, and
+`yarn test:ci` on every pull request, plus actionlint and a bundle-size
 report comment.
 
 ## Pull requests
