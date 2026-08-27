@@ -9,15 +9,16 @@ yarn install
 
 ## Script vocabulary
 
-Every workspace (and the root) uses the same script names, so you can run any
-of them from the root with `yarn <script>` (which runs it across all
-workspaces) or inside a single package:
+The workspaces and the root share a common script vocabulary, so you can run
+these from the root with `yarn <script>` (which runs it across all workspaces)
+or inside a single package (a few workspaces stub out scripts that don't apply
+to them):
 
 | Script           | What it does                                                          |
 | ---------------- | --------------------------------------------------------------------- |
 | `build`          | Build the package's distributable output                              |
 | `fix`            | Auto-fix formatting (Prettier) and lint (ESLint) issues               |
-| `check`          | Verify formatting, lint, and types (`tsc --noEmit`) without writing   |
+| `check`          | Verify formatting, lint, HTML test pages, and types, without writing  |
 | `check:packages` | (root only) Validate packed tarballs with publint and report attw     |
 | `test`           | Serve the package's interactive manual test page (see `TESTING.md`)   |
 | `test:ci`        | Run the package's automated tests headlessly (no-op where none exist) |
