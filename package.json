@@ -17,13 +17,16 @@
     "build": "yarn workspaces run build",
     "fix": "prettier --write . && yarn workspaces run fix",
     "check": "prettier --check . && yarn workspaces run check",
+    "check:packages": "node scripts/check-packages.mjs",
     "test:ci": "yarn workspaces run test:ci",
     "release": "yarn build && changeset publish"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.5",
     "@changesets/cli": "2.31.1",
     "@parcel/core": "2.8.3",
     "@parcel/transformer-vue": "2.8.3",
+    "publint": "0.3.24",
     "prettier": "3.9.6",
     "process": "^0.11.10",
     "react": "^18.2.0"

@@ -34,11 +34,37 @@ jobs:
       - name: Build packages
         run: yarn build
 
+      - name: Check packaging
+        run: yarn run check:packages
+
       - name: Check packages
         run: yarn run check
 
       - name: Run tests
         run: yarn run test:ci
+
+  actionlint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Install actionlint
+        env:
+          ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+          ACTIONLINT_VERSION: 1.7.12
+        run: |
+          curl -fsSL "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz" -o actionlint.tar.gz
+          echo "${ACTIONLINT_SHA256}  actionlint.tar.gz" | sha256sum --check
+          tar -xzf actionlint.tar.gz actionlint
+          chmod +x actionlint
+
+      - name: Run actionlint
+        run: ./actionlint .github/workflows/*.yml
 
   bundle-size:
     if: github.event_name == 'pull_request'
