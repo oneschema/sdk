@@ -9,10 +9,12 @@ yarn install
 
 ## Script vocabulary
 
-The workspaces and the root share a common script vocabulary, so you can run
-these from the root with `yarn <script>` (which runs it across all workspaces)
-or inside a single package (a few workspaces stub out scripts that don't apply
-to them):
+The workspaces and the root share a common script vocabulary. The root
+`build`, `fix`, `check`, and `test:ci` scripts fan out to every workspace via
+`yarn workspaces run`; you can also run any script inside a single package.
+Invoke root scripts with `yarn run <script>` — in particular `yarn run check`,
+since bare `yarn check` invokes Yarn 1's built-in command. (A few workspaces
+stub out scripts that don't apply to them.)
 
 | Script           | What it does                                                          |
 | ---------------- | --------------------------------------------------------------------- |
@@ -30,8 +32,6 @@ Before pushing, run from the root:
 yarn fix
 yarn run check
 ```
-
-(Use `yarn run check` — bare `yarn check` invokes Yarn 1's built-in command.)
 
 CI runs `yarn build`, `yarn run check:packages`, `yarn run check`, and
 `yarn run test:ci` on every pull request, plus actionlint and a bundle-size
