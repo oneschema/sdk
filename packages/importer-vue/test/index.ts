@@ -11,7 +11,7 @@ app.use(
     templateKey: "crm_test",
     importConfig: { type: "local" },
     userJwt:
-      "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI2N2JiMmU1Zi1mMGY3LTQyYTYtYTUxMS0xOGIyNWU2N2I4YzQiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-IiwiY3JlYXRlIjp7InNlc3Npb24iOnsiZmlsZV9mZWVkX2lkIjoyOTM3Nn19fQ.BgpLx_kmW2HWMu2dzcw1pMKBm3LNsXXJzAgmZt1rNuA",
+      "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI8Q0xJRU5UX0lEPiIsInVzZXJfaWQiOiI8VVNFUl9JRD4iLCJjcmVhdGUiOnsic2Vzc2lvbiI6eyJmaWxlX2ZlZWRfaWQiOjB9fX0.not-a-real-signature",
     baseUrl: "http://embed.localschema.co:9450",
     devMode: true,
   }),

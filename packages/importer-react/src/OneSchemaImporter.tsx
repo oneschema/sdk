@@ -150,7 +150,16 @@ export default function OneSchemaImporter({
     return () => {
       importer?.removeAllListeners()
     }
-  }, [importer, onSuccess, onCancel, onError, onRequestClose, onLaunched, onPageLoad, onUserActivity])
+  }, [
+    importer,
+    onSuccess,
+    onCancel,
+    onError,
+    onRequestClose,
+    onLaunched,
+    onPageLoad,
+    onUserActivity,
+  ])
 
   useEffect(() => {
     if (className) {

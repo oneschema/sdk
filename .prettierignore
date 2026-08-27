@@ -1,0 +1,8 @@
+node_modules
+dist
+.angular
+.parcel-cache
+out-tsc
+coverage
+yarn.lock
+packages/*/CHANGELOG.md

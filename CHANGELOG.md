@@ -8,6 +8,7 @@ but not limited to API changes and file location changes. Minor behavioral
 changes may not be included if they are not expected to break existing code.
 
 ## 0.7.3 (2026-03-19)
+
 - Add `is_hidden`, `is_unmappable` to `OneSchemaTemplateColumn` type.
 - Use JSON round-trip to clone event payloads, to support Vue's reactive proxy
   objects.
