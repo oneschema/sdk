@@ -42,12 +42,30 @@ const defaultEntry = entries.find((entry) => entry.exported === "default")
 const namedRuntimeEntries = entries.filter(
   (entry) => entry.exported !== "default" && runtimeDeclarations.has(entry.local),
 )
+const namedTypeEntries = entries.filter(
+  (entry) => entry.exported !== "default" && !runtimeDeclarations.has(entry.local),
+)
+
+const typeAliases = namedTypeEntries.map(
+  (entry) => `type __cjs_${entry.exported} = ${entry.local};`,
+)
+const typeNamespace = namedTypeEntries.length
+  ? [
+      "declare namespace _default {",
+      ...namedTypeEntries.map(
+        (entry) => `  export type ${entry.exported} = __cjs_${entry.exported};`,
+      ),
+      "}",
+    ]
+  : []
 
 const cjsExport = [
   `declare const _default: typeof ${defaultEntry.local} & {`,
   `  default: typeof ${defaultEntry.local};`,
   ...namedRuntimeEntries.map((entry) => `  ${entry.exported}: typeof ${entry.local};`),
   "};",
+  ...typeAliases,
+  ...typeNamespace,
   "export = _default;",
   "",
 ].join("\n")
