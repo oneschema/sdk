@@ -18,7 +18,7 @@ describe('OneSchemaService', () => {
               templateKey: 'crm_test',
               importConfig: { type: 'local' },
               userJwt:
-                'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIzZDJkNDEzZS01OWM5LTRhN2EtYjA3YS1iYjRlOWMzYzNmMzIiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-In0.18XYrQFiErfIrbBhd6Z3Dnq5mzervnRM2WI99J3NBmo',
+                'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI8Q0xJRU5UX0lEPiIsInVzZXJfaWQiOiI8VVNFUl9JRD4ifQ.not-a-real-signature',
               baseUrl: 'http://embed.localschema.co:9450',
               devMode: true,
             },
