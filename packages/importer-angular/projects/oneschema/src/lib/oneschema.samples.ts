@@ -9,7 +9,7 @@ import { OneSchemaService } from './oneschema.service'
   template: `<button (click)="launch()">Open OneSchema</button>`,
   styles: [],
 })
-export class OneSchemaButton {
+export class OneSchemaButtonComponent {
   constructor(public oneschema: OneSchemaService) {}
 
   launch() {
@@ -22,18 +22,18 @@ export class OneSchemaButton {
   template: ``,
   styles: [],
 })
-export class OneSchemaListener implements OnDestroy {
+export class OneSchemaListenerComponent implements OnDestroy {
   constructor(public oneschema: OneSchemaService) {
     this.oneschema.on('success', this.onSuccess)
     this.oneschema.on('error', this.onError)
     this.oneschema.on('cancel', this.onCancel)
   }
 
-  onSuccess(data: any) {
+  onSuccess(_data: unknown) {
     // handle success
   }
 
-  onError(error: any) {
+  onError(_error: unknown) {
     // handle error
   }
 
@@ -63,7 +63,7 @@ export class OneSchemaListener implements OnDestroy {
     `,
   ],
 })
-export class OneSchemaIframe implements AfterViewInit {
+export class OneSchemaIframeComponent implements AfterViewInit {
   @ViewChild('oneschema') iframe?: ElementRef<HTMLIFrameElement>
 
   constructor(public oneschema: OneSchemaService) {}

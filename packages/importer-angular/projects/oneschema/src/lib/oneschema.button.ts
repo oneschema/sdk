@@ -8,6 +8,8 @@ import { OneSchemaService } from './oneschema.service'
   </button>`,
   styles: [],
 })
+// This class name is part of the published @oneschema/angular API.
+// eslint-disable-next-line @angular-eslint/component-class-suffix
 export class OneSchemaButton {
   constructor(public oneschema: OneSchemaService) {}
 }

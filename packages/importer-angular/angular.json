@@ -31,6 +31,15 @@
             "tsConfig": "projects/oneschema/tsconfig.spec.json",
             "karmaConfig": "projects/oneschema/karma.conf.js"
           }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/oneschema/**/*.ts",
+              "projects/oneschema/**/*.html"
+            ]
+          }
         }
       }
     }
