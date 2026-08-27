@@ -22,6 +22,7 @@ npm i --save @oneschema/vue
 Create an instance of the `OneSchemaPlugin` by calling `createOneSchemaImporter` and passing it to Vue's `app.use()`
 
 ```javascript
+import { createApp } from "vue"
 import { createOneSchemaImporter } from "@oneschema/vue"
 
 const app = createApp(App)

@@ -5,7 +5,7 @@ import OneSchemaFileFeeds from "../src"
 
 function TestApp() {
   const userJwt =
-    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI1ZmU4MTRjNi0zNDVlLTRhZTctYTI3YS01MDNhMzU0MzY2MjYiLCJ1c2VyX2lkIjoiPFVTRVJfSUQ-IiwiZmlsZV9mZWVkX2lkIjo1Mjk3Nn0.3c7z4LHsrzDVojLaBzUuK06w3Bf3y73hLQicP3sXgCA"
+    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI8Q0xJRU5UX0lEPiIsInVzZXJfaWQiOiI8VVNFUl9JRD4iLCJmaWxlX2ZlZWRfaWQiOjB9.not-a-real-signature"
   const resumeTokenKey = `OneSchemaFileFeeds-session-${userJwt}`
 
   const [preloadIframe, setPreloadIframe] = useState(true)
