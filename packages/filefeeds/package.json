@@ -28,6 +28,7 @@
     "build": "yarn run clean && rollup -c",
     "build-test": "parcel build test/index.html",
     "test": "parcel serve test/index.html -p 4252 --open",
+    "test:ci": "true",
     "fix": "eslint './src/**/**.{ts,js}' --fix",
     "check": "eslint './src/**/**.{ts,js}' && tsc --noEmit",
     "clean": "npx --yes rimraf dist"

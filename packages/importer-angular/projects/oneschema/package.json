@@ -19,6 +19,7 @@
     "build": "true",
     "check": "true",
     "fix": "true",
+    "test:ci": "true",
     "clean": "npx --yes rimraf dist"
   },
   "dependencies": {

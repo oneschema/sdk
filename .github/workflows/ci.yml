@@ -37,6 +37,9 @@ jobs:
       - name: Check packages
         run: yarn run check
 
+      - name: Run tests
+        run: yarn run test:ci
+
   bundle-size:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
