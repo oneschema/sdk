@@ -175,7 +175,7 @@ jobs:
                 .sort((left, right) => left.name.localeCompare(right.name))
                 .map(
                   (entry) =>
-                    `| ${entry.name} | ${formatBytes(entry.gzip)} | ${formatBytes(entry.raw)} | ${formatDelta(entry)} |`,
+                    `| \`${entry.name}\` | ${formatBytes(entry.gzip)} | ${formatBytes(entry.raw)} | ${formatDelta(entry)} |`,
                 ),
             ].join("\n")
 
@@ -200,6 +200,17 @@ jobs:
               return
             }
             const pr = matches[0]
+
+            // If the run's trusted metadata records this PR's base revision,
+            // require it to match so a report computed against a stale base
+            // (e.g. after retargeting) is not published.
+            const runPr = (run.pull_requests ?? []).find(
+              (candidate) => candidate.number === pr.number,
+            )
+            if (runPr && runPr.base.sha !== pr.base.sha) {
+              core.info("PR base changed since this run; skipping stale report")
+              return
+            }
             const prNumber = pr.number
 
             const comments = await github.paginate(github.rest.issues.listComments, {
