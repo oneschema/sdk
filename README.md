@@ -54,4 +54,11 @@ See [TESTING.md](./TESTING.md) for how to run and test the SDK packages locally.
 ## Releasing
 
 Add a changeset in your pull request when changing a published package. Merging
-the Version Packages pull request updates package versions and publishes them.
+the Version Packages pull request updates package versions and publishes them
+through npm trusted publishing (OIDC). Each published package must have a
+Trusted Publisher configured on npmjs.com: `@oneschema/importer`, `@oneschema/react`,
+`@oneschema/vue`, `@oneschema/filefeeds`, `@oneschema/filefeeds-react`, and
+`@oneschema/angular` should each use GitHub Actions with organization `oneschema`,
+repository `sdk`, and workflow filename `release.yml`, with the `npm publish`
+action allowed (`changeset publish` performs a direct publish, which
+staging-only publishers do not authorize). No `NPM_TOKEN` secret is needed.
