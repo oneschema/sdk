@@ -18,65 +18,67 @@ npm i --save @oneschema/vue
 ```
 
 ### Configure the SDK
+
 Create an instance of the `OneSchemaPlugin` by calling `createOneSchemaImporter` and passing it to Vue's `app.use()`
 
 ```javascript
-import { createOneSchemaImporter } from '@oneschema/vue'
+import { createOneSchemaImporter } from "@oneschema/vue"
 
 const app = createApp(App)
 
 app.use(
   createOneSchemaImporter({
-    clientId: '<CLIENT_ID>',
-    ...initParams
-  })
+    clientId: "<CLIENT_ID>",
+    ...initParams,
+  }),
 )
 
-app.mount('#app')
+app.mount("#app")
 ```
 
 ### Sample usage
+
 Once the OneSchema plugin has been registered, you can call the `useOneSchemaImporter` function to obtain the `OneSchemaImporterClass` instance.
 
 ```vue
 <script setup lang="ts">
-  import { useOneSchemaImporter } from "@oneschema/vue"
+import { useOneSchemaImporter } from "@oneschema/vue"
 
-  const importer = useOneSchemaImporter();
+const importer = useOneSchemaImporter()
 
-  const launchOneSchema = function () {
-    importer.launch();
+const launchOneSchema = function () {
+  importer.launch()
 
-    importer.on('success', (data) => {
-      // TODO: handle success
-      console.log(data);
-    });
+  importer.on("success", (data) => {
+    // TODO: handle success
+    console.log(data)
+  })
 
-    importer.on('cancel', () => {
-      // TODO: handle cancel
-    });
+  importer.on("cancel", () => {
+    // TODO: handle cancel
+  })
 
-    importer.on('error', (message) => {
-      // TODO: handle errors
-      console.log(message);
-    });
-  };
+  importer.on("error", (message) => {
+    // TODO: handle errors
+    console.log(message)
+  })
+}
 </script>
 <template>
   <button @click="launchOneSchema">Launch embed</button>
 </template>
 
 <style>
-  .oneschema-iframe {
-    width: 100vw;
-    height: 100vh;
-    border: none;
-    position: absolute;
-    right: 0;
-    top: 0;
-    z-index: 10000; /* adjust as needed */
-  }
-</style> 
+.oneschema-iframe {
+  width: 100vw;
+  height: 100vh;
+  border: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 10000; /* adjust as needed */
+}
+</style>
 ```
 
 ## Documentation

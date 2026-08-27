@@ -4,11 +4,7 @@ import type { OneSchemaBrandingCustomizations } from "./shared/customizations"
  * Type with options for mapping strategy customization
  */
 export type MappingStrategy =
-  | "exact"
-  | "fuzzy"
-  | "historical_user"
-  | "historical_org"
-  | "historical" // historical is deprecated
+  "exact" | "fuzzy" | "historical_user" | "historical_org" | "historical" // historical is deprecated
 
 /**
  * Type with options for skipping the header row step
@@ -160,16 +156,13 @@ export interface JsonFileUploadImportConfig extends BaseFileUploadImportConfig {
  * Configuration for importing data through file upload.
  */
 export type FileUploadImportConfig =
-  | CsvFileUploadImportConfig
-  | JsonFileUploadImportConfig
+  CsvFileUploadImportConfig | JsonFileUploadImportConfig
 
 /**
  * Configuration for importing data, supporting various destination types.
  */
 export type ImportConfig =
-  | WebhookImportConfig
-  | LocalImportConfig
-  | FileUploadImportConfig
+  WebhookImportConfig | LocalImportConfig | FileUploadImportConfig
 
 /**
  * Interface for column validation options for data type BOOLEAN
@@ -264,9 +257,7 @@ export interface FileNameValidationOptions {
 export interface EnumUsStateTerritoryValidationOptions {
   format: "name" | "code"
   variant_set_mods?:
-    | ["include_dc"]
-    | ["include_territories"]
-    | ["include_dc", "include_territories"]
+    ["include_dc"] | ["include_territories"] | ["include_dc", "include_territories"]
 }
 
 /**
@@ -570,8 +561,7 @@ export interface OneSchemaInitParams {
  * Combined options for params used when launching OneSchema
  */
 export type OneSchemaLaunchParamOptions =
-  | OneSchemaLaunchParams
-  | OneSchemaLaunchSessionParams
+  OneSchemaLaunchParams | OneSchemaLaunchSessionParams
 
 /**
  * Parameters for the OneSchema importer, includes all settings
@@ -616,8 +606,7 @@ export interface OneSchemaInitSessionMessage extends OneSchemaSharedInitParams {
  * Message passed to OneSchema for init
  */
 export type OneSchemaInitMessage =
-  | OneSchemaInitSimpleMessage
-  | OneSchemaInitSessionMessage
+  OneSchemaInitSimpleMessage | OneSchemaInitSessionMessage
 
 /**
  * The default values for the OneSchema importer

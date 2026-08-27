@@ -14,7 +14,9 @@ const base = resolve(root, baseRoot)
 
 function packageBundles(projectRoot) {
   const bundles = new Map()
-  const workspaces = JSON.parse(readFileSync(join(projectRoot, "package.json"), "utf8")).workspaces
+  const workspaces = JSON.parse(
+    readFileSync(join(projectRoot, "package.json"), "utf8"),
+  ).workspaces
 
   for (const workspace of workspaces) {
     const packageRoot = join(projectRoot, workspace)
@@ -35,7 +37,11 @@ function packageBundles(projectRoot) {
           visit(path, packageName, packageDistRoot)
           continue
         }
-        if (!entry.isFile() || !/\.(?:js|mjs)$/.test(entry.name) || entry.name.endsWith(".map")) {
+        if (
+          !entry.isFile() ||
+          !/\.(?:js|mjs)$/.test(entry.name) ||
+          entry.name.endsWith(".map")
+        ) {
           continue
         }
 
@@ -56,7 +62,9 @@ function packageBundles(projectRoot) {
       if (!entry.isDirectory()) {
         continue
       }
-      for (const child of readdirSync(join(distRoot, entry.name), { withFileTypes: true })) {
+      for (const child of readdirSync(join(distRoot, entry.name), {
+        withFileTypes: true,
+      })) {
         const builtRoot = join(distRoot, entry.name, child.name)
         if (child.isDirectory() && existsSync(join(builtRoot, "package.json"))) {
           builtPackages.push(builtRoot)
@@ -66,7 +74,9 @@ function packageBundles(projectRoot) {
 
     if (builtPackages.length > 0) {
       for (const builtRoot of builtPackages) {
-        const builtName = JSON.parse(readFileSync(join(builtRoot, "package.json"), "utf8")).name
+        const builtName = JSON.parse(
+          readFileSync(join(builtRoot, "package.json"), "utf8"),
+        ).name
         visit(builtRoot, builtName, builtRoot)
       }
     } else {
