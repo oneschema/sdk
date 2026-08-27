@@ -12,6 +12,7 @@ export default {
     commonjs(),
     json(),
     typescript({
+      useTsconfigDeclarationDir: true,
       tsconfigOverride: {
         exclude: ["**/test"],
       },
@@ -20,6 +21,12 @@ export default {
   output: [
     {
       file: "dist/module.js",
+      format: "esm",
+      exports: "named",
+      sourcemap: true,
+    },
+    {
+      file: "dist/module.mjs",
       format: "esm",
       exports: "named",
       sourcemap: true,
