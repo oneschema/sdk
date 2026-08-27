@@ -34,8 +34,8 @@ jobs:
       - name: Build packages
         run: yarn build
 
-      - name: Lint packages
-        run: yarn lint
+      - name: Check packages
+        run: yarn check
 
   bundle-size:
     if: github.event_name == 'pull_request'

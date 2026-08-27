@@ -17,7 +17,8 @@
   },
   "scripts": {
     "build": "true",
-    "lint": "true",
+    "check": "true",
+    "fix": "true",
     "clean": "npx --yes rimraf dist"
   },
   "dependencies": {
