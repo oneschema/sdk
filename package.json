@@ -17,6 +17,7 @@
     "build": "yarn workspaces run build",
     "fix": "prettier --write . && yarn workspaces run fix",
     "check": "prettier --check . && yarn workspaces run check",
+    "test:ci": "yarn workspaces run test:ci",
     "release": "yarn build && changeset publish"
   },
   "devDependencies": {
