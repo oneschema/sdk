@@ -3088,6 +3088,7 @@ __metadata:
     "@angular/platform-browser": "npm:^16.2.12"
     "@angular/platform-browser-dynamic": "npm:^16.2.12"
     "@angular/router": "npm:^16.2.12"
+    "@oneschema/importer": "npm:^0.7.0"
     "@types/jasmine": "npm:~4.0.0"
     jasmine-core: "npm:~4.2.0"
     karma: "npm:~6.4.0"
