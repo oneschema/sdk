@@ -60,7 +60,7 @@ const typeNamespace = namedTypeEntries.length
   : []
 
 const cjsExport = [
-  `declare const _default: typeof ${defaultEntry.local} & {`,
+  "declare const _default: {",
   `  default: typeof ${defaultEntry.local};`,
   ...namedRuntimeEntries.map((entry) => `  ${entry.exported}: typeof ${entry.local};`),
   "};",
