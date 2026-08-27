@@ -12,13 +12,14 @@
   "engines": {
     "node": ">=20"
   },
+  "packageManager": "yarn@4.18.0",
   "scripts": {
-    "clean": "rm -rf node_modules && yarn workspaces run clean",
-    "build": "yarn workspaces run build",
-    "fix": "prettier --write . && yarn workspaces run fix",
-    "check": "prettier --check . && htmlhint \"packages/**/test/*.html\" && yarn workspaces run check",
+    "clean": "yarn workspaces foreach -A run clean && rm -rf node_modules",
+    "build": "yarn workspaces foreach -A --topological-dev run build",
+    "fix": "prettier --write . && yarn workspaces foreach -A run fix",
+    "check": "prettier --check . && htmlhint \"packages/**/test/*.html\" && yarn workspaces foreach -A run check",
     "check:packages": "node scripts/check-packages.mjs",
-    "test:ci": "yarn workspaces run test:ci",
+    "test:ci": "yarn workspaces foreach -A run test:ci",
     "release": "yarn build && changeset publish"
   },
   "devDependencies": {

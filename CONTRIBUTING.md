@@ -1,9 +1,10 @@
 # Contributing
 
 This is a Yarn workspaces monorepo. Use the Node version in `.nvmrc` and
-install dependencies once from the repository root:
+enable Corepack before installing dependencies from the repository root:
 
 ```sh
+corepack enable
 yarn install
 ```
 
@@ -11,10 +12,9 @@ yarn install
 
 The workspaces and the root share a common script vocabulary. The root
 `build`, `fix`, `check`, and `test:ci` scripts fan out to every workspace via
-`yarn workspaces run`; you can also run any script inside a single package.
-Invoke root scripts with `yarn run <script>` — in particular `yarn run check`,
-since bare `yarn check` invokes Yarn 1's built-in command. (A few workspaces
-stub out scripts that don't apply to them.)
+`yarn workspaces foreach`; you can also run any script inside a single package.
+Invoke root scripts with `yarn <script>`. (A few workspaces stub out scripts
+that don't apply to them.)
 
 | Script           | What it does                                                          |
 | ---------------- | --------------------------------------------------------------------- |
