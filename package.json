@@ -16,7 +16,7 @@
     "clean": "rm -rf node_modules && yarn workspaces run clean",
     "build": "yarn workspaces run build",
     "fix": "prettier --write . && yarn workspaces run fix",
-    "check": "prettier --check . && yarn workspaces run check",
+    "check": "prettier --check . && htmlhint \"packages/**/test/*.html\" && yarn workspaces run check",
     "check:packages": "node scripts/check-packages.mjs",
     "test:ci": "yarn workspaces run test:ci",
     "release": "yarn build && changeset publish"
@@ -26,6 +26,7 @@
     "@changesets/cli": "2.31.1",
     "@parcel/core": "2.8.3",
     "@parcel/transformer-vue": "2.8.3",
+    "htmlhint": "1.9.2",
     "publint": "0.3.24",
     "prettier": "3.9.6",
     "process": "^0.11.10",
