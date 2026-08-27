@@ -78,41 +78,32 @@ function packageBundles(projectRoot) {
   return bundles
 }
 
-function formatBytes(value) {
-  return `${value.toLocaleString("en-US")} B`
-}
-
-function formatDelta(current, previous) {
-  if (!previous) {
-    return "new"
-  }
-
-  const delta = current - previous
-  const percentage = previous === 0 ? "n/a" : `${((delta / previous) * 100).toFixed(2)}%`
-  const sign = delta > 0 ? "+" : ""
-  return `${sign}${delta.toLocaleString("en-US")} B (${percentage})`
-}
-
 const currentBundles = packageBundles(root)
 const baseBundles = packageBundles(base)
 const keys = new Set([...currentBundles.keys(), ...baseBundles.keys()])
 
-console.log("<!-- oneschema-sdk-bundle-size -->")
-console.log("## Bundle size report")
-console.log("")
-console.log("| Package/file | Gzip size | Raw size | Delta vs base (gzip) |")
-console.log("| --- | ---: | ---: | ---: |")
-
-for (const key of [...keys].sort()) {
+const entries = [...keys].sort().map((key) => {
   const current = currentBundles.get(key)
   const previous = baseBundles.get(key)
 
+  let status = "unchanged"
   if (!current) {
-    console.log(`| ${key} | — | — | removed |`)
-    continue
+    status = "removed"
+  } else if (!previous) {
+    status = "added"
+  } else if (current.gzip !== previous.gzip || current.raw !== previous.raw) {
+    status = "changed"
   }
 
-  console.log(
-    `| ${key} | ${formatBytes(current.gzip)} | ${formatBytes(current.raw)} | ${formatDelta(current.gzip, previous?.gzip)} |`,
-  )
-}
+  return {
+    name: key,
+    kind: "file",
+    gzip: current?.gzip ?? null,
+    raw: current?.raw ?? null,
+    baseGzip: previous?.gzip ?? null,
+    baseRaw: previous?.raw ?? null,
+    status,
+  }
+})
+
+console.log(JSON.stringify({ entries }))

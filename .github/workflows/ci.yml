@@ -77,11 +77,11 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      - name: Generate bundle-size report
-        run: node scripts/bundle-size.mjs base > bundle-size-report.md
+      - name: Generate bundle-size JSON report
+        run: node scripts/bundle-size.mjs base > bundle-size-report.json
 
-      - name: Upload bundle-size report
+      - name: Upload bundle-size JSON report
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: bundle-size-report
-          path: bundle-size-report.md
+          path: bundle-size-report.json
