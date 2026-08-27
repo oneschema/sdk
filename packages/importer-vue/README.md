@@ -24,6 +24,7 @@ Create an instance of the `OneSchemaPlugin` by calling `createOneSchemaImporter`
 ```javascript
 import { createApp } from "vue"
 import { createOneSchemaImporter } from "@oneschema/vue"
+import App from "./App.vue"
 
 const app = createApp(App)
 
