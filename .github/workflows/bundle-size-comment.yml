@@ -111,6 +111,14 @@ jobs:
                 return
               }
 
+              if (
+                (entry.gzip === null) !== (entry.raw === null) ||
+                (entry.baseGzip === null) !== (entry.baseRaw === null)
+              ) {
+                core.setFailed(`Bundle-size entry ${index} has incomplete size data`)
+                return
+              }
+
               const currentPresent = entry.gzip !== null && entry.raw !== null
               const basePresent = entry.baseGzip !== null && entry.baseRaw !== null
               const validStatus =
