@@ -35,7 +35,7 @@ jobs:
         run: yarn build
 
       - name: Check packages
-        run: yarn check
+        run: yarn run check
 
   bundle-size:
     if: github.event_name == 'pull_request'
