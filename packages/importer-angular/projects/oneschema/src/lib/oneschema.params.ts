@@ -1,5 +1,5 @@
 import { InjectionToken } from '@angular/core'
-import { OneSchemaParams } from '@oneschema/importer'
+import type { OneSchemaParams } from '@oneschema/importer/dist/index'
 
 export const OneSchemaParamsService = new InjectionToken<OneSchemaParams>(
   'oneschema.params',
