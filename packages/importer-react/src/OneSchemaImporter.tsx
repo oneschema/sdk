@@ -118,7 +118,27 @@ export default function OneSchemaImporter({
   useEffect(() => {
     if (importer) {
       importer.on("success", (data: any) => {
-        onSuccess?.(data)
+        try {
+          const result = onSuccess?.(data)
+          // Handle async onSuccess callbacks that return a rejected Promise.
+          if (result instanceof Promise) {
+            result.catch((e: unknown) => {
+              console.error("OneSchema: error in onSuccess handler", e)
+              onError?.({
+                message:
+                  e instanceof Error ? e.message : "Error in onSuccess handler",
+                severity: OneSchemaErrorSeverity.Error,
+              })
+            })
+          }
+        } catch (e) {
+          console.error("OneSchema: error in onSuccess handler", e)
+          onError?.({
+            message:
+              e instanceof Error ? e.message : "Error in onSuccess handler",
+            severity: OneSchemaErrorSeverity.Error,
+          })
+        }
         onRequestClose?.()
       })
 
