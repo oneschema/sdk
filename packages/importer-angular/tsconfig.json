@@ -5,7 +5,8 @@
     "resolveJsonModule": true,
     "paths": {
       "@oneschema/angular": ["dist/oneschema/angular"],
-      "oneschema": ["dist/oneschema"]
+      "oneschema": ["dist/oneschema"],
+      "@oneschema/importer": ["../importer/dist/index.d.mts"]
     },
     "baseUrl": "./",
     "outDir": "./dist/out-tsc",

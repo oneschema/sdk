@@ -7,7 +7,27 @@
   "license": "MIT",
   "main": "dist/main.js",
   "module": "dist/module.js",
-  "types": "dist/index.d.ts",
+  "types": "dist/index.d.cts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/module.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/main.js"
+      }
+    },
+    "./dist/*": "./dist/*",
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "targets": {
     "main": false,
     "module": false,
@@ -20,12 +40,12 @@
   "bugs": "https://github.com/oneschema/sdk/issues",
   "repository": {
     "type": "git",
-    "url": "github:oneschema/sdk",
+    "url": "git+https://github.com/oneschema/sdk.git",
     "directory": "packages/filefeeds-react"
   },
   "scripts": {
     "dev": "rollup -c -w",
-    "build": "yarn run clean && rollup -c",
+    "build": "yarn run clean && rollup -c && node ../../scripts/dual-types.mjs dist/index.d.ts",
     "build-test": "parcel build test/index.html",
     "test": "parcel serve test/index.html -p 4253 --open",
     "test:ci": "true",

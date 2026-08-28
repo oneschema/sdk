@@ -9,7 +9,7 @@
   "bugs": "https://github.com/oneschema/sdk/issues",
   "repository": {
     "type": "git",
-    "url": "github:oneschema/sdk",
+    "url": "git+https://github.com/oneschema/sdk.git",
     "directory": "packages/importer-angular/projects/oneschema"
   },
   "publishConfig": {

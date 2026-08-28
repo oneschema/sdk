@@ -1,5 +1,6 @@
 import { Inject, Injectable, OnDestroy } from '@angular/core'
-import { OneSchemaImporterClass, OneSchemaParams } from '@oneschema/importer'
+import { OneSchemaImporterClass } from '@oneschema/importer'
+import type { OneSchemaParams } from '@oneschema/importer'
 import { OneSchemaParamsService } from './oneschema.params'
 import packageJson from '../../package.json'
 

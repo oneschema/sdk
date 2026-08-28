@@ -1,5 +1,5 @@
 import { OneSchemaImporterClass, OneSchemaParams } from "@oneschema/importer"
-import { OneSchemaPlugin } from "./plugin"
+import { OneSchemaPlugin } from "./plugin.js"
 
 import { inject } from "vue"
 

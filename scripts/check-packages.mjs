@@ -12,6 +12,15 @@ const packageDirectories = [
   "packages/filefeeds-react",
   "packages/importer-angular/dist/@oneschema/angular",
 ]
+// Angular uses the standard ng-packagr 16 package shape. Bundler and
+// Angular CLI resolution are green, but Node-direct consumption is not a
+// supported use case; fixing that requires upgrading to Angular 17+ tooling.
+const attwOptions = new Map([
+  [
+    "packages/importer-angular/dist/@oneschema/angular",
+    ["--profile", "esm-only", "--ignore-rules", "cjs-resolves-to-esm", "false-cjs"],
+  ],
+])
 
 const run = (command, args) => {
   const result = spawnSync(command, args, {
@@ -67,14 +76,13 @@ try {
       failures.push(`${packageName}: publint failed`)
     }
 
-    // ATTW currently reports known pre-existing CJS/ESM type issues. Keep it
-    // report-only until package exports and declaration shapes are redesigned.
     const attwStatus = run(resolve(repoRoot, "node_modules/.bin/attw"), [
-      "--no-color",
       tarball,
+      "--no-color",
+      ...(attwOptions.get(packageDirectory) ?? []),
     ])
     if (attwStatus !== 0) {
-      console.warn(`${packageName}: attw reported findings (report-only)`)
+      failures.push(`${packageName}: attw failed`)
     }
 
     await rm(tarball)
@@ -90,5 +98,5 @@ if (failures.length > 0) {
   }
   process.exitCode = 1
 } else {
-  console.log("\nAll publint packaging checks passed.")
+  console.log("\nAll publint and ATTW packaging checks passed.")
 }

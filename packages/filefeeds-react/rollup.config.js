@@ -27,6 +27,12 @@ export default [
         sourcemap: true,
       },
       {
+        file: "dist/module.mjs",
+        format: "esm",
+        exports: "named",
+        sourcemap: true,
+      },
+      {
         file: "dist/main.js",
         format: "cjs",
         exports: "named",

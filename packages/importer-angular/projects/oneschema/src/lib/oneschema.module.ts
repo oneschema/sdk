@@ -1,6 +1,6 @@
 import { ModuleWithProviders, NgModule } from '@angular/core'
 import { OneSchemaService } from './oneschema.service'
-import { OneSchemaParams } from '@oneschema/importer'
+import type { OneSchemaParams } from '@oneschema/importer'
 import { OneSchemaParamsService } from './oneschema.params'
 import { OneSchemaButton } from './oneschema.button'
 
