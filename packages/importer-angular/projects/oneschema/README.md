@@ -67,7 +67,7 @@ import { OneSchemaService } from './oneschema.service'
   template: `<button (click)="launch()">Open OneSchema</button>`,
   styles: [],
 })
-export class OneSchemaButton implements OnDestroy {
+export class OneSchemaButtonComponent implements OnDestroy {
   constructor(public oneschema: OneSchemaService) {
     this.oneschema.on('success', this.onSuccess)
     this.oneschema.on('error', this.onError)
@@ -133,7 +133,7 @@ import { OneSchemaService } from '@oneschema/angular'
     `,
   ],
 })
-export class OneSchemaIframe implements AfterViewInit {
+export class OneSchemaIframeComponent implements AfterViewInit {
   @ViewChild('oneschema') iframe?: ElementRef<HTMLIFrameElement>
 
   constructor(public oneschema: OneSchemaService) {}
