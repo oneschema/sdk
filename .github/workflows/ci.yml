@@ -108,7 +108,20 @@ jobs:
 
       - name: Install and build base
         working-directory: base
-        run: corepack yarn@1.22.22 install --frozen-lockfile && corepack yarn@1.22.22 build
+        run: |
+          package_manager="$(node -p "require('./package.json').packageManager || ''")"
+          case "$package_manager" in
+            yarn@1.*)
+              corepack yarn install --frozen-lockfile && corepack yarn build
+              ;;
+            yarn@*)
+              corepack yarn install --immutable && corepack yarn build
+              ;;
+            *)
+              corepack yarn@1.22.22 install --frozen-lockfile &&
+                corepack yarn@1.22.22 build
+              ;;
+          esac
 
       - name: Restore pull request Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
