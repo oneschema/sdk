@@ -537,7 +537,7 @@ export interface OneSchemaInitParams {
   parentId?: string
   /**
    * Whether to save session information to local storage and enable resuming
-   * Defaults to false
+   * Defaults to true
    */
   saveSession?: boolean
   /**
