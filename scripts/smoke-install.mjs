@@ -52,11 +52,29 @@ const tarballDirectory = join(workDirectory, "tarballs")
 await mkdir(tarballDirectory, { recursive: true })
 
 // This script may run in a context that holds publish credentials, so no child
-// process may see them: drop the tokens and every `npm_config_*` variable from
-// the environment (npm reads those case-insensitively, so a surviving
-// lowercase `npm_config_userconfig` would override the empty config below),
-// point npm at empty user and global config files instead of the caller's
-// credentialed ones, and never run lifecycle scripts of installed packages.
+// process may see them. Rather than denying known-bad variables, the child
+// environment is built from an allowlist of the variables npm and node need to
+// run at all: nothing else is inherited, so tokens and any `npm_config_*`
+// setting (npm reads those case-insensitively) cannot reach a child or override
+// the empty user and global config files below. Installs also never run
+// lifecycle scripts of installed packages.
+const inheritedEnvironmentKeys = [
+  "PATH",
+  "Path",
+  "HOME",
+  "USERPROFILE",
+  "TMPDIR",
+  "TMP",
+  "TEMP",
+  "LANG",
+  "LC_ALL",
+  "SHELL",
+  "SystemRoot",
+  "COMSPEC",
+  "PATHEXT",
+  "APPDATA",
+  "LOCALAPPDATA",
+]
 const emptyUserNpmrc = join(workDirectory, "user.npmrc")
 const emptyGlobalNpmrc = join(workDirectory, "global.npmrc")
 await writeFile(emptyUserNpmrc, "")
@@ -64,10 +82,7 @@ await writeFile(emptyGlobalNpmrc, "")
 const childEnvironment = {
   ...Object.fromEntries(
     Object.entries(process.env).filter(
-      ([key]) =>
-        !/^(NPM_TOKEN|NODE_AUTH_TOKEN|GITHUB_TOKEN)$/i.test(key) &&
-        !/^YARN_NPM_AUTH/i.test(key) &&
-        !/^npm_config_/i.test(key),
+      ([key, value]) => value !== undefined && inheritedEnvironmentKeys.includes(key),
     ),
   ),
   NPM_CONFIG_USERCONFIG: emptyUserNpmrc,
