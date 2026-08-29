@@ -22,7 +22,7 @@
     "check:ranges": "node scripts/check-internal-ranges.mjs",
     "check:install": "node scripts/smoke-install.mjs",
     "test:ci": "yarn workspaces foreach -A run test:ci",
-    "release": "yarn build && yarn check:ranges && yarn check:install && changeset publish"
+    "release": "yarn build && yarn check:ranges && changeset publish"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",

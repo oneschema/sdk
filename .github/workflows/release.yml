@@ -35,6 +35,14 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
+      # Runs before the publish step so the packed bundles are linked, imported
+      # and installed in a job step that holds no npm or GitHub credentials.
+      - name: Verify packed packages
+        run: |
+          yarn build
+          yarn run check:ranges
+          yarn run check:install
+
       - name: Create release or publish packages
         uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
         env:
