@@ -3,6 +3,10 @@
 Note: Please see [CHANGELOG.md](./CHANGELOG.md) for history
 of OneSchema Importer packages.
 
+`@oneschema/filefeeds` and `@oneschema/filefeeds-react` are legacy packages in
+maintenance mode. They keep working and still receive critical and security
+fixes, but no new features and no major updates are planned.
+
 This log is intended to keep track of package changes, including
 but not limited to API changes and file location changes. Minor behavioral
 changes may not be included if they are not expected to break existing code.

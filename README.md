@@ -33,7 +33,11 @@ This repository contains tools to help you embed OneSchema products into your ap
   [![NPM package version](https://img.shields.io/npm/v/@oneschema/vue)](https://www.npmjs.com/package/@oneschema/vue)
   [![NPM gzipped bundle size](<https://img.shields.io/bundlejs/size/@oneschema/vue?label=bundle+(gzip)>)](https://bundlejs.com/?q=@oneschema/vue)
 
-## OneSchema FileFeeds
+## OneSchema FileFeeds (legacy)
+
+The FileFeeds packages are in maintenance mode. They keep working and still
+receive critical and security fixes, but no new features and no major updates
+are planned.
 
 - [📑 FileFeeds](https://github.com/oneschema/sdk/tree/main/packages/filefeeds),
   a plain Javascript library for embedding OneSchema FileFeeds.
