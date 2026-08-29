@@ -187,7 +187,7 @@ export interface NumberValidationOptions {
 /**
  * Interfaces for column validation options for data type PICKLIST
  */
-interface PicklistOption {
+export interface PicklistOption {
   value: string
   values?: string[] // deprecated
   color?: string | null
@@ -501,6 +501,20 @@ export interface OneSchemaLaunchStatus {
    * If success is false, this will be why it failed
    */
   error?: OneSchemaLaunchError
+  /**
+   * If success is false, a human-readable description of the failure
+   */
+  message?: string
+  /**
+   * If success is false, the HTTP status OneSchema responded with, when the
+   * failure came from an API call
+   */
+  status?: number
+  /**
+   * If success is false, the raw error body OneSchema responded with, when
+   * one was included
+   */
+  data?: unknown
 }
 
 /**
@@ -628,4 +642,23 @@ export enum OneSchemaErrorSeverity {
 export interface OneSchemaError {
   message: string
   severity: OneSchemaErrorSeverity
+}
+
+/**
+ * The result of an import, either passed through to the frontend or
+ * summarizing the webhook delivery
+ */
+export type OneSchemaImportResult = Record<string, any>
+
+/**
+ * The events emitted by the OneSchema importer, mapped to their listener
+ * arguments
+ */
+export interface OneSchemaEventMap {
+  "page-loaded": [Record<string, never>]
+  launched: [OneSchemaLaunchStatus]
+  success: [OneSchemaImportResult]
+  cancel: []
+  error: [OneSchemaError]
+  "user-activity": []
 }

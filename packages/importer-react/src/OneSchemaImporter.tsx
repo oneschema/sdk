@@ -1,6 +1,7 @@
 import oneschemaImporter, {
   OneSchemaError,
   OneSchemaErrorSeverity,
+  OneSchemaImportResult,
   OneSchemaLaunchParamOptions,
   OneSchemaLaunchStatus,
 } from "@oneschema/importer"
@@ -44,7 +45,7 @@ export interface OneSchemaImporterBaseProps {
   /**
    * Handler for when the importing flow completes successfully
    */
-  onSuccess?: (data: any) => void
+  onSuccess?: (data: OneSchemaImportResult) => void
 
   /**
    * Handler for when the importing flow is cancelled by user
@@ -111,13 +112,13 @@ export default function OneSchemaImporter({
 
   useEffect(() => {
     return () => {
-      importer?.close(true)
+      importer?.destroy()
     }
   }, [importer])
 
   useEffect(() => {
     if (importer) {
-      importer.on("success", (data: any) => {
+      importer.on("success", (data) => {
         onSuccess?.(data)
         onRequestClose?.()
       })
@@ -127,7 +128,7 @@ export default function OneSchemaImporter({
         onRequestClose?.()
       })
 
-      importer.on("error", (error: OneSchemaError) => {
+      importer.on("error", (error) => {
         onError?.(error)
         if (error.severity === OneSchemaErrorSeverity.Fatal) {
           onRequestClose?.()
@@ -138,7 +139,7 @@ export default function OneSchemaImporter({
         onPageLoad?.()
       })
 
-      importer.on("launched", (data: OneSchemaLaunchStatus) => {
+      importer.on("launched", (data) => {
         onLaunched?.(data)
       })
 
