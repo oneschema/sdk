@@ -45,12 +45,28 @@ const createProject = async (directory, name) => {
   return directory
 }
 
+// `yarn release` runs this script in a job that holds publish credentials, so
+// no child npm process may see them: strip the tokens and any npm
+// authentication configuration from the environment, and never run lifecycle
+// scripts of the installed dependencies.
+const childEnvironment = Object.fromEntries(
+  Object.entries(process.env).filter(
+    ([key]) =>
+      !/^(NPM_TOKEN|NODE_AUTH_TOKEN|GITHUB_TOKEN)$/.test(key) &&
+      !/^YARN_NPM_AUTH/i.test(key) &&
+      !/^npm_config_.*(_authtoken|_auth|_password|username|token)$/i.test(key),
+  ),
+)
+
+const installFlags = ["--no-audit", "--no-fund", "--ignore-scripts", "--strict-peer-deps"]
+
 const run = (command, args, options = {}) => {
   console.log(`$ ${command} ${args.join(" ")}`)
   const result = spawnSync(command, args, {
     cwd: options.cwd ?? repoRoot,
     stdio: options.capture ? "pipe" : "inherit",
     encoding: "utf8",
+    env: childEnvironment,
   })
   if (result.error) {
     throw result.error
@@ -91,11 +107,9 @@ try {
     join(workDirectory, "packed-graph"),
     "oneschema-smoke-packed",
   )
-  const install = run(
-    "npm",
-    ["install", "--no-audit", "--no-fund", "--strict-peer-deps", ...tarballs.values()],
-    { cwd: packedProject },
-  )
+  const install = run("npm", ["install", ...installFlags, ...tarballs.values()], {
+    cwd: packedProject,
+  })
   if (install.status !== 0) {
     failures.push(
       "npm could not install the packed tarballs together with strict peer " +
@@ -122,7 +136,12 @@ try {
     capture: true,
   })
   const publishedCoreVersion = registryVersions.stdout.trim()
-  if (publishedCoreVersion !== coreVersion) {
+  if (registryVersions.status !== 0) {
+    failures.push(
+      "npm could not read @oneschema/importer from the registry: " +
+        registryVersions.stderr.trim(),
+    )
+  } else if (publishedCoreVersion !== coreVersion) {
     console.log(
       `skip registry install check: @oneschema/importer@${coreVersion} is not ` +
         `published yet (registry latest is ${publishedCoreVersion})`,
@@ -134,13 +153,7 @@ try {
     )
     const registryInstall = run(
       "npm",
-      [
-        "install",
-        "--no-audit",
-        "--no-fund",
-        "--strict-peer-deps",
-        tarballs.get("@oneschema/angular"),
-      ],
+      ["install", ...installFlags, tarballs.get("@oneschema/angular")],
       { cwd: registryProject },
     )
     if (registryInstall.status !== 0) {
