@@ -122,22 +122,29 @@ export default function OneSchemaImporter({
   onUserActivity,
   ...params
 }: OneSchemaImporterProps) {
-  const [importer] = useState(() => {
-    const instance = oneschemaImporter({
-      ...params,
-      autoClose: false,
-      manageDOM: !inline,
-    })
+  const initParams = useRef({
+    ...params,
+    autoClose: false,
+    manageDOM: !inline,
+  })
 
+  const createImporter = useCallback(() => {
+    const instance = oneschemaImporter(initParams.current)
     instance.setClient("React", version)
     return instance
-  })
+  }, [])
+
+  const [importer, setImporter] = useState(createImporter)
 
   useEffect(() => {
     return () => {
       importer?.destroy()
+      // A destroyed instance stays inert, so replace it. On a real unmount the
+      // update is dropped; under React strict mode it gives the second setup a
+      // usable importer.
+      setImporter(() => createImporter())
     }
-  }, [importer])
+  }, [importer, createImporter])
 
   useEffect(() => {
     if (importer) {

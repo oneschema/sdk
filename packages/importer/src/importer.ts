@@ -22,6 +22,9 @@ const MAX_LAUNCH_RETRY = 40
 
 const IMPORTER_EMBED_MARKER = "importer.oneschema.co"
 
+const DESTROYED_MESSAGE =
+  "OneSchema importer instance was destroyed, create a new one to import again"
+
 const DEFAULT_LAUNCH_ERROR_MESSAGE = "OneSchema failed to launch the import session"
 
 /**
@@ -121,6 +124,11 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
    * @param iframe
    */
   setIframe(iframe: HTMLIFrameElement) {
+    if (this.#destroyed) {
+      console.error(DESTROYED_MESSAGE)
+      return
+    }
+
     // just in case..
     if (this.iframe) {
       this.close()
@@ -195,6 +203,15 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
   launch(
     launchParams?: Partial<OneSchemaLaunchParams> & Partial<OneSchemaLaunchSessionParams>,
   ): OneSchemaLaunchStatus {
+    if (this.#destroyed) {
+      console.error(DESTROYED_MESSAGE)
+      return {
+        success: false,
+        error: OneSchemaLaunchError.Destroyed,
+        message: DESTROYED_MESSAGE,
+      }
+    }
+
     this._hasAttemptedLaunch = true
 
     const mergedParams = merged(this.#params, launchParams)

@@ -482,6 +482,7 @@ export enum OneSchemaLaunchError {
   MissingJwt,
   MissingSessionToken,
   LaunchError,
+  Destroyed,
 }
 
 export interface OneSchemaLaunchStatus {
