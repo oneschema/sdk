@@ -5,6 +5,12 @@
   </a>
 </p>
 
+> [!IMPORTANT]
+> **This package is legacy.** `@oneschema/filefeeds` is in maintenance mode: it
+> keeps working and still receives critical and security fixes, but no new
+> features and no major updates are planned. If you are starting a new
+> integration, contact OneSchema support before building on this package.
+
 A tool for embedding [OneSchema FileFeeds](https://www.oneschema.co/filefeeds)
 into your application.
 
