@@ -25,8 +25,8 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",
     "@changesets/cli": "2.31.1",
-    "@parcel/core": "2.8.3",
-    "@parcel/transformer-vue": "2.8.3",
+    "@parcel/core": "2.16.4",
+    "@parcel/transformer-vue": "2.16.4",
     "htmlhint": "1.9.2",
     "publint": "0.3.24",
     "prettier": "3.9.6",
