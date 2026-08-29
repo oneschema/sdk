@@ -64,6 +64,58 @@ function OneSchemaExample() {
 }
 ```
 
+## API reference
+
+The tables below are generated from the TypeScript types by `yarn docs:api` —
+edit the JSDoc in `src/OneSchemaImporter.tsx` and the importer's `src/config.ts`,
+not the tables.
+
+### Props
+
+Every option of [`@oneschema/importer`](https://www.npmjs.com/package/@oneschema/importer)
+can also be passed as a prop; they are forwarded to the importer as launch
+params.
+
+<!-- BEGIN GENERATED react-props -->
+
+| Prop             | Type                                      | Required | Default | Description                                                                                                                                                                                             |
+| ---------------- | ----------------------------------------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `isOpen`         | `boolean`                                 | yes      |         | Whether to show the iframe or not                                                                                                                                                                       |
+| `inline`         | `boolean`                                 |          | `true`  | Whether the iframe should be rendered in the component tree. When false, the iframe is appended to document.body                                                                                        |
+| `clientId`       | `string`                                  | yes      |         | The client id from your OneSchema developer dashboard                                                                                                                                                   |
+| `className`      | `string`                                  |          |         | CSS class for the iframe                                                                                                                                                                                |
+| `devMode`        | `boolean`                                 |          |         | Whether to launch the importer in dev mode, which shows the iframe even when launching fails                                                                                                            |
+| `languageCode`   | `string`                                  |          |         | Language code (like 'en' or 'zh') to force the importer language. By default, uses the user's set language. Requires enterprise licensing                                                               |
+| `saveSession`    | `boolean`                                 |          |         | Whether to save session information to local storage and enable resuming                                                                                                                                |
+| `baseUrl`        | `string`                                  |          |         | The base URL for the iframe. By default uses OneSchema's production instance                                                                                                                            |
+| `style`          | `React.CSSProperties`                     |          |         | CSS styles that should be applied to the iframe                                                                                                                                                         |
+| `onRequestClose` | `() => void`                              |          |         | Handler for when the importer wants to close should set isOpen prop to false                                                                                                                            |
+| `onSuccess`      | `(data: OneSchemaImportResult) => void`   |          |         | Handler for when the importing flow completes successfully                                                                                                                                              |
+| `onCancel`       | `() => void`                              |          |         | Handler for when the importing flow is cancelled by user                                                                                                                                                |
+| `onError`        | `(error: OneSchemaError) => void`         |          |         | Handler for when an error occurs during the import                                                                                                                                                      |
+| `onPageLoad`     | `() => void`                              |          |         | Handler for when the embedded Importer page is loaded behind the scenes.                                                                                                                                |
+| `onLaunched`     | `(result: OneSchemaLaunchStatus) => void` |          |         | Handler for when the importer is launched (aka is ready to be shown) Or when launching fails, based on result                                                                                           |
+| `onUserActivity` | `() => void`                              |          |         | Handler for when user activity is detected inside the importer iframe. Useful for resetting session idle timers in the host application. This event is throttled (fired at most once every 30 seconds). |
+
+<!-- END GENERATED react-props -->
+
+### Events
+
+Each event below is exposed as the matching `on*` prop.
+
+<!-- BEGIN GENERATED importer-events -->
+
+| Event           | Listener arguments      | Description                                                                                                                             |
+| --------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `page-loaded`   | `Record<string, never>` | The embedded importer page finished loading behind the scenes                                                                           |
+| `launched`      | `OneSchemaLaunchStatus` | The import session was launched, or launching it failed                                                                                 |
+| `success`       | `OneSchemaImportResult` | The user finished importing. For `local` imports the data is the payload, for `webhook` imports it summarizes the delivery              |
+| `cancel`        | none                    | The user cancelled the import                                                                                                           |
+| `error`         | `OneSchemaError`        | Something went wrong. `severity` is `fatal` when the session cannot continue                                                            |
+| `user-activity` | none                    | The user interacted with the importer. Throttled to once every 30 seconds, and useful for resetting idle timers in the host application |
+
+<!-- END GENERATED importer-events -->
+
 ## Documentation
 
 Please see [📚 OneSchema's documentation](https://docs.oneschema.co/) for [📒 API reference](https://docs.oneschema.co/docs/react#api-reference) and other helpful guides.

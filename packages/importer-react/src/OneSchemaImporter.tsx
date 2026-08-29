@@ -16,19 +16,42 @@ export interface OneSchemaImporterBaseProps {
   isOpen: boolean
 
   /**
-   * Whether the iframe should be rendered in the component tree
-   * If false or not set, the iframe will append to document.body
+   * Whether the iframe should be rendered in the component tree.
+   * When false, the iframe is appended to document.body
    */
   inline?: boolean
 
   /**
-   * These props are passed directly into the OneSchemaImporter as params
+   * The client id from your OneSchema developer dashboard
    */
   clientId: string
+
+  /**
+   * CSS class for the iframe
+   */
   className?: string
+
+  /**
+   * Whether to launch the importer in dev mode, which shows the iframe even
+   * when launching fails
+   */
   devMode?: boolean
+
+  /**
+   * Language code (like 'en' or 'zh') to force the importer language.
+   * By default, uses the user's set language. Requires enterprise licensing
+   */
   languageCode?: string
+
+  /**
+   * Whether to save session information to local storage and enable resuming
+   */
   saveSession?: boolean
+
+  /**
+   * The base URL for the iframe.
+   * By default uses OneSchema's production instance
+   */
   baseUrl?: string
 
   /**

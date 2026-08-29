@@ -526,8 +526,8 @@ export interface OneSchemaInitParams {
    */
   clientId: string
   /**
-   * Whether to launch the importer in dev mode.
-   * By default checks `process.env.NODE_ENV` for "production"
+   * Whether to launch the importer in dev mode, which shows the iframe even
+   * when launching fails
    */
   devMode?: boolean
   /**
@@ -551,17 +551,14 @@ export interface OneSchemaInitParams {
   parentId?: string
   /**
    * Whether to save session information to local storage and enable resuming
-   * Defaults to false
    */
   saveSession?: boolean
   /**
-   * Whether to close the importer when complete.
-   * Defaults to true
+   * Whether to close the importer when complete
    */
   autoClose?: boolean
   /**
-   * Whether the class should create and append iframe to DOM.
-   * Default to true
+   * Whether the class should create and append the iframe to the DOM
    */
   manageDOM?: boolean
   /**
@@ -655,10 +652,30 @@ export type OneSchemaImportResult = Record<string, any>
  * arguments
  */
 export interface OneSchemaEventMap {
+  /**
+   * The embedded importer page finished loading behind the scenes
+   */
   "page-loaded": [Record<string, never>]
+  /**
+   * The import session was launched, or launching it failed
+   */
   launched: [OneSchemaLaunchStatus]
+  /**
+   * The user finished importing. For `local` imports the data is the payload,
+   * for `webhook` imports it summarizes the delivery
+   */
   success: [OneSchemaImportResult]
+  /**
+   * The user cancelled the import
+   */
   cancel: []
+  /**
+   * Something went wrong. `severity` is `fatal` when the session cannot continue
+   */
   error: [OneSchemaError]
+  /**
+   * The user interacted with the importer. Throttled to once every 30 seconds,
+   * and useful for resetting idle timers in the host application
+   */
   "user-activity": []
 }
