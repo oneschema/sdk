@@ -99,6 +99,32 @@ params.
 
 <!-- END GENERATED react-props -->
 
+### Launch props
+
+These are forwarded to the importer when `isOpen` becomes true.
+
+<!-- BEGIN GENERATED importer-launch-options -->
+
+Launch with a user JWT and a template key:
+
+| Option                   | Type                         | Required | Default | Description                                                                                  |
+| ------------------------ | ---------------------------- | -------- | ------- | -------------------------------------------------------------------------------------------- |
+| `userJwt`                | `string`                     | yes      |         | The JSON web token for the user importing data                                               |
+| `templateKey`            | `string`                     | yes      |         | The key for the template that data will be imported for. Setup inside OneSchema before using |
+| `templateOverrides`      | `OneSchemaTemplateOverrides` |          |         | Template overrides to modify the behavior of the base template                               |
+| `importConfig`           | `ImportConfig`               |          |         | The configuration for how data should be imported from OneSchema                             |
+| `customizationKey`       | `string`                     |          |         | Key for a customization setup in OneSchema                                                   |
+| `customizationOverrides` | `ImporterCustomization`      |          |         | Customization options for how OneSchema will behave                                          |
+| `eventWebhookKeys`       | `string[]`                   |          |         | Event webhooks that should be used during an import session                                  |
+
+Or, instead of those, with a session token created through the API:
+
+| Option         | Type     | Required | Default | Description                                                              |
+| -------------- | -------- | -------- | ------- | ------------------------------------------------------------------------ |
+| `sessionToken` | `string` | yes      |         | A token for a session created through the API for initializing OneSchema |
+
+<!-- END GENERATED importer-launch-options -->
+
 ### Events
 
 Each event below is exposed as the matching `on*` prop.

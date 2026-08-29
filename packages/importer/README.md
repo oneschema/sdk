@@ -96,6 +96,8 @@ API.
 
 <!-- BEGIN GENERATED importer-launch-options -->
 
+Launch with a user JWT and a template key:
+
 | Option                   | Type                         | Required | Default | Description                                                                                  |
 | ------------------------ | ---------------------------- | -------- | ------- | -------------------------------------------------------------------------------------------- |
 | `userJwt`                | `string`                     | yes      |         | The JSON web token for the user importing data                                               |
@@ -105,7 +107,12 @@ API.
 | `customizationKey`       | `string`                     |          |         | Key for a customization setup in OneSchema                                                   |
 | `customizationOverrides` | `ImporterCustomization`      |          |         | Customization options for how OneSchema will behave                                          |
 | `eventWebhookKeys`       | `string[]`                   |          |         | Event webhooks that should be used during an import session                                  |
-| `sessionToken`           | `string`                     | yes      |         | A token for a session created through the API for initializing OneSchema                     |
+
+Or, instead of those, with a session token created through the API:
+
+| Option         | Type     | Required | Default | Description                                                              |
+| -------------- | -------- | -------- | ------- | ------------------------------------------------------------------------ |
+| `sessionToken` | `string` | yes      |         | A token for a session created through the API for initializing OneSchema |
 
 <!-- END GENERATED importer-launch-options -->
 

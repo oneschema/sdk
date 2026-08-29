@@ -142,10 +142,17 @@ const sections = {
     members(config, "OneSchemaInitParams"),
     defaultValues,
   ),
-  "importer-launch-options": optionTable([
-    ...members(config, "OneSchemaLaunchParams"),
-    ...members(config, "OneSchemaLaunchSessionParams"),
-  ]),
+  // The two launch interfaces are alternatives (`OneSchemaLaunchParamOptions`
+  // is their union), so they cannot be one table of required options.
+  "importer-launch-options": [
+    "Launch with a user JWT and a template key:",
+    "",
+    optionTable(members(config, "OneSchemaLaunchParams")),
+    "",
+    "Or, instead of those, with a session token created through the API:",
+    "",
+    optionTable(members(config, "OneSchemaLaunchSessionParams")),
+  ].join("\n"),
   "importer-events": eventTable(members(config, "OneSchemaEventMap")),
   "react-props": optionTable(
     members(react, "OneSchemaImporterBaseProps"),
@@ -160,7 +167,13 @@ const files = {
     "importer-launch-options",
     "importer-events",
   ],
-  "packages/importer-react/README.md": ["react-props", "importer-events"],
+  // The component forwards the launch options it does not consume itself, so
+  // its reference needs them too.
+  "packages/importer-react/README.md": [
+    "react-props",
+    "importer-launch-options",
+    "importer-events",
+  ],
 }
 
 let stale = false

@@ -366,6 +366,11 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       return
     }
 
+    if (clean) {
+      this.destroy()
+      return
+    }
+
     this.#hide()
     if (this.iframe && OneSchemaImporterClass.#iframeIsLoaded) {
       this.#iframeEventEmit({ messageType: "close" })
@@ -375,10 +380,6 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     this.#hasAppReceivedInitMessage = false
     this.#hasLaunched = false
     this.#hasCancelled = true
-
-    if (clean) {
-      this.destroy()
-    }
   }
 
   /**

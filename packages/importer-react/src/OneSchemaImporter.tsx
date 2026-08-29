@@ -1,6 +1,7 @@
 import oneschemaImporter, {
   OneSchemaError,
   OneSchemaErrorSeverity,
+  OneSchemaImporterClass,
   OneSchemaImportResult,
   OneSchemaLaunchParamOptions,
   OneSchemaLaunchStatus,
@@ -128,23 +129,20 @@ export default function OneSchemaImporter({
     manageDOM: !inline,
   })
 
-  const createImporter = useCallback(() => {
-    const instance = oneschemaImporter(initParams.current)
-    instance.setClient("React", version)
-    return instance
-  }, [])
-
-  const [importer, setImporter] = useState(createImporter)
+  // The instance is owned by a mount effect rather than by lazy state: it is
+  // destroyed on unmount, and a destroyed instance is inert, so every setup —
+  // including the second one strict mode triggers — needs its own instance.
+  const [importer, setImporter] = useState<OneSchemaImporterClass | null>(null)
 
   useEffect(() => {
+    const instance = oneschemaImporter(initParams.current)
+    instance.setClient("React", version)
+    setImporter(instance)
+
     return () => {
-      importer?.destroy()
-      // A destroyed instance stays inert, so replace it. On a real unmount the
-      // update is dropped; under React strict mode it gives the second setup a
-      // usable importer.
-      setImporter(() => createImporter())
+      instance.destroy()
     }
-  }, [importer, createImporter])
+  }, [])
 
   useEffect(() => {
     if (importer) {
