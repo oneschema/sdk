@@ -38,8 +38,9 @@ yarn check
 CI runs `yarn build`, `yarn check:packages`, `yarn check:ranges`,
 `yarn check:install`, `yarn check`, and `yarn test:ci` on every pull request,
 plus actionlint and a bundle-size report comment. The release workflow runs
-`check:ranges` and `check:install` in a credential-free step before the publish
-step, and `yarn release` re-runs `check:ranges` before `changeset publish`.
+`check:ranges` and `check:install` in a separate read-only `verify` job that the
+publish job depends on, and `yarn release` re-runs `check:ranges` before
+`changeset publish`.
 
 ## Core compatibility
 
@@ -69,11 +70,12 @@ Two checks enforce this, on pull requests and again before publishing:
   only the `@oneschema/angular` tarball gets the current published core, and
   links the Angular bundle with the Angular linker to confirm the entry point
   is consumable. Because it installs and executes packed bundles, it never runs
-  in a credentialed step: the release workflow runs it before publish
-  credentials are configured, its installs use `--ignore-scripts` and empty npm
-  config files, and linking and importing the bundle happens in a separate
-  `scripts/check-angular-entry-point.mjs` process with release tokens stripped
-  from its environment.
+  in a credentialed step: the release workflow runs it in a `verify` job that
+  only has `contents: read` (no publish token, no `id-token`), its installs use
+  `--ignore-scripts` and empty npm config files, its child processes get an
+  allowlisted environment rather than the caller's, and linking and importing
+  the bundle happens in a separate `scripts/check-angular-entry-point.mjs`
+  process.
 
 When bumping the core's minor version, widen the wrappers' ranges in the same
 pull request and add a changeset for each wrapper.
