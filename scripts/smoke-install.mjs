@@ -45,20 +45,33 @@ const createProject = async (directory, name) => {
   return directory
 }
 
-// `yarn release` runs this script in a job that holds publish credentials, so
-// no child npm process may see them: strip the tokens and any npm
-// authentication configuration from the environment, and never run lifecycle
-// scripts of the installed dependencies.
-const childEnvironment = Object.fromEntries(
-  Object.entries(process.env).filter(
-    ([key]) =>
-      !/^(NPM_TOKEN|NODE_AUTH_TOKEN|GITHUB_TOKEN)$/.test(key) &&
-      !/^YARN_NPM_AUTH/i.test(key) &&
-      !/^npm_config_.*(_authtoken|_auth|_password|username|token)$/i.test(key),
-  ),
-)
-
 const installFlags = ["--no-audit", "--no-fund", "--ignore-scripts", "--strict-peer-deps"]
+
+const failures = []
+const workDirectory = await mkdtemp(join(tmpdir(), "oneschema-smoke-"))
+const tarballDirectory = join(workDirectory, "tarballs")
+await mkdir(tarballDirectory, { recursive: true })
+
+// `yarn release` runs this script in a job that holds publish credentials, so
+// no child npm process may see them: drop the tokens from the environment,
+// point npm at empty user and global config files instead of the runner's
+// credentialed ones, and never run lifecycle scripts of installed packages.
+const emptyUserNpmrc = join(workDirectory, "user.npmrc")
+const emptyGlobalNpmrc = join(workDirectory, "global.npmrc")
+await writeFile(emptyUserNpmrc, "")
+await writeFile(emptyGlobalNpmrc, "")
+const childEnvironment = {
+  ...Object.fromEntries(
+    Object.entries(process.env).filter(
+      ([key]) =>
+        !/^(NPM_TOKEN|NODE_AUTH_TOKEN|GITHUB_TOKEN)$/.test(key) &&
+        !/^YARN_NPM_AUTH/i.test(key) &&
+        !/^npm_config_.*(_authtoken|_auth|_password|username|token)$/i.test(key),
+    ),
+  ),
+  NPM_CONFIG_USERCONFIG: emptyUserNpmrc,
+  NPM_CONFIG_GLOBALCONFIG: emptyGlobalNpmrc,
+}
 
 const run = (command, args, options = {}) => {
   console.log(`$ ${command} ${args.join(" ")}`)
@@ -77,11 +90,6 @@ const run = (command, args, options = {}) => {
     stderr: result.stderr ?? "",
   }
 }
-
-const failures = []
-const workDirectory = await mkdtemp(join(tmpdir(), "oneschema-smoke-"))
-const tarballDirectory = join(workDirectory, "tarballs")
-await mkdir(tarballDirectory, { recursive: true })
 
 try {
   const corePackageJson = await readJson(join(repoRoot, "packages/importer/package.json"))
@@ -132,8 +140,10 @@ try {
   // 3: a consumer installing only the Angular wrapper must get the current
   // core from the registry. Skipped while the core in this repository is not
   // published yet (during a release the wrapper is published moments later).
+  // Run outside the repository so no project `.npmrc` applies either.
   const registryVersions = run("npm", ["view", "@oneschema/importer", "version"], {
     capture: true,
+    cwd: workDirectory,
   })
   const publishedCoreVersion = registryVersions.stdout.trim()
   if (registryVersions.status !== 0) {
