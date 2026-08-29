@@ -53,7 +53,10 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          persist-credentials: false
+          # The changesets action pushes the version branch and the
+          # `<package>@<version>` tags that identify what a release was built
+          # from, so it needs the credentials to stay in the git config.
+          persist-credentials: true
 
       - name: Enable Corepack
         run: corepack enable
@@ -69,6 +72,7 @@ jobs:
         run: yarn install --immutable
 
       - name: Create release or publish packages
+        id: changesets
         uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -78,3 +82,26 @@ jobs:
         with:
           version: yarn changeset version
           publish: yarn release
+
+      - name: Check that the release is tagged
+        if: steps.changesets.outputs.published == 'true'
+        env:
+          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
+        run: |
+          git fetch --tags --quiet
+          missing=0
+          while read -r tag; do
+            if git rev-parse -q --verify "refs/tags/${tag}" > /dev/null; then
+              echo "tagged ${tag}"
+            else
+              echo "::error::${tag} was published but not tagged"
+              missing=1
+            fi
+          done < <(node -e 'for (const p of JSON.parse(process.env.PUBLISHED_PACKAGES || "[]")) console.log(p.name + "@" + p.version)')
+          exit "${missing}"
+
+      # Tags pushed with GITHUB_TOKEN do not start a workflow run, so the
+      # verification cannot rely on the `Verify release` tag trigger.
+      - name: Compare the published packages with this revision
+        if: steps.changesets.outputs.published == 'true'
+        run: node scripts/verify-published.mjs

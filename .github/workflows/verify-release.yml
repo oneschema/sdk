@@ -1,0 +1,46 @@
+name: Verify release
+
+on:
+  push:
+    tags:
+      - "@oneschema/*"
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Tag (or other ref) whose build should match the registry
+        required: true
+
+concurrency:
+  group: verify-release-${{ github.event.inputs.ref || github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the released revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+          persist-credentials: false
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Build packages
+        run: yarn build
+
+      - name: Compare the published packages with this revision
+        run: node scripts/verify-published.mjs
