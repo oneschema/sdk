@@ -43,9 +43,13 @@ step, and `yarn release` re-runs `check:ranges` before `changeset publish`.
 
 ## Core compatibility
 
-The wrappers (`@oneschema/react`, `@oneschema/vue`, `@oneschema/angular`) and
-`@oneschema/filefeeds-react` must always admit the core version this repository
-would release. React and Vue depend on `@oneschema/importer` directly;
+Every published package here that references another one — `@oneschema/react`,
+`@oneschema/vue` and `@oneschema/angular` on `@oneschema/importer`, and
+`@oneschema/filefeeds-react` on `@oneschema/filefeeds` — must always admit the
+version of that package this repository would release. `@oneschema/filefeeds`
+and `@oneschema/importer` are standalone cores with no internal references, so
+they have nothing to widen themselves. React and Vue depend on
+`@oneschema/importer` directly;
 `@oneschema/angular` declares it as a peer dependency so the host application
 resolves a single copy of the core. Either way the declared range must include
 the current core version — `@oneschema/angular@0.7.5` shipped with a
