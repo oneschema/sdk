@@ -36,7 +36,7 @@ for (const [name, { workspace, packageJson }] of workspacePackages) {
       }
 
       const version = target.packageJson.version
-      if (semver.satisfies(version, range, { includePrerelease: true })) {
+      if (semver.satisfies(version, range)) {
         console.log(`ok  ${name} ${field}.${dependency} ${range} admits ${version}`)
         continue
       }
