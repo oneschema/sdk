@@ -63,7 +63,10 @@ Two checks enforce this, on pull requests and again before publishing:
   resolved `@oneschema/importer` version, checks that a consumer installing
   only the `@oneschema/angular` tarball gets the current published core, and
   links the Angular bundle with the Angular linker to confirm the entry point
-  is consumable.
+  is consumable. Every child process it spawns runs with release credentials
+  stripped from the environment, with `--ignore-scripts`, and against empty
+  npm config files; linking and importing the packed bundle happens in a
+  separate `scripts/check-angular-entry-point.mjs` process.
 
 When bumping the core's minor version, widen the wrappers' ranges in the same
 pull request and add a changeset for each wrapper.

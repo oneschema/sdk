@@ -16,7 +16,6 @@
 // Run with `yarn check:install`.
 
 import { spawnSync } from "node:child_process"
-import { createRequire } from "node:module"
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
@@ -189,7 +188,7 @@ try {
 
   // 4: the installed Angular entry point links and exposes the public API.
   if (install.status === 0) {
-    const angularFailure = await checkAngularEntryPoint(
+    const angularFailure = checkAngularEntryPoint(
       join(packedProject, "node_modules/@oneschema/angular"),
     )
     if (angularFailure) {
@@ -216,44 +215,21 @@ if (failures.length > 0) {
   console.log("\nAll tarball install smoke checks passed.")
 }
 
-async function checkAngularEntryPoint(packageDirectory) {
-  const packageJson = await readJson(join(packageDirectory, "package.json"))
-  const entryPoint = packageJson.exports?.["."]?.default
-  if (!entryPoint) {
-    return "@oneschema/angular does not declare a default export condition"
-  }
-
-  const angularRequire = createRequire(
-    join(repoRoot, "packages/importer-angular/package.json"),
+// Linking and importing the packed bundle executes its module-level code, so
+// it runs in a separate process with the credential-free environment rather
+// than in this one. The child prints `fail: <reason>` and exits non-zero when
+// the bundle is not consumable.
+function checkAngularEntryPoint(packageDirectory) {
+  const checker = run(
+    "node",
+    [join(repoRoot, "scripts/check-angular-entry-point.mjs"), packageDirectory, repoRoot],
+    { capture: true, cwd: workDirectory },
   )
-  const { transformAsync } = angularRequire("@babel/core")
-  const linker = angularRequire("@angular/compiler-cli/linker/babel")
-  const source = await readFile(join(packageDirectory, entryPoint), "utf8")
-  const linked = await transformAsync(source, {
-    filename: "oneschema-angular.mjs",
-    plugins: [linker.default ?? linker],
-    configFile: false,
-    babelrc: false,
-    sourceMaps: false,
-  })
-
-  if (/ɵɵngDeclare/.test(linked.code)) {
-    return "the Angular linker left partial declarations in the published bundle"
+  if (checker.status === 0) {
+    return undefined
   }
-
-  const linkedPath = join(packageDirectory, "linked-smoke-check.mjs")
-  try {
-    await writeFile(linkedPath, linked.code)
-    const module = await import(`file://${linkedPath}`)
-    const missing = ["OneSchemaModule", "OneSchemaService", "OneSchemaButton"].filter(
-      (name) => !(name in module),
-    )
-    if (missing.length > 0) {
-      return `@oneschema/angular is missing exports: ${missing.join(", ")}`
-    }
-  } finally {
-    await rm(linkedPath, { force: true })
-  }
-
-  return undefined
+  const output = `${checker.stdout}${checker.stderr}`.trim()
+  return output.startsWith("fail:")
+    ? output.slice("fail:".length).trim()
+    : `the Angular entry point check failed: ${output}`
 }
