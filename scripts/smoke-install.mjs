@@ -51,9 +51,11 @@ const workDirectory = await mkdtemp(join(tmpdir(), "oneschema-smoke-"))
 const tarballDirectory = join(workDirectory, "tarballs")
 await mkdir(tarballDirectory, { recursive: true })
 
-// `yarn release` runs this script in a job that holds publish credentials, so
-// no child npm process may see them: drop the tokens from the environment,
-// point npm at empty user and global config files instead of the runner's
+// This script may run in a context that holds publish credentials, so no child
+// process may see them: drop the tokens and every `npm_config_*` variable from
+// the environment (npm reads those case-insensitively, so a surviving
+// lowercase `npm_config_userconfig` would override the empty config below),
+// point npm at empty user and global config files instead of the caller's
 // credentialed ones, and never run lifecycle scripts of installed packages.
 const emptyUserNpmrc = join(workDirectory, "user.npmrc")
 const emptyGlobalNpmrc = join(workDirectory, "global.npmrc")
@@ -63,9 +65,9 @@ const childEnvironment = {
   ...Object.fromEntries(
     Object.entries(process.env).filter(
       ([key]) =>
-        !/^(NPM_TOKEN|NODE_AUTH_TOKEN|GITHUB_TOKEN)$/.test(key) &&
+        !/^(NPM_TOKEN|NODE_AUTH_TOKEN|GITHUB_TOKEN)$/i.test(key) &&
         !/^YARN_NPM_AUTH/i.test(key) &&
-        !/^npm_config_.*(_authtoken|_auth|_password|username|token)$/i.test(key),
+        !/^npm_config_/i.test(key),
     ),
   ),
   NPM_CONFIG_USERCONFIG: emptyUserNpmrc,
