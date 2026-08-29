@@ -1,6 +1,5 @@
 {
   "name": "@oneschema/angular",
-  "private": false,
   "version": "0.7.5",
   "description": "Angular module for embedding OneSchema Importer",
   "author": "OneSchema",
@@ -26,8 +25,8 @@
     "tslib": "^2.x"
   },
   "peerDependencies": {
-    "@oneschema/importer": "^0.7.0",
     "@angular/common": ">=15",
-    "@angular/core": ">=15"
+    "@angular/core": ">=15",
+    "@oneschema/importer": "^0.7.0"
   }
 }

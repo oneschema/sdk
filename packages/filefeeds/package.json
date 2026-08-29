@@ -1,6 +1,5 @@
 {
   "name": "@oneschema/filefeeds",
-  "private": false,
   "version": "0.5.3",
   "description": "OneSchema FileFeeds embedding library",
   "author": "OneSchema",

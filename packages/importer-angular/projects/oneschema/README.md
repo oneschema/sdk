@@ -19,6 +19,22 @@ You can install this package with npm:
 npm i --save @oneschema/angular @oneschema/importer
 ```
 
+### Compatibility
+
+`@oneschema/angular` keeps `@oneschema/importer` as a peer dependency so that
+your application resolves a single copy of the importer core, and its peer
+range always admits the core released alongside it: a given
+`@oneschema/angular` release requires the matching `@oneschema/importer` minor
+(currently `^0.7.0`). Install both packages together, and upgrade them
+together.
+
+The package is published in the Angular Package Format with partial-Ivy
+bundles, which the Angular linker in your application's build fully compiles
+ahead of time. It supports Angular 15 and newer (`@angular/core` and
+`@angular/common` `>=15`); the packaged bundles are verified by building
+scratch applications on Angular 15, 20 and 22, and the library itself is built
+and unit tested against Angular 16.
+
 ### Sample usage
 
 Add the OneSchemaModule to your `app.module`:

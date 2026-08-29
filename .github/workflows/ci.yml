@@ -40,6 +40,12 @@ jobs:
       - name: Check packaging
         run: yarn run check:packages
 
+      - name: Check internal dependency ranges
+        run: yarn run check:ranges
+
+      - name: Smoke install packed tarballs
+        run: yarn run check:install
+
       - name: Check packages
         run: yarn run check
 
