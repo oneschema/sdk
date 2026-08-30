@@ -483,6 +483,30 @@ export enum OneSchemaLaunchError {
   MissingSessionToken,
   LaunchError,
   Destroyed,
+  /**
+   * The embed never acknowledged the init message within `initTimeoutMs`,
+   * usually because the browser blocked the iframe
+   */
+  Timeout,
+  /**
+   * The launch was abandoned by `close()`, `destroy()` or a newer `launch()`
+   * before the import session started
+   */
+  Cancelled,
+}
+
+/**
+ * The running import session `launch()` resolves with
+ */
+export interface OneSchemaLaunchInfo {
+  /**
+   * The session token for the running import, when there is one
+   */
+  sessionToken?: string
+  /**
+   * The embed id for the running import, when the embed reported one
+   */
+  embedId?: string
 }
 
 export interface OneSchemaLaunchStatus {
@@ -516,6 +540,11 @@ export interface OneSchemaLaunchStatus {
    * one was included
    */
   data?: unknown
+  /**
+   * If success is false, an id shared with the `launch()` rejection for the
+   * same attempt, so a support report can name one launch
+   */
+  correlationId?: string
 }
 
 /**
@@ -572,6 +601,12 @@ export interface OneSchemaInitParams {
    * By default uses OneSchema's production instance
    */
   baseUrl?: string
+  /**
+   * How long to wait for the embed to acknowledge the init message before
+   * `launch()` rejects with `OneSchemaLaunchError.Timeout`, in milliseconds.
+   * Raise it for hosts on slow or distant connections. Defaults to 20000
+   */
+  initTimeoutMs?: number
 }
 
 /**
@@ -632,6 +667,7 @@ export const DEFAULT_PARAMS: Partial<OneSchemaParams> = {
   baseUrl: "https://embed.oneschema.co",
   devMode: !!(process.env.NODE_ENV !== "production"),
   className: "oneschema-iframe",
+  initTimeoutMs: 20000,
   autoClose: true,
   manageDOM: true,
   saveSession: true,
@@ -653,10 +689,38 @@ export interface OneSchemaError {
 export type OneSchemaImporterStatus = "idle" | "launching" | "launched" | "destroyed"
 
 /**
- * The result of an import, either passed through to the frontend or
- * summarizing the webhook delivery
+ * An import the host receives the rows for directly
  */
-export type OneSchemaImportResult = Record<string, any>
+export interface OneSchemaLocalImportResult {
+  type: "local"
+  data: Record<string, unknown>
+}
+
+/**
+ * An import OneSchema delivered to the configured webhook
+ */
+export interface OneSchemaWebhookImportResult {
+  type: "webhook"
+  eventId?: string
+  responses?: unknown[]
+}
+
+/**
+ * An import OneSchema wrote to the file the host provided, described by the
+ * metadata the embed reports back
+ */
+export interface OneSchemaFileUploadImportResult {
+  type: "file-upload"
+  data: Record<string, unknown>
+}
+
+/**
+ * The result of an import, discriminated by how the data was delivered
+ */
+export type OneSchemaImportResult =
+  | OneSchemaLocalImportResult
+  | OneSchemaWebhookImportResult
+  | OneSchemaFileUploadImportResult
 
 /**
  * The events emitted by the OneSchema importer, mapped to their listener

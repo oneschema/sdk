@@ -2,7 +2,19 @@ const assert = require("node:assert/strict")
 const { mock, test } = require("node:test")
 
 const { version } = require("../package.json")
-const { OneSchemaImporterClass } = require("../dist/main.js")
+const {
+  OneSchemaImporterClass,
+  OneSchemaLaunchError,
+  OneSchemaLaunchFailure,
+} = require("../dist/main.js")
+
+// launch() rejects on failure, and most tests here only care about the state
+// left behind, so the rejection is kept but not left floating.
+function launch(importer, params) {
+  const launched = importer.launch(params)
+  launched.catch(() => {})
+  return launched
+}
 
 function createImporter(params) {
   const listeners = []
@@ -11,6 +23,7 @@ function createImporter(params) {
       listeners.push(listener)
     },
     removeEventListener() {},
+    location: { origin: "https://host.test" },
   }
 
   const messages = []
@@ -42,7 +55,7 @@ function createImporter(params) {
 }
 
 function postInitMessage(importer, iframe, messages) {
-  importer.launch()
+  launch(importer)
   iframe.onload()
   importer.close(true)
   return messages[0].payload
@@ -59,11 +72,11 @@ test("posts the core package version on init messages", () => {
 
 test("waits for its own iframe to load before initializing", () => {
   const first = createImporter()
-  first.importer.launch()
+  launch(first.importer)
   first.iframe.onload()
 
   const second = createImporter()
-  second.importer.launch()
+  launch(second.importer)
 
   assert.deepEqual(second.messages, [])
 
@@ -85,7 +98,7 @@ test("releases only its own iframe on destroy", () => {
   assert.equal(first.importer.iframe, undefined)
   assert.equal(second.importer.iframe, second.iframe)
 
-  second.importer.launch()
+  launch(second.importer)
   second.iframe.onload()
 
   assert.equal(second.messages.length, 1)
@@ -97,7 +110,7 @@ test("defaults the file-upload format without touching the caller's config", () 
   const { iframe, importer, messages } = createImporter()
   const importConfig = { type: "file-upload", url: "https://upload.test/file" }
 
-  importer.launch({ importConfig })
+  launch(importer, { importConfig })
   iframe.onload()
 
   assert.equal(messages[0].payload.importConfig.format, "csv")
@@ -109,15 +122,152 @@ test("defaults the file-upload format without touching the caller's config", () 
   importer.destroy()
 })
 
-test("stays idle when launch params are invalid", () => {
+test("rejects and stays idle when launch params are invalid", async () => {
   const importer = new OneSchemaImporterClass({
     baseUrl: "https://embed.test",
     clientId: "client-id",
     manageDOM: false,
   })
 
-  assert.equal(importer.launch().success, false)
+  const failures = []
+  importer.on("launched", (status) => failures.push(status))
+
+  const failure = await importer.launch().then(
+    () => assert.fail("launch should not resolve without a userJwt"),
+    (error) => error,
+  )
+
+  assert.ok(failure instanceof OneSchemaLaunchFailure)
+  assert.equal(failure.error, OneSchemaLaunchError.MissingJwt)
   assert.equal(importer.status, "idle")
+  assert.equal(failures.length, 1)
+  assert.equal(failures[0].correlationId, failure.correlationId)
+
+  importer.destroy()
+})
+
+test("resolves with the running session once the embed launches", async () => {
+  const { iframe, importer, post } = createImporter()
+
+  const launched = importer.launch()
+  iframe.onload()
+  post({ messageType: "launched", sessionToken: "session-token", embedId: "embed-id" })
+
+  assert.deepEqual(await launched, {
+    sessionToken: "session-token",
+    embedId: "embed-id",
+  })
+  assert.equal(importer.status, "launched")
+
+  importer.destroy()
+})
+
+test("rejects as soon as the embed reports a launch error", async () => {
+  mock.timers.enable({ apis: ["setTimeout"] })
+
+  try {
+    const { iframe, importer, post } = createImporter({ autoClose: false })
+
+    const launched = importer.launch()
+    iframe.onload()
+    post({
+      messageType: "launch-error",
+      message: { message: "invalid template", status: 422, data: { code: "bad" } },
+    })
+
+    const failure = await launched.then(
+      () => assert.fail("launch should not resolve after launch-error"),
+      (error) => error,
+    )
+
+    assert.equal(failure.error, OneSchemaLaunchError.LaunchError)
+    assert.equal(failure.message, "invalid template")
+    assert.equal(failure.status, 422)
+    assert.deepEqual(failure.data, { code: "bad" })
+    assert.deepEqual(failure.cause, {
+      message: "invalid template",
+      status: 422,
+      data: { code: "bad" },
+    })
+
+    importer.destroy()
+  } finally {
+    mock.timers.reset()
+  }
+})
+
+test("rejects with a timeout when the embed never acknowledges init", async () => {
+  mock.timers.enable({ apis: ["setTimeout"] })
+
+  try {
+    const { iframe, importer, messages } = createImporter({
+      autoClose: false,
+      initTimeoutMs: 1000,
+    })
+
+    const launched = importer.launch()
+    iframe.onload()
+
+    assert.equal(messages.length, 1)
+
+    // Each tick only runs the timers already scheduled, and every retry
+    // schedules the next one.
+    mock.timers.tick(500)
+    mock.timers.tick(500)
+    mock.timers.tick(500)
+
+    const failure = await launched.then(
+      () => assert.fail("launch should not resolve without an acknowledgement"),
+      (error) => error,
+    )
+
+    assert.equal(failure.error, OneSchemaLaunchError.Timeout)
+    assert.equal(messages.length, 2)
+    assert.equal(importer.status, "idle")
+
+    importer.destroy()
+  } finally {
+    mock.timers.reset()
+  }
+})
+
+test("rejects the launch in flight when the importer is closed", async () => {
+  const { iframe, importer } = createImporter()
+
+  const launched = importer.launch()
+  iframe.onload()
+  importer.close()
+
+  const failure = await launched.then(
+    () => assert.fail("launch should not resolve after close"),
+    (error) => error,
+  )
+
+  assert.equal(failure.error, OneSchemaLaunchError.Cancelled)
+
+  importer.destroy()
+})
+
+test("tags the import result with how the data was delivered", async () => {
+  const results = []
+  const { iframe, importer, post } = createImporter({ autoClose: false })
+  importer.on("success", (result) => results.push(result))
+
+  launch(importer)
+  iframe.onload()
+  post({ messageType: "complete", data: { rows: [] } })
+  post({ messageType: "complete", eventId: "event-id", responses: [{ status: 200 }] })
+
+  launch(importer, {
+    importConfig: { type: "file-upload", url: "https://upload.test/file" },
+  })
+  post({ messageType: "complete", data: { count: 2 } })
+
+  assert.deepEqual(results, [
+    { type: "local", data: { rows: [] } },
+    { type: "webhook", eventId: "event-id", responses: [{ status: 200 }] },
+    { type: "file-upload", data: { count: 2 } },
+  ])
 
   importer.destroy()
 })
@@ -130,7 +280,7 @@ test("returns to idle and stops retrying when the embed rejects the launch", () 
       autoClose: false,
     })
 
-    importer.launch()
+    launch(importer)
     iframe.onload()
 
     assert.equal(importer.status, "launching")
@@ -156,7 +306,7 @@ test("can relaunch after the embed acknowledged the rejected launch", () => {
     autoClose: false,
   })
 
-  importer.launch()
+  launch(importer)
   iframe.onload()
 
   post({ messageType: "init-received" })
@@ -164,7 +314,7 @@ test("can relaunch after the embed acknowledged the rejected launch", () => {
 
   assert.equal(importer.status, "idle")
 
-  importer.launch()
+  launch(importer)
 
   assert.equal(messages.length, 2)
   assert.equal(importer.status, "launching")
@@ -177,7 +327,7 @@ test("reports where the instance is in its lifecycle", () => {
 
   assert.equal(importer.status, "idle")
 
-  importer.launch()
+  launch(importer)
   iframe.onload()
 
   assert.equal(importer.status, "launching")

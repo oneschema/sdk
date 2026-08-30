@@ -7,21 +7,31 @@ import {
   OneSchemaErrorSeverity,
   OneSchemaEventMap,
   OneSchemaImporterStatus,
+  OneSchemaImportResult,
   OneSchemaInitMessage,
   OneSchemaInitSessionMessage,
   OneSchemaInitSimpleMessage,
   OneSchemaLaunchError,
+  OneSchemaLaunchInfo,
   OneSchemaLaunchParams,
   OneSchemaLaunchSessionParams,
   OneSchemaLaunchStatus,
   OneSchemaParams,
   OneSchemaSharedInitParams,
 } from "./config"
+import { OneSchemaLaunchFailure } from "./launch-failure"
 import { merged } from "./shared/utils"
 
-const MAX_LAUNCH_RETRY = 40
-
 const LAUNCH_RETRY_DELAY_MS = 500
+
+const CANCELLED_MESSAGE =
+  "OneSchema launch was cancelled before the import session started"
+
+let correlationCount = 0
+
+function correlationId(): string {
+  return `${Date.now().toString(36)}-${++correlationCount}`
+}
 
 let iframeCount = 0
 
@@ -81,6 +91,11 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
   #hasReceivedFrameMessage = false
   #iframeIsLoaded = false
   #launchOnLoad = false
+  #pendingLaunch?: {
+    correlationId: string
+    resolve: (info: OneSchemaLaunchInfo) => void
+    reject: (failure: OneSchemaLaunchFailure) => void
+  }
 
   constructor(params: OneSchemaParams) {
     super()
@@ -243,14 +258,10 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
    */
   launch(
     launchParams?: Partial<OneSchemaLaunchParams> & Partial<OneSchemaLaunchSessionParams>,
-  ): OneSchemaLaunchStatus {
+  ): Promise<OneSchemaLaunchInfo> {
     if (this.#destroyed) {
       console.error(DESTROYED_MESSAGE)
-      return {
-        success: false,
-        error: OneSchemaLaunchError.Destroyed,
-        message: DESTROYED_MESSAGE,
-      }
+      return this.#rejectLaunch(OneSchemaLaunchError.Destroyed, DESTROYED_MESSAGE)
     }
 
     const mergedParams = merged(this.#params, launchParams)
@@ -289,21 +300,15 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
         eventWebhookKeys: mergedParams.eventWebhookKeys,
       }
       if (!message.userJwt) {
-        console.error("OneSchema config error: missing userJwt")
-        this.emit("launched", {
-          success: false,
-          error: OneSchemaLaunchError.MissingJwt,
-        })
-        return { success: false, error: OneSchemaLaunchError.MissingJwt }
+        const msg = "OneSchema config error: missing userJwt"
+        console.error(msg)
+        return this.#rejectLaunch(OneSchemaLaunchError.MissingJwt, msg)
       }
 
       if (!message.templateKey) {
-        console.error("OneSchema config error: missing templateKey")
-        this.emit("launched", {
-          success: false,
-          error: OneSchemaLaunchError.MissingTemplate,
-        })
-        return { success: false, error: OneSchemaLaunchError.MissingTemplate }
+        const msg = "OneSchema config error: missing templateKey"
+        console.error(msg)
+        return this.#rejectLaunch(OneSchemaLaunchError.MissingTemplate, msg)
       }
 
       if (mergedParams.saveSession) {
@@ -319,10 +324,64 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       }
     }
 
+    // A launch already in flight is abandoned rather than joined: its params
+    // are not the ones the caller just passed.
+    this.#cancelPendingLaunch()
+
     this.#initMessage = message as OneSchemaInitMessage
     this.#hasAttemptedLaunch = true
+
+    const launched = new Promise<OneSchemaLaunchInfo>((resolve, reject) => {
+      this.#pendingLaunch = { correlationId: correlationId(), resolve, reject }
+    })
+
     this.#launch()
-    return { success: true }
+    return launched
+  }
+
+  /**
+   * Report a launch failure the caller can see before anything was posted to
+   * the embed: the `launched` event and the rejection share a correlation id.
+   */
+  #rejectLaunch(
+    error: OneSchemaLaunchError,
+    message: string,
+    detail: { status?: number; data?: unknown } = {},
+  ): Promise<OneSchemaLaunchInfo> {
+    const failure = new OneSchemaLaunchFailure(error, message, correlationId(), detail)
+    this.emit("launched", {
+      success: false,
+      error,
+      message,
+      correlationId: failure.correlationId,
+      ...detail,
+    })
+    return Promise.reject(failure)
+  }
+
+  #cancelPendingLaunch() {
+    this.#settlePendingLaunchFailure(OneSchemaLaunchError.Cancelled, CANCELLED_MESSAGE)
+  }
+
+  /**
+   * Fail the launch in flight, if there is one. Returns the correlation id of
+   * the attempt so the `launched` event can carry it too.
+   */
+  #settlePendingLaunchFailure(
+    error: OneSchemaLaunchError,
+    message: string,
+    detail: { status?: number; data?: unknown; cause?: unknown } = {},
+  ): string | undefined {
+    const pending = this.#pendingLaunch
+    if (!pending) {
+      return undefined
+    }
+
+    this.#pendingLaunch = undefined
+    pending.reject(
+      new OneSchemaLaunchFailure(error, message, pending.correlationId, detail),
+    )
+    return pending.correlationId
   }
 
   /**
@@ -332,7 +391,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
    */
   launchSession(
     launchParams?: Partial<OneSchemaLaunchSessionParams>,
-  ): OneSchemaLaunchStatus {
+  ): Promise<OneSchemaLaunchInfo> {
     return this.launch(launchParams)
   }
 
@@ -360,9 +419,14 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     this.#hasAppReceivedInitMessage = false
   }
 
+  #maxLaunchRetry(): number {
+    const timeout = this.#params.initTimeoutMs ?? 0
+    return Math.max(1, Math.ceil(timeout / LAUNCH_RETRY_DELAY_MS))
+  }
+
   // The embed acknowledges the init message with "init-received", so the
-  // message is repeated until it does: MAX_LAUNCH_RETRY attempts,
-  // LAUNCH_RETRY_DELAY_MS apart, before the launch is declared fatally failed.
+  // message is repeated LAUNCH_RETRY_DELAY_MS apart until it does, for as long
+  // as initTimeoutMs allows, before the launch is declared fatally failed.
   #initWithRetry(generation: number, count = 1) {
     if (
       generation !== this.#launchGeneration ||
@@ -373,14 +437,20 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       return
     }
 
-    if (count > MAX_LAUNCH_RETRY) {
+    if (count > this.#maxLaunchRetry()) {
       const msg = this.#hasReceivedFrameMessage
         ? "OneSchema failed to respond for initialization"
         : `OneSchema iframe was blocked: no message was ever received from ${this.iframe?.src}, so the OneSchema embed page never ran. The browser most likely blocked the iframe — check this page's console for a Content-Security-Policy "frame-ancestors" violation, and verify that this page's origin (${window.location.origin}) is on the allowed domains list for OneSchema client ID ${this.#params.clientId}.`
       console.error(msg)
-      this.emitErrorEvent({
+      const correlation = this.#settlePendingLaunchFailure(
+        OneSchemaLaunchError.Timeout,
+        msg,
+      )
+      this.emit("launched", {
+        success: false,
+        error: OneSchemaLaunchError.Timeout,
         message: msg,
-        severity: OneSchemaErrorSeverity.Fatal,
+        correlationId: correlation,
       })
       this.#failLaunch()
       if (this.#params.devMode) {
@@ -409,7 +479,9 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     }
     this.close()
     setTimeout(() => {
-      this.launch(launchParams)
+      // The relaunch is the embed's, not a caller's, so its failure is only
+      // reportable through the launched event.
+      this.launch(launchParams).catch(() => undefined)
     })
   }
 
@@ -431,6 +503,8 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     if (this.iframe && this.#iframeIsLoaded) {
       this.#iframeEventEmit({ messageType: "close" })
     }
+
+    this.#cancelPendingLaunch()
 
     this.#launchOnLoad = false
     this.#hasAttemptedLaunch = false
@@ -498,6 +572,30 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     this.emit("error", error)
   }
 
+  // The embed reports a `complete` payload of rows for both local and
+  // file-upload imports, and only the init message this instance sent says
+  // which one was configured.
+  #importResult(data: {
+    data?: Record<string, unknown>
+    eventId?: string
+    responses?: unknown[]
+  }): OneSchemaImportResult {
+    if (!data.data) {
+      return {
+        type: "webhook",
+        eventId: data.eventId,
+        responses: data.responses,
+      }
+    }
+
+    const importType = (this.#initMessage as OneSchemaInitSimpleMessage)?.importConfig
+      ?.type
+    return {
+      type: importType === "file-upload" ? "file-upload" : "local",
+      data: data.data,
+    }
+  }
+
   #hide() {
     if (this.iframe) {
       this.iframe.style.display = "none"
@@ -549,30 +647,33 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
             (this.#initMessage as OneSchemaInitSimpleMessage)?.resumeToken ||
             (this.#initMessage as OneSchemaInitSessionMessage)?.sessionToken
         }
+        const pending = this.#pendingLaunch
+        this.#pendingLaunch = undefined
         this.emit("launched", {
           success: true,
           sessionToken,
           embedId,
         })
         this.#show()
+        pending?.resolve({ sessionToken, embedId })
         return
       }
 
       case "launch-error": {
         const detail = parseLaunchErrorDetail(data.message)
+        const correlation = this.#settlePendingLaunchFailure(
+          OneSchemaLaunchError.LaunchError,
+          detail.message || DEFAULT_LAUNCH_ERROR_MESSAGE,
+          { ...detail, cause: data.message },
+        )
         this.emit("launched", {
           success: false,
           error: OneSchemaLaunchError.LaunchError,
+          correlationId: correlation,
           ...detail,
         })
         this.#failLaunch()
         if (this.#params.devMode) {
-          // In dev mode the embed does not follow up with an "error" message,
-          // so this is the only chance the host gets to hear why.
-          this.emitErrorEvent({
-            message: detail.message || DEFAULT_LAUNCH_ERROR_MESSAGE,
-            severity: OneSchemaErrorSeverity.Fatal,
-          })
           this.#show()
         } else if (this.#params.autoClose) {
           this.close()
@@ -581,16 +682,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       }
 
       case "complete": {
-        if (data.data) {
-          // for frontend pass through
-          this.emit("success", data.data)
-        } else {
-          // for webhook imports, eventId and responses are used
-          this.emit("success", {
-            eventId: data.eventId,
-            responses: data.responses,
-          })
-        }
+        this.emit("success", this.#importResult(data))
         if (this.#resumeTokenKey) {
           try {
             window.localStorage.removeItem(this.#resumeTokenKey)
