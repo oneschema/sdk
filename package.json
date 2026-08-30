@@ -23,6 +23,7 @@
     "check:ranges": "node scripts/check-internal-ranges.mjs",
     "check:install": "node scripts/smoke-install.mjs",
     "test:ci": "yarn workspaces foreach -A run test:ci",
+    "version:packages": "changeset version && yarn install --mode=update-lockfile",
     "release": "yarn build && yarn check:ranges && changeset publish"
   },
   "devDependencies": {
