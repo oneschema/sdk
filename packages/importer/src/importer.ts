@@ -357,6 +357,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
   #failLaunch() {
     this.#launchGeneration++
     this.#hasAttemptedLaunch = false
+    this.#hasAppReceivedInitMessage = false
   }
 
   // The embed acknowledges the init message with "init-received", so the

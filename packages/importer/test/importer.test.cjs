@@ -151,6 +151,27 @@ test("returns to idle and stops retrying when the embed rejects the launch", () 
   }
 })
 
+test("can relaunch after the embed acknowledged the rejected launch", () => {
+  const { iframe, importer, messages, post } = createImporter({
+    autoClose: false,
+  })
+
+  importer.launch()
+  iframe.onload()
+
+  post({ messageType: "init-received" })
+  post({ messageType: "launch-error", message: "invalid template" })
+
+  assert.equal(importer.status, "idle")
+
+  importer.launch()
+
+  assert.equal(messages.length, 2)
+  assert.equal(importer.status, "launching")
+
+  importer.destroy()
+})
+
 test("reports where the instance is in its lifecycle", () => {
   const { iframe, importer } = createImporter()
 
