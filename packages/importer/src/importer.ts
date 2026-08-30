@@ -465,9 +465,11 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
 
   #initSession() {
     this.#hasCancelled = false
-    // The acknowledgement belongs to the attempt that received it: a launch
-    // that replaces an acknowledged one still has to post its own init message.
+    // Both flags belong to the attempt that set them: a launch replacing an
+    // acknowledged or already running one still has to post its own init
+    // message, and the retry loop stops on either flag.
     this.#hasAppReceivedInitMessage = false
+    this.#hasLaunched = false
     this.#initWithRetry(++this.#launchGeneration)
   }
 

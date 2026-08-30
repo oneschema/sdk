@@ -334,6 +334,28 @@ test("posts init for a launch that replaces an acknowledged one", async () => {
   importer.destroy()
 })
 
+test("posts init for a launch that replaces a running session", async () => {
+  const { iframe, importer, post, messages } = createImporter({ autoClose: false })
+
+  const first = importer.launch()
+  iframe.onload()
+  post({ messageType: "launched", correlationId: messages[0].payload.correlationId })
+  await first
+  assert.equal(importer.status, "launched")
+
+  const replacement = importer.launch()
+
+  assert.equal(messages.length, 2)
+  assert.equal(importer.status, "launching")
+
+  const replacementId = messages[1].payload.correlationId
+  post({ messageType: "launched", correlationId: replacementId })
+
+  assert.equal((await replacement).correlationId, replacementId)
+
+  importer.destroy()
+})
+
 test("ignores a terminal reply that arrives after the launch was closed", async () => {
   const { iframe, importer, post, messages } = createImporter({ autoClose: false })
   const statuses = []
