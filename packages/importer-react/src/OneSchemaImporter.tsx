@@ -1,6 +1,8 @@
 import oneschemaImporter, {
   OneSchemaError,
   OneSchemaErrorSeverity,
+  OneSchemaImporterClass,
+  OneSchemaImportResult,
   OneSchemaLaunchParamOptions,
   OneSchemaLaunchStatus,
 } from "@oneschema/importer"
@@ -15,19 +17,42 @@ export interface OneSchemaImporterBaseProps {
   isOpen: boolean
 
   /**
-   * Whether the iframe should be rendered in the component tree
-   * If false or not set, the iframe will append to document.body
+   * Whether the iframe should be rendered in the component tree.
+   * When false, the iframe is appended to document.body
    */
   inline?: boolean
 
   /**
-   * These props are passed directly into the OneSchemaImporter as params
+   * The client id from your OneSchema developer dashboard
    */
   clientId: string
+
+  /**
+   * CSS class for the iframe
+   */
   className?: string
+
+  /**
+   * Whether to launch the importer in dev mode, which shows the iframe even
+   * when launching fails
+   */
   devMode?: boolean
+
+  /**
+   * Language code (like 'en' or 'zh') to force the importer language.
+   * By default, uses the user's set language. Requires enterprise licensing
+   */
   languageCode?: string
+
+  /**
+   * Whether to save session information to local storage and enable resuming
+   */
   saveSession?: boolean
+
+  /**
+   * The base URL for the iframe.
+   * By default uses OneSchema's production instance
+   */
   baseUrl?: string
 
   /**
@@ -44,7 +69,7 @@ export interface OneSchemaImporterBaseProps {
   /**
    * Handler for when the importing flow completes successfully
    */
-  onSuccess?: (data: any) => void
+  onSuccess?: (data: OneSchemaImportResult) => void
 
   /**
    * Handler for when the importing flow is cancelled by user
@@ -98,26 +123,30 @@ export default function OneSchemaImporter({
   onUserActivity,
   ...params
 }: OneSchemaImporterProps) {
-  const [importer] = useState(() => {
-    const instance = oneschemaImporter({
-      ...params,
-      autoClose: false,
-      manageDOM: !inline,
-    })
-
-    instance.setClient("React", version)
-    return instance
+  const initParams = useRef({
+    ...params,
+    autoClose: false,
+    manageDOM: !inline,
   })
 
+  // The instance is owned by a mount effect rather than by lazy state: it is
+  // destroyed on unmount, and a destroyed instance is inert, so every setup —
+  // including the second one strict mode triggers — needs its own instance.
+  const [importer, setImporter] = useState<OneSchemaImporterClass | null>(null)
+
   useEffect(() => {
+    const instance = oneschemaImporter(initParams.current)
+    instance.setClient("React", version)
+    setImporter(instance)
+
     return () => {
-      importer?.close(true)
+      instance.destroy()
     }
-  }, [importer])
+  }, [])
 
   useEffect(() => {
     if (importer) {
-      importer.on("success", (data: any) => {
+      importer.on("success", (data) => {
         onSuccess?.(data)
         onRequestClose?.()
       })
@@ -127,7 +156,7 @@ export default function OneSchemaImporter({
         onRequestClose?.()
       })
 
-      importer.on("error", (error: OneSchemaError) => {
+      importer.on("error", (error) => {
         onError?.(error)
         if (error.severity === OneSchemaErrorSeverity.Fatal) {
           onRequestClose?.()
@@ -138,7 +167,7 @@ export default function OneSchemaImporter({
         onPageLoad?.()
       })
 
-      importer.on("launched", (data: OneSchemaLaunchStatus) => {
+      importer.on("launched", (data) => {
         onLaunched?.(data)
       })
 

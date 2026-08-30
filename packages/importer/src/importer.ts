@@ -5,6 +5,7 @@ import {
   FileUploadImportConfig,
   OneSchemaError,
   OneSchemaErrorSeverity,
+  OneSchemaEventMap,
   OneSchemaInitMessage,
   OneSchemaInitSessionMessage,
   OneSchemaInitSimpleMessage,
@@ -21,11 +22,39 @@ const MAX_LAUNCH_RETRY = 40
 
 const IMPORTER_EMBED_MARKER = "importer.oneschema.co"
 
+const DESTROYED_MESSAGE =
+  "OneSchema importer instance was destroyed, create a new one to import again"
+
+const DEFAULT_LAUNCH_ERROR_MESSAGE = "OneSchema failed to launch the import session"
+
+/**
+ * The embed sends the launch failure as `{ message, data, status }`, but older
+ * embed versions send a plain string instead.
+ */
+function parseLaunchErrorDetail(
+  detail: unknown,
+): Pick<OneSchemaLaunchStatus, "message" | "status" | "data"> {
+  if (typeof detail === "string") {
+    return { message: detail }
+  }
+
+  if (detail && typeof detail === "object") {
+    const { message, status, data } = detail as Record<string, unknown>
+    return {
+      message: typeof message === "string" ? message : DEFAULT_LAUNCH_ERROR_MESSAGE,
+      status: typeof status === "number" ? status : undefined,
+      data,
+    }
+  }
+
+  return { message: DEFAULT_LAUNCH_ERROR_MESSAGE }
+}
+
 /**
  * OneSchemaImporter class manages the iframe used for importing data in your
  * application and emits events based on what happens.
  */
-export class OneSchemaImporterClass extends EventEmitter {
+export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
   #params: OneSchemaParams
   iframe?: HTMLIFrameElement
 
@@ -33,7 +62,10 @@ export class OneSchemaImporterClass extends EventEmitter {
   #version = version
 
   #resumeTokenKey = ""
+  /** @internal */
   _hasAttemptedLaunch = false
+  #destroyed = false
+  #onWindowMessage = (event: MessageEvent) => this.#iframeEventListener(event)
   #hasLaunched = false
   #hasCancelled = false
   #initMessage?: OneSchemaInitMessage
@@ -53,7 +85,7 @@ export class OneSchemaImporterClass extends EventEmitter {
       return
     }
 
-    window.addEventListener("message", this.#iframeEventListener.bind(this))
+    window.addEventListener("message", this.#onWindowMessage)
 
     if (this.#params.manageDOM) {
       const iframeId = "_oneschema-iframe"
@@ -92,9 +124,15 @@ export class OneSchemaImporterClass extends EventEmitter {
    * @param iframe
    */
   setIframe(iframe: HTMLIFrameElement) {
+    if (this.#destroyed) {
+      console.error(DESTROYED_MESSAGE)
+      return
+    }
+
     // just in case..
     if (this.iframe) {
-      this.close(true)
+      this.close()
+      this.#releaseIframe()
     }
 
     this.iframe = iframe
@@ -165,6 +203,15 @@ export class OneSchemaImporterClass extends EventEmitter {
   launch(
     launchParams?: Partial<OneSchemaLaunchParams> & Partial<OneSchemaLaunchSessionParams>,
   ): OneSchemaLaunchStatus {
+    if (this.#destroyed) {
+      console.error(DESTROYED_MESSAGE)
+      return {
+        success: false,
+        error: OneSchemaLaunchError.Destroyed,
+        message: DESTROYED_MESSAGE,
+      }
+    }
+
     this._hasAttemptedLaunch = true
 
     const mergedParams = merged(this.#params, launchParams)
@@ -249,6 +296,7 @@ export class OneSchemaImporterClass extends EventEmitter {
     return this.launch(launchParams)
   }
 
+  /** @internal */
   _launch() {
     const postInit = () => {
       this.#hasCancelled = false
@@ -263,6 +311,7 @@ export class OneSchemaImporterClass extends EventEmitter {
     }
   }
 
+  /** @internal */
   _initWithRetry(count = 1) {
     if (this.#hasLaunched || this.#hasCancelled || this.#hasAppReceivedInitMessage) {
       return
@@ -273,17 +322,15 @@ export class OneSchemaImporterClass extends EventEmitter {
         ? "OneSchema failed to respond for initialization"
         : `OneSchema iframe was blocked: no message was ever received from ${this.iframe?.src}, so the OneSchema embed page never ran. The browser most likely blocked the iframe — check this page's console for a Content-Security-Policy "frame-ancestors" violation, and verify that this page's origin (${window.location.origin}) is on the allowed domains list for OneSchema client ID ${this.#params.clientId}.`
       console.error(msg)
+      this.emitErrorEvent({
+        message: msg,
+        severity: OneSchemaErrorSeverity.Fatal,
+      })
       if (this.#params.devMode) {
         // Display the iframe for debugging purposes.
         this.#show()
-      } else {
-        this.emitErrorEvent({
-          message: msg,
-          severity: OneSchemaErrorSeverity.Fatal,
-        })
-        if (this.#params.autoClose) {
-          this.close()
-        }
+      } else if (this.#params.autoClose) {
+        this.close()
       }
 
       return
@@ -293,6 +340,7 @@ export class OneSchemaImporterClass extends EventEmitter {
     setTimeout(() => this._initWithRetry(count + 1), 500)
   }
 
+  /** @internal */
   _resetSession(
     launchParams?: Partial<OneSchemaLaunchParams> & Partial<OneSchemaLaunchSessionParams>,
   ) {
@@ -311,9 +359,18 @@ export class OneSchemaImporterClass extends EventEmitter {
 
   /**
    * Close will stop the importing session and hide the OneSchema window
-   * @param clean will remove the iframe and event listeners if true
+   * @param clean equivalent to calling `destroy()`
    */
   close(clean?: boolean) {
+    if (this.#destroyed) {
+      return
+    }
+
+    if (clean) {
+      this.destroy()
+      return
+    }
+
     this.#hide()
     if (this.iframe && OneSchemaImporterClass.#iframeIsLoaded) {
       this.#iframeEventEmit({ messageType: "close" })
@@ -323,18 +380,47 @@ export class OneSchemaImporterClass extends EventEmitter {
     this.#hasAppReceivedInitMessage = false
     this.#hasLaunched = false
     this.#hasCancelled = true
+  }
 
-    if (clean && this.iframe) {
-      if (!this.iframe.dataset.count || this.iframe.dataset.count === "1") {
-        this.removeAllListeners()
-        window.removeEventListener("message", this.#iframeEventListener)
-        if (this.#params.manageDOM) {
-          this.iframe.remove()
-        }
-      } else {
-        this.iframe.dataset.count = `${parseInt(this.iframe.dataset.count || "1") - 1}`
-      }
+  /**
+   * Destroy will close the importing session and release everything this
+   * instance holds: its window message listener, its event listeners and, when
+   * `manageDOM` is true and no other instance shares it, its iframe. The
+   * instance is inert afterwards and cannot be launched again.
+   *
+   * Safe to call more than once.
+   */
+  destroy() {
+    if (this.#destroyed) {
+      return
     }
+
+    this.close()
+    this.#destroyed = true
+
+    if (typeof window !== "undefined") {
+      window.removeEventListener("message", this.#onWindowMessage)
+    }
+
+    this.removeAllListeners()
+    this.#releaseIframe()
+  }
+
+  // The iframe is shared between instances that manage the DOM, so it is only
+  // removed once the last instance using it lets go.
+  #releaseIframe() {
+    if (!this.iframe) {
+      return
+    }
+
+    const count = parseInt(this.iframe.dataset.count || "1")
+    if (count > 1) {
+      this.iframe.dataset.count = `${count - 1}`
+    } else if (this.#params.manageDOM) {
+      this.iframe.remove()
+    }
+
+    this.iframe = undefined
   }
 
   #iframeEventEmit(message: Record<string, any>) {
@@ -369,7 +455,7 @@ export class OneSchemaImporterClass extends EventEmitter {
   }
 
   #iframeEventListener({ source, data }: MessageEvent) {
-    if (source !== this.iframe?.contentWindow) {
+    if (this.#destroyed || source !== this.iframe?.contentWindow) {
       return
     }
     this.#hasReceivedFrameMessage = true
@@ -417,11 +503,19 @@ export class OneSchemaImporterClass extends EventEmitter {
       }
 
       case "launch-error": {
+        const detail = parseLaunchErrorDetail(data.message)
         this.emit("launched", {
           success: false,
           error: OneSchemaLaunchError.LaunchError,
+          ...detail,
         })
         if (this.#params.devMode) {
+          // In dev mode the embed does not follow up with an "error" message,
+          // so this is the only chance the host gets to hear why.
+          this.emitErrorEvent({
+            message: detail.message || DEFAULT_LAUNCH_ERROR_MESSAGE,
+            severity: OneSchemaErrorSeverity.Fatal,
+          })
           this.#show()
         } else if (this.#params.autoClose) {
           this.close()

@@ -14,6 +14,6 @@ export class OneSchemaService extends OneSchemaImporterClass implements OnDestro
   }
 
   ngOnDestroy() {
-    this.close(true)
+    this.destroy()
   }
 }
