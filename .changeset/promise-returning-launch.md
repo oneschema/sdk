@@ -10,4 +10,6 @@ The promise rejects with a `OneSchemaLaunchFailure` as soon as the failure is kn
 
 The `success` event payload is discriminated: `{ type: "local" | "file-upload", data }` for imports delivered to the host, and `{ type: "webhook", eventId, responses }` for webhook deliveries, replacing the untagged `Record<string, any>`.
 
+`embedInitId` names one launch attempt and is minted before the embed's first request, so it exists even when no session is ever created. The embed echoes it on every reply, and a reply naming another attempt — or naming none — is dropped: a launch that replaced another can otherwise be resolved with the replaced session's token. An embed deployment that does not echo the field cannot be correlated, and no SDK-side fallback is provided.
+
 Every call site must handle the rejection — `await` inside `try`/`catch`, or attach a `.catch()` when the promise is ignored. Every failure the embed or the launch deadline produces still fires the `launched` event, but an unhandled rejection is reported by the browser. A launch the host abandons itself — `close()`, `destroy()` or a newer `launch()` — only rejects, with `OneSchemaLaunchError.Cancelled`.

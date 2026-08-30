@@ -102,7 +102,7 @@ sequenceDiagram
     SDK->>SDK: ignored, A's session was replaced
 ```
 
-An embed released before 0.8 does not echo `embedInitId`, so a reply without one is attributed to the attempt in flight; only a mismatching id is dropped.
+Every reply the embed sends echoes the `embedInitId` of the init message it answers, and a reply that names a different attempt — or names none at all — is dropped rather than attributed to the attempt in flight, since it may carry the session of a launch this one replaced.
 
 ## Once the session is running
 

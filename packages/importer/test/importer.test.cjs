@@ -18,12 +18,18 @@ function launch(importer, params) {
 
 function createImporter(params) {
   const listeners = []
+  const storage = new Map()
   globalThis.window = {
     addEventListener(_type, listener) {
       listeners.push(listener)
     },
     removeEventListener() {},
     location: { origin: "https://host.test" },
+    localStorage: {
+      getItem: (key) => storage.get(key) ?? null,
+      setItem: (key, value) => storage.set(key, value),
+      removeItem: (key) => storage.delete(key),
+    },
   }
 
   const messages = []
@@ -51,7 +57,15 @@ function createImporter(params) {
   const post = (data) =>
     listeners.forEach((listener) => listener({ source: iframe.contentWindow, data }))
 
-  return { iframe, importer, messages, post }
+  // The embed echoes the embed init id of the init message it is replying to,
+  // so a reply that stands for a real embed carries the id of the latest one.
+  const reply = (data) =>
+    post({
+      embedInitId: messages[messages.length - 1].payload.embedInitId,
+      ...data,
+    })
+
+  return { iframe, importer, messages, post, reply, storage }
 }
 
 function postInitMessage(importer, iframe, messages) {
@@ -147,13 +161,13 @@ test("rejects and stays idle when launch params are invalid", async () => {
 })
 
 test("resolves with the running session once the embed launches", async () => {
-  const { iframe, importer, post } = createImporter()
+  const { iframe, importer, reply } = createImporter()
   const statuses = []
   importer.on("launched", (status) => statuses.push(status))
 
   const launched = importer.launch()
   iframe.onload()
-  post({ messageType: "launched", sessionToken: "session-token", embedId: "embed-id" })
+  reply({ messageType: "launched", sessionToken: "session-token", embedId: "embed-id" })
 
   const info = await launched
 
@@ -171,11 +185,11 @@ test("rejects as soon as the embed reports a launch error", async () => {
   mock.timers.enable({ apis: ["setTimeout"] })
 
   try {
-    const { iframe, importer, post } = createImporter({ autoClose: false })
+    const { iframe, importer, reply } = createImporter({ autoClose: false })
 
     const launched = importer.launch()
     iframe.onload()
-    post({
+    reply({
       messageType: "launch-error",
       message: { message: "invalid template", status: 422, data: { code: "bad" } },
     })
@@ -314,12 +328,52 @@ test("ignores a terminal reply from an abandoned launch", async () => {
   importer.destroy()
 })
 
-test("posts init for a launch that replaces an acknowledged one", async () => {
+test("ignores a reply that names no launch attempt at all", async () => {
   const { iframe, importer, post, messages } = createImporter({ autoClose: false })
+  const statuses = []
+  const results = []
+  importer.on("launched", (status) => statuses.push(status))
+  importer.on("success", (result) => results.push(result))
 
   launch(importer)
   iframe.onload()
-  post({ messageType: "init-received" })
+
+  const current = importer.launch()
+  const currentId = messages[messages.length - 1].payload.embedInitId
+  let settled = false
+  current.then(
+    () => (settled = true),
+    () => (settled = true),
+  )
+
+  post({ messageType: "launched", sessionToken: "stale-token" })
+  post({ messageType: "complete", data: { rows: [] } })
+  await Promise.resolve()
+
+  assert.equal(settled, false)
+  assert.equal(importer.status, "launching")
+  assert.deepEqual(statuses, [])
+  assert.deepEqual(results, [])
+
+  post({
+    messageType: "launched",
+    embedInitId: currentId,
+    sessionToken: "session-token",
+  })
+
+  assert.equal((await current).sessionToken, "session-token")
+
+  importer.destroy()
+})
+
+test("posts init for a launch that replaces an acknowledged one", async () => {
+  const { iframe, importer, post, reply, messages } = createImporter({
+    autoClose: false,
+  })
+
+  launch(importer)
+  iframe.onload()
+  reply({ messageType: "init-received" })
 
   const current = importer.launch()
 
@@ -465,18 +519,20 @@ test("rejects the launch in flight when the importer is closed", async () => {
 
 test("tags the import result with how the data was delivered", async () => {
   const results = []
-  const { iframe, importer, post } = createImporter({ autoClose: false })
+  const { iframe, importer, reply } = createImporter({ autoClose: false })
   importer.on("success", (result) => results.push(result))
 
   launch(importer)
   iframe.onload()
-  post({ messageType: "complete", data: { rows: [] } })
-  post({ messageType: "complete", eventId: "event-id", responses: [{ status: 200 }] })
+  reply({ messageType: "launched" })
+  reply({ messageType: "complete", data: { rows: [] } })
+  reply({ messageType: "complete", eventId: "event-id", responses: [{ status: 200 }] })
 
   launch(importer, {
     importConfig: { type: "file-upload", url: "https://upload.test/file" },
   })
-  post({ messageType: "complete", data: { count: 2 } })
+  reply({ messageType: "launched" })
+  reply({ messageType: "complete", data: { count: 2 } })
 
   assert.deepEqual(results, [
     { type: "local", data: { rows: [] } },
@@ -491,7 +547,7 @@ test("returns to idle and stops retrying when the embed rejects the launch", () 
   mock.timers.enable({ apis: ["setTimeout"] })
 
   try {
-    const { iframe, importer, messages, post } = createImporter({
+    const { iframe, importer, messages, reply } = createImporter({
       autoClose: false,
     })
 
@@ -501,7 +557,7 @@ test("returns to idle and stops retrying when the embed rejects the launch", () 
     assert.equal(importer.status, "launching")
     assert.equal(messages.length, 1)
 
-    post({ messageType: "launch-error", message: "invalid template" })
+    reply({ messageType: "launch-error", message: "invalid template" })
 
     assert.equal(importer.status, "idle")
 
@@ -517,15 +573,15 @@ test("returns to idle and stops retrying when the embed rejects the launch", () 
 })
 
 test("can relaunch after the embed acknowledged the rejected launch", () => {
-  const { iframe, importer, messages, post } = createImporter({
+  const { iframe, importer, messages, reply } = createImporter({
     autoClose: false,
   })
 
   launch(importer)
   iframe.onload()
 
-  post({ messageType: "init-received" })
-  post({ messageType: "launch-error", message: "invalid template" })
+  reply({ messageType: "init-received" })
+  reply({ messageType: "launch-error", message: "invalid template" })
 
   assert.equal(importer.status, "idle")
 
@@ -533,6 +589,29 @@ test("can relaunch after the embed acknowledged the rejected launch", () => {
 
   assert.equal(messages.length, 2)
   assert.equal(importer.status, "launching")
+
+  importer.destroy()
+})
+
+test("stores a resume token only for a launch that asked to save the session", async () => {
+  const { iframe, importer, reply, storage } = createImporter({
+    autoClose: false,
+    saveSession: true,
+  })
+
+  const saved = importer.launch()
+  iframe.onload()
+  reply({ messageType: "launched", sessionToken: "saved-token" })
+  await saved
+
+  const key = "OneSchema-session-user-jwt-template-key"
+  assert.equal(storage.get(key), "saved-token")
+
+  const session = importer.launchSession({ sessionToken: "host-token" })
+  reply({ messageType: "launched", sessionToken: "replacement-token" })
+  await session
+
+  assert.equal(storage.get(key), "saved-token")
 
   importer.destroy()
 })

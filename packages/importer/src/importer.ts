@@ -284,6 +284,10 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     }
 
     let message: Partial<OneSchemaInitMessage>
+    // The key belongs to the launch being built, not to the instance: a session
+    // token launch replacing a saveSession one must not store its token under
+    // the key of the session it replaced.
+    let resumeTokenKey = ""
 
     if (mergedParams.sessionToken) {
       message = {
@@ -317,8 +321,8 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
 
       if (mergedParams.saveSession) {
         try {
-          this.#resumeTokenKey = `OneSchema-session-${mergedParams.userJwt}-${mergedParams.templateKey}`
-          const resumeToken = window.localStorage.getItem(this.#resumeTokenKey)
+          resumeTokenKey = `OneSchema-session-${mergedParams.userJwt}-${mergedParams.templateKey}`
+          const resumeToken = window.localStorage.getItem(resumeTokenKey)
           if (resumeToken) {
             message.resumeToken = resumeToken
           }
@@ -334,6 +338,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     // A session the new launch replaces keeps running in the embed until its
     // init message lands, so its replies are stale from here on.
     this.#sessionEmbedInitId = undefined
+    this.#resumeTokenKey = resumeTokenKey
 
     this.#initMessage = message as OneSchemaInitMessage
     this.#hasAttemptedLaunch = true
@@ -630,16 +635,14 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     }
   }
 
-  // Terminal replies only belong to a launch that is still waiting for one.
-  // Embeds released before 0.8 do not echo the embed init id, so a reply
-  // without one is attributed to that launch.
-  // The replies of a running session are attributed the same way: an embed
-  // that echoes the embed init id can be told apart from a session a later
-  // launch replaced, and one that does not is attributed to the session in
-  // flight.
+  // The embed echoes the embed init id of the launch attempt it is replying to
+  // on every reply, so a reply that does not name the attempt this instance is
+  // waiting for belongs to an abandoned attempt and is dropped. A reply with no
+  // id at all cannot be attributed and is dropped for the same reason: it may
+  // carry the session token of a launch this one replaced.
   #isStaleSessionReply(replyEmbedInitId: unknown): boolean {
     return (
-      typeof replyEmbedInitId === "string" &&
+      typeof replyEmbedInitId !== "string" ||
       replyEmbedInitId !== this.#sessionEmbedInitId
     )
   }
@@ -648,8 +651,8 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     const pending = this.#pendingLaunch
     return (
       !pending ||
-      (typeof replyEmbedInitId === "string" &&
-        replyEmbedInitId !== pending.embedInitId)
+      typeof replyEmbedInitId !== "string" ||
+      replyEmbedInitId !== pending.embedInitId
     )
   }
 
