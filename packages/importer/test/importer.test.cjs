@@ -1,12 +1,12 @@
 const assert = require("node:assert/strict")
-const { test } = require("node:test")
+const { mock, test } = require("node:test")
 
 const { version } = require("../package.json")
 const { OneSchemaImporterClass } = require("../dist/main.js")
 
 function createImporter(params) {
   const listeners = []
-  global.window = {
+  globalThis.window = {
     addEventListener(_type, listener) {
       listeners.push(listener)
     },
@@ -122,19 +122,33 @@ test("stays idle when launch params are invalid", () => {
   importer.destroy()
 })
 
-test("returns to idle when the embed rejects the launch", () => {
-  const { iframe, importer, post } = createImporter({ autoClose: false })
+test("returns to idle and stops retrying when the embed rejects the launch", () => {
+  mock.timers.enable({ apis: ["setTimeout"] })
 
-  importer.launch()
-  iframe.onload()
+  try {
+    const { iframe, importer, messages, post } = createImporter({
+      autoClose: false,
+    })
 
-  assert.equal(importer.status, "launching")
+    importer.launch()
+    iframe.onload()
 
-  post({ messageType: "launch-error", message: "invalid template" })
+    assert.equal(importer.status, "launching")
+    assert.equal(messages.length, 1)
 
-  assert.equal(importer.status, "idle")
+    post({ messageType: "launch-error", message: "invalid template" })
 
-  importer.destroy()
+    assert.equal(importer.status, "idle")
+
+    // The retry scheduled before the rejection must not post again.
+    mock.timers.tick(5000)
+
+    assert.equal(messages.length, 1)
+
+    importer.destroy()
+  } finally {
+    mock.timers.reset()
+  }
 })
 
 test("reports where the instance is in its lifecycle", () => {

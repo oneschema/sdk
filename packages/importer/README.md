@@ -86,7 +86,7 @@ const importer = oneschemaImporter({
 
 `importer.status` reports where an instance is in its lifecycle: `idle` before the first launch, after `close()` and after a launch fails, `launching` while the import session is starting, `launched` once the embed is running, and `destroyed` after `destroy()`.
 
-`launch()` is synchronous and only reports whether the parameters were accepted: `{ success: true }` means the session was queued, not that the embed has received it — an iframe that has not finished loading is initialized as soon as it does. The `launched` event is the signal that initialization actually succeeded. Until the embed acknowledges it, the importer re-sends its initialization message 40 times, 500 ms apart — so a browser-blocked or misconfigured iframe emits a `fatal` `error` after roughly 20 seconds.
+`launch()` is synchronous and only reports whether the parameters were accepted: `{ success: true }` means the session was queued, not that the embed has received it — an iframe that has not finished loading is initialized as soon as it does. A `launched` event with `success: true` is the signal that initialization actually succeeded; the same event fires with `success: false` when the parameters were rejected or the embed failed to start the session, so check `success` before treating the importer as ready. Until the embed acknowledges it, the importer re-sends its initialization message 40 times, 500 ms apart — so a browser-blocked or misconfigured iframe emits a `fatal` `error` after roughly 20 seconds.
 
 ## API reference
 

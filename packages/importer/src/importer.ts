@@ -73,6 +73,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
   #onWindowMessage = (event: MessageEvent) => this.#iframeEventListener(event)
   #hasLaunched = false
   #hasCancelled = false
+  #launchGeneration = 0
   #initMessage?: OneSchemaInitMessage
   #hasAppReceivedInitMessage = false
   // NOTE: This describes the iframe, which persists across launches, so it is
@@ -347,14 +348,27 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
 
   #initSession() {
     this.#hasCancelled = false
-    this.#initWithRetry()
+    this.#initWithRetry(++this.#launchGeneration)
+  }
+
+  // A terminal launch failure ends the attempt: bumping the generation strands
+  // the scheduled retry so it cannot keep posting, or overlap the loop of a
+  // later launch, and the instance is idle again rather than stuck launching.
+  #failLaunch() {
+    this.#launchGeneration++
+    this.#hasAttemptedLaunch = false
   }
 
   // The embed acknowledges the init message with "init-received", so the
   // message is repeated until it does: MAX_LAUNCH_RETRY attempts,
   // LAUNCH_RETRY_DELAY_MS apart, before the launch is declared fatally failed.
-  #initWithRetry(count = 1) {
-    if (this.#hasLaunched || this.#hasCancelled || this.#hasAppReceivedInitMessage) {
+  #initWithRetry(generation: number, count = 1) {
+    if (
+      generation !== this.#launchGeneration ||
+      this.#hasLaunched ||
+      this.#hasCancelled ||
+      this.#hasAppReceivedInitMessage
+    ) {
       return
     }
 
@@ -367,7 +381,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
         message: msg,
         severity: OneSchemaErrorSeverity.Fatal,
       })
-      this.#hasAttemptedLaunch = false
+      this.#failLaunch()
       if (this.#params.devMode) {
         // Display the iframe for debugging purposes.
         this.#show()
@@ -379,7 +393,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     }
 
     this.#iframeEventEmit(this.#initMessage || {})
-    setTimeout(() => this.#initWithRetry(count + 1), LAUNCH_RETRY_DELAY_MS)
+    setTimeout(() => this.#initWithRetry(generation, count + 1), LAUNCH_RETRY_DELAY_MS)
   }
 
   #resetSession(
@@ -550,7 +564,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
           error: OneSchemaLaunchError.LaunchError,
           ...detail,
         })
-        this.#hasAttemptedLaunch = false
+        this.#failLaunch()
         if (this.#params.devMode) {
           // In dev mode the embed does not follow up with an "error" message,
           // so this is the only chance the host gets to hear why.
