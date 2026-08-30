@@ -484,8 +484,9 @@ export enum OneSchemaLaunchError {
   LaunchError,
   Destroyed,
   /**
-   * The embed never acknowledged the init message within `initTimeoutMs`,
-   * usually because the browser blocked the iframe
+   * The import session did not start within `initTimeoutMs`, usually because
+   * the browser blocked the iframe or the embed never acknowledged the init
+   * message
    */
   Timeout,
   /**
@@ -607,9 +608,10 @@ export interface OneSchemaInitParams {
    */
   baseUrl?: string
   /**
-   * How long to wait for the embed to acknowledge the init message before
-   * `launch()` rejects with `OneSchemaLaunchError.Timeout`, in milliseconds.
-   * Raise it for hosts on slow or distant connections. Defaults to 20000
+   * How long a launch may stay pending before `launch()` rejects with
+   * `OneSchemaLaunchError.Timeout`, in milliseconds. The deadline covers the
+   * whole launch, not only the init acknowledgement. Raise it for hosts on
+   * slow or distant connections. Defaults to 20000
    */
   initTimeoutMs?: number
 }

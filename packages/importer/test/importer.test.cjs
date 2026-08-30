@@ -314,6 +314,57 @@ test("ignores a terminal reply from an abandoned launch", async () => {
   importer.destroy()
 })
 
+test("posts init for a launch that replaces an acknowledged one", async () => {
+  const { iframe, importer, post, messages } = createImporter({ autoClose: false })
+
+  launch(importer)
+  iframe.onload()
+  post({ messageType: "init-received" })
+
+  const current = importer.launch()
+
+  assert.equal(messages.length, 2)
+  const currentId = messages[1].payload.correlationId
+  assert.notEqual(currentId, messages[0].payload.correlationId)
+
+  post({ messageType: "launched", correlationId: currentId })
+
+  assert.equal((await current).correlationId, currentId)
+
+  importer.destroy()
+})
+
+test("ignores a terminal reply that arrives after the launch was closed", async () => {
+  const { iframe, importer, post, messages } = createImporter({ autoClose: false })
+  const statuses = []
+  importer.on("launched", (status) => statuses.push(status))
+
+  const launched = launch(importer)
+  iframe.onload()
+  const attempt = messages[0].payload.correlationId
+
+  importer.close()
+  assert.equal(
+    (await launched.then(null, (error) => error)).error,
+    OneSchemaLaunchError.Cancelled,
+  )
+
+  post({
+    messageType: "launched",
+    correlationId: attempt,
+    sessionToken: "late-token",
+  })
+
+  assert.equal(importer.status, "idle")
+  assert.equal(iframe.style.display, "none")
+  assert.deepEqual(
+    statuses.map((status) => status.success),
+    [],
+  )
+
+  importer.destroy()
+})
+
 test("rejects the launch in flight when the importer is closed", async () => {
   const { iframe, importer } = createImporter()
 

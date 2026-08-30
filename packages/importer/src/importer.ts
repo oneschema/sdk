@@ -465,6 +465,9 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
 
   #initSession() {
     this.#hasCancelled = false
+    // The acknowledgement belongs to the attempt that received it: a launch
+    // that replaces an acknowledged one still has to post its own init message.
+    this.#hasAppReceivedInitMessage = false
     this.#initWithRetry(++this.#launchGeneration)
   }
 
@@ -623,12 +626,15 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     }
   }
 
+  // Terminal replies only belong to a launch that is still waiting for one.
   // Embeds released before 0.8 do not echo the correlation id, so a reply
-  // without one is attributed to the launch in flight.
+  // without one is attributed to that launch.
   #isStaleLaunchReply(replyCorrelationId: unknown): boolean {
+    const pending = this.#pendingLaunch
     return (
-      typeof replyCorrelationId === "string" &&
-      replyCorrelationId !== this.#launchCorrelationId
+      !pending ||
+      (typeof replyCorrelationId === "string" &&
+        replyCorrelationId !== pending.correlationId)
     )
   }
 
@@ -666,7 +672,8 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       }
 
       case "launched": {
-        if (this.#isStaleLaunchReply(data.correlationId)) {
+        const pending = this.#pendingLaunch
+        if (!pending || this.#isStaleLaunchReply(data.correlationId)) {
           return
         }
 
@@ -687,17 +694,16 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
             (this.#initMessage as OneSchemaInitSimpleMessage)?.resumeToken ||
             (this.#initMessage as OneSchemaInitSessionMessage)?.sessionToken
         }
-        const pending = this.#pendingLaunch
         this.#pendingLaunch = undefined
         this.#clearLaunchDeadline()
         const info: OneSchemaLaunchInfo = {
-          correlationId: pending?.correlationId ?? correlationId(),
+          correlationId: pending.correlationId,
           sessionToken,
           embedId,
         }
         this.emit("launched", { success: true, ...info })
         this.#show()
-        pending?.resolve(info)
+        pending.resolve(info)
         return
       }
 
