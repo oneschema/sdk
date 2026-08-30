@@ -27,10 +27,10 @@ const LAUNCH_RETRY_DELAY_MS = 500
 const CANCELLED_MESSAGE =
   "OneSchema launch was cancelled before the import session started"
 
-let correlationCount = 0
+let embedInitCount = 0
 
-function correlationId(): string {
-  return `${Date.now().toString(36)}-${++correlationCount}`
+function nextEmbedInitId(): string {
+  return `${Date.now().toString(36)}-${++embedInitCount}`
 }
 
 let iframeCount = 0
@@ -92,12 +92,12 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
   #iframeIsLoaded = false
   #launchOnLoad = false
   #pendingLaunch?: {
-    correlationId: string
+    embedInitId: string
     resolve: (info: OneSchemaLaunchInfo) => void
     reject: (failure: OneSchemaLaunchFailure) => void
   }
   #launchDeadline?: ReturnType<typeof setTimeout>
-  #sessionCorrelationId?: string
+  #sessionEmbedInitId?: string
 
   constructor(params: OneSchemaParams) {
     super()
@@ -275,12 +275,12 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       }
     }
 
-    const attempt = correlationId()
+    const attempt = nextEmbedInitId()
     const baseMessage: OneSchemaSharedInitParams = {
       version: this.#version,
       client: this.#client,
       manualClose: true,
-      correlationId: attempt,
+      embedInitId: attempt,
     }
 
     let message: Partial<OneSchemaInitMessage>
@@ -333,13 +333,13 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     this.#cancelPendingLaunch()
     // A session the new launch replaces keeps running in the embed until its
     // init message lands, so its replies are stale from here on.
-    this.#sessionCorrelationId = undefined
+    this.#sessionEmbedInitId = undefined
 
     this.#initMessage = message as OneSchemaInitMessage
     this.#hasAttemptedLaunch = true
 
     const launched = new Promise<OneSchemaLaunchInfo>((resolve, reject) => {
-      this.#pendingLaunch = { correlationId: attempt, resolve, reject }
+      this.#pendingLaunch = { embedInitId: attempt, resolve, reject }
     })
 
     // The deadline is armed here rather than alongside the retry loop: until
@@ -352,19 +352,19 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
 
   /**
    * Report a launch failure the caller can see before anything was posted to
-   * the embed: the `launched` event and the rejection share a correlation id.
+   * the embed: the `launched` event and the rejection share an embed init id.
    */
   #rejectLaunch(
     error: OneSchemaLaunchError,
     message: string,
     detail: { status?: number; data?: unknown } = {},
   ): Promise<OneSchemaLaunchInfo> {
-    const failure = new OneSchemaLaunchFailure(error, message, correlationId(), detail)
+    const failure = new OneSchemaLaunchFailure(error, message, nextEmbedInitId(), detail)
     this.emit("launched", {
       success: false,
       error,
       message,
-      correlationId: failure.correlationId,
+      embedInitId: failure.embedInitId,
       ...detail,
     })
     return Promise.reject(failure)
@@ -398,7 +398,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       ? "OneSchema failed to respond for initialization"
       : `OneSchema iframe was blocked: no message was ever received from ${this.iframe?.src}, so the OneSchema embed page never ran. The browser most likely blocked the iframe — check this page's console for a Content-Security-Policy "frame-ancestors" violation, and verify that this page's origin (${window.location.origin}) is on the allowed domains list for OneSchema client ID ${this.#params.clientId}.`
     console.error(msg)
-    const correlation = this.#settlePendingLaunchFailure(
+    const embedInitId = this.#settlePendingLaunchFailure(
       OneSchemaLaunchError.Timeout,
       msg,
     )
@@ -406,7 +406,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       success: false,
       error: OneSchemaLaunchError.Timeout,
       message: msg,
-      correlationId: correlation,
+      embedInitId,
     })
     this.#failLaunch()
     if (this.#params.devMode) {
@@ -422,7 +422,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
   }
 
   /**
-   * Fail the launch in flight, if there is one. Returns the correlation id of
+   * Fail the launch in flight, if there is one. Returns the embed init id of
    * the attempt so the `launched` event can carry it too.
    */
   #settlePendingLaunchFailure(
@@ -439,9 +439,9 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
 
     this.#pendingLaunch = undefined
     pending.reject(
-      new OneSchemaLaunchFailure(error, message, pending.correlationId, detail),
+      new OneSchemaLaunchFailure(error, message, pending.embedInitId, detail),
     )
-    return pending.correlationId
+    return pending.embedInitId
   }
 
   /**
@@ -631,25 +631,25 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
   }
 
   // Terminal replies only belong to a launch that is still waiting for one.
-  // Embeds released before 0.8 do not echo the correlation id, so a reply
+  // Embeds released before 0.8 do not echo the embed init id, so a reply
   // without one is attributed to that launch.
   // The replies of a running session are attributed the same way: an embed
-  // that echoes the correlation id can be told apart from a session a later
+  // that echoes the embed init id can be told apart from a session a later
   // launch replaced, and one that does not is attributed to the session in
   // flight.
-  #isStaleSessionReply(replyCorrelationId: unknown): boolean {
+  #isStaleSessionReply(replyEmbedInitId: unknown): boolean {
     return (
-      typeof replyCorrelationId === "string" &&
-      replyCorrelationId !== this.#sessionCorrelationId
+      typeof replyEmbedInitId === "string" &&
+      replyEmbedInitId !== this.#sessionEmbedInitId
     )
   }
 
-  #isStaleLaunchReply(replyCorrelationId: unknown): boolean {
+  #isStaleLaunchReply(replyEmbedInitId: unknown): boolean {
     const pending = this.#pendingLaunch
     return (
       !pending ||
-      (typeof replyCorrelationId === "string" &&
-        replyCorrelationId !== pending.correlationId)
+      (typeof replyEmbedInitId === "string" &&
+        replyEmbedInitId !== pending.embedInitId)
     )
   }
 
@@ -682,7 +682,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       // spell-checker: enable
       // The correct spelling added in 2024-10.
       case "init-received": {
-        if (this.#isStaleLaunchReply(data.correlationId)) {
+        if (this.#isStaleLaunchReply(data.embedInitId)) {
           return
         }
 
@@ -692,12 +692,12 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
 
       case "launched": {
         const pending = this.#pendingLaunch
-        if (!pending || this.#isStaleLaunchReply(data.correlationId)) {
+        if (!pending || this.#isStaleLaunchReply(data.embedInitId)) {
           return
         }
 
         this.#hasLaunched = true
-        this.#sessionCorrelationId = pending.correlationId
+        this.#sessionEmbedInitId = pending.embedInitId
         let sessionToken = data.sessionToken
         const embedId = data.embedId
         if (this.#resumeTokenKey && sessionToken) {
@@ -717,7 +717,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
         this.#pendingLaunch = undefined
         this.#clearLaunchDeadline()
         const info: OneSchemaLaunchInfo = {
-          correlationId: pending.correlationId,
+          embedInitId: pending.embedInitId,
           sessionToken,
           embedId,
         }
@@ -728,12 +728,12 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       }
 
       case "launch-error": {
-        if (this.#isStaleLaunchReply(data.correlationId)) {
+        if (this.#isStaleLaunchReply(data.embedInitId)) {
           return
         }
 
         const detail = parseLaunchErrorDetail(data.message)
-        const correlation = this.#settlePendingLaunchFailure(
+        const embedInitId = this.#settlePendingLaunchFailure(
           OneSchemaLaunchError.LaunchError,
           detail.message || DEFAULT_LAUNCH_ERROR_MESSAGE,
           { ...detail, cause: data.message },
@@ -741,7 +741,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
         this.emit("launched", {
           success: false,
           error: OneSchemaLaunchError.LaunchError,
-          correlationId: correlation,
+          embedInitId,
           ...detail,
         })
         this.#failLaunch()
@@ -754,7 +754,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       }
 
       case "complete": {
-        if (this.#isStaleSessionReply(data.correlationId)) {
+        if (this.#isStaleSessionReply(data.embedInitId)) {
           return
         }
 
@@ -775,7 +775,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       }
 
       case "cancel": {
-        if (this.#isStaleSessionReply(data.correlationId)) {
+        if (this.#isStaleSessionReply(data.embedInitId)) {
           return
         }
 

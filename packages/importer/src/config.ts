@@ -504,7 +504,7 @@ export interface OneSchemaLaunchInfo {
    * An id shared with the `launched` event for the same attempt, so a support
    * report can name one launch
    */
-  correlationId: string
+  embedInitId: string
   /**
    * The session token for the running import, when there is one
    */
@@ -550,7 +550,7 @@ export interface OneSchemaLaunchStatus {
    * An id shared with the `launch()` resolution or rejection for the same
    * attempt, so a support report can name one launch
    */
-  correlationId?: string
+  embedInitId?: string
 }
 
 /**
@@ -637,7 +637,7 @@ export interface OneSchemaSharedInitParams {
    * on `launched` and `launch-error` so a reply from an abandoned attempt can
    * be told apart from the one in flight
    */
-  correlationId: string
+  embedInitId: string
 
   // debug info
   version: string

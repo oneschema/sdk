@@ -22,9 +22,9 @@ sequenceDiagram
     Host->>SDK: launch(params)
     SDK->>SDK: status "launching", arm initTimeoutMs deadline
     Note over SDK: nothing is posted until the iframe has loaded
-    SDK->>Embed: init (or init-session), with correlationId
+    SDK->>Embed: init (or init-session), with embedInitId
     loop every LAUNCH_RETRY_DELAY_MS until acknowledged
-        SDK->>Embed: init (same correlationId)
+        SDK->>Embed: init (same embedInitId)
     end
     Embed-->>SDK: init-received
     SDK->>SDK: stop retrying
@@ -32,7 +32,7 @@ sequenceDiagram
     Embed->>Embed: validate the JWT, create or resume the session
     Embed-->>SDK: launched (sessionToken, embedId)
     SDK->>SDK: status "launched", clear the deadline, persist the resume token
-    SDK-->>Host: "launched" event { success: true, correlationId, sessionToken, embedId }
+    SDK-->>Host: "launched" event { success: true, embedInitId, sessionToken, embedId }
     SDK->>Embed: show the iframe
     SDK-->>Host: launch() resolves with OneSchemaLaunchInfo
     Embed-->>User: upload pane, ready for a file
@@ -54,7 +54,7 @@ sequenceDiagram
 
     alt the iframe never loads (blocked, offline, CSP)
         Note over SDK,Embed: no init message is ever posted
-        SDK-->>Host: "launched" { success: false, correlationId, error: Timeout }
+        SDK-->>Host: "launched" { success: false, embedInitId, error: Timeout }
         SDK-->>Host: launch() rejects with OneSchemaLaunchError.Timeout
     else the embed never acknowledges
         loop until the deadline
@@ -67,7 +67,7 @@ sequenceDiagram
         SDK-->>Host: launch() rejects with OneSchemaLaunchError.Timeout
     else the embed rejects the launch
         Embed-->>SDK: launch-error (message)
-        SDK-->>Host: "launched" { success: false, correlationId, error: LaunchError, status, data }
+        SDK-->>Host: "launched" { success: false, embedInitId, error: LaunchError, status, data }
         SDK-->>Host: launch() rejects with OneSchemaLaunchError.LaunchError
     end
 ```
@@ -76,7 +76,7 @@ A launch that fails before anything is posted — a missing `userJwt` or `templa
 
 ## Overlapping launches
 
-Only one launch is in flight per instance. `close()`, `destroy()` and a newer `launch()` abandon the pending one: its promise rejects with `OneSchemaLaunchError.Cancelled` and no `launched` event fires, because the host caused it. Replies from the abandoned attempt are then attributed by correlation id, so they cannot settle or disturb the current one:
+Only one launch is in flight per instance. `close()`, `destroy()` and a newer `launch()` abandon the pending one: its promise rejects with `OneSchemaLaunchError.Cancelled` and no `launched` event fires, because the host caused it. Replies from the abandoned attempt are then attributed by embed init id, so they cannot settle or disturb the current one:
 
 ```mermaid
 sequenceDiagram
@@ -86,10 +86,10 @@ sequenceDiagram
     participant Embed as Embed iframe
 
     Host->>SDK: launch(A)
-    SDK->>Embed: init (correlationId A)
+    SDK->>Embed: init (embedInitId A)
     Host->>SDK: launch(B)
     SDK-->>Host: launch(A) rejects with Cancelled
-    SDK->>Embed: init (correlationId B)
+    SDK->>Embed: init (embedInitId B)
 
     Embed-->>SDK: init-received (A)
     SDK->>SDK: ignored, B keeps retrying
@@ -97,12 +97,12 @@ sequenceDiagram
     SDK->>SDK: ignored, no event and no state change
     Embed-->>SDK: init-received (B)
     Embed-->>SDK: launched (B)
-    SDK-->>Host: "launched" { success: true, correlationId: B }
+    SDK-->>Host: "launched" { success: true, embedInitId: B }
     Embed-->>SDK: complete (A)
     SDK->>SDK: ignored, A's session was replaced
 ```
 
-An embed released before 0.8 does not echo `correlationId`, so a reply without one is attributed to the attempt in flight; only a mismatching id is dropped.
+An embed released before 0.8 does not echo `embedInitId`, so a reply without one is attributed to the attempt in flight; only a mismatching id is dropped.
 
 ## Once the session is running
 

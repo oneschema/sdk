@@ -51,9 +51,9 @@ const importer = oneschemaImporter({
 // launch() resolves once the import session is running, and rejects with a
 // OneSchemaLaunchFailure as soon as the failure is knowable
 try {
-  const { correlationId, sessionToken, embedId } = await importer.launch()
+  const { embedInitId, sessionToken, embedId } = await importer.launch()
 } catch (failure) {
-  // failure is { error, message, correlationId, status, data }
+  // failure is { error, message, embedInitId, status, data }
 }
 
 // OR
@@ -102,7 +102,7 @@ const importer = oneschemaImporter({
 
 `importer.status` reports where an instance is in its lifecycle: `idle` before the first launch, after `close()` and after a launch fails, `launching` while the import session is starting, `launched` once the embed is running, and `destroyed` after `destroy()`.
 
-`launch()` returns a promise that resolves with `{ correlationId, sessionToken, embedId }` only once the embed reports the import session is running. It rejects with a `OneSchemaLaunchFailure` as soon as the failure is knowable — invalid or missing parameters, a destroyed instance, a launch the embed rejected, a `close()`/`destroy()` or a newer `launch()` that abandoned it, and `initTimeoutMs` expiring before the session started. `failure.error` is a `OneSchemaLaunchError`, and `failure.correlationId` is repeated on the `launched` event for the same attempt, so a support report can name one launch.
+`launch()` returns a promise that resolves with `{ embedInitId, sessionToken, embedId }` only once the embed reports the import session is running. It rejects with a `OneSchemaLaunchFailure` as soon as the failure is knowable — invalid or missing parameters, a destroyed instance, a launch the embed rejected, a `close()`/`destroy()` or a newer `launch()` that abandoned it, and `initTimeoutMs` expiring before the session started. `failure.error` is a `OneSchemaLaunchError`, and `failure.embedInitId` is repeated on the `launched` event for the same attempt, so a support report can name one launch.
 
 `initTimeoutMs` (20 seconds by default) is the deadline for the whole launch, not only for the acknowledgement: the importer re-sends its initialization message every 500 ms until the embed acknowledges it, and the deadline keeps running after that until the session starts. So an iframe the browser blocked, and an embed that acknowledges the initialization but never reports a running session, both reject with `OneSchemaLaunchError.Timeout`. Raise `initTimeoutMs` for hosts on slow or distant connections.
 

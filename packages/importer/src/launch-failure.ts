@@ -3,12 +3,12 @@ import { OneSchemaLaunchError } from "./config"
 /**
  * The rejection `launch()` produces when the import session did not start.
  *
- * `correlationId` is also carried on the `launched` event for the same failure,
+ * `embedInitId` is also carried on the `launched` event for the same failure,
  * so a host can tie a support report to one launch attempt.
  */
 export class OneSchemaLaunchFailure extends Error {
   readonly error: OneSchemaLaunchError
-  readonly correlationId: string
+  readonly embedInitId: string
   /**
    * The HTTP status OneSchema responded with, when the failure came from an
    * API call
@@ -27,13 +27,13 @@ export class OneSchemaLaunchFailure extends Error {
   constructor(
     error: OneSchemaLaunchError,
     message: string,
-    correlationId: string,
+    embedInitId: string,
     detail: { status?: number; data?: unknown; cause?: unknown } = {},
   ) {
     super(message)
     this.name = "OneSchemaLaunchFailure"
     this.error = error
-    this.correlationId = correlationId
+    this.embedInitId = embedInitId
     this.status = detail.status
     this.data = detail.data
     this.cause = detail.cause

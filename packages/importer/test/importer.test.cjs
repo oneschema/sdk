@@ -141,7 +141,7 @@ test("rejects and stays idle when launch params are invalid", async () => {
   assert.equal(failure.error, OneSchemaLaunchError.MissingJwt)
   assert.equal(importer.status, "idle")
   assert.equal(failures.length, 1)
-  assert.equal(failures[0].correlationId, failure.correlationId)
+  assert.equal(failures[0].embedInitId, failure.embedInitId)
 
   importer.destroy()
 })
@@ -159,9 +159,9 @@ test("resolves with the running session once the embed launches", async () => {
 
   assert.equal(info.sessionToken, "session-token")
   assert.equal(info.embedId, "embed-id")
-  assert.equal(typeof info.correlationId, "string")
+  assert.equal(typeof info.embedInitId, "string")
   assert.equal(statuses.length, 1)
-  assert.equal(statuses[0].correlationId, info.correlationId)
+  assert.equal(statuses[0].embedInitId, info.embedInitId)
   assert.equal(importer.status, "launched")
 
   importer.destroy()
@@ -272,21 +272,21 @@ test("ignores a terminal reply from an abandoned launch", async () => {
 
   const abandoned = launch(importer)
   iframe.onload()
-  const abandonedId = messages[0].payload.correlationId
+  const abandonedId = messages[0].payload.embedInitId
 
   const current = importer.launch()
-  const currentId = messages[messages.length - 1].payload.correlationId
+  const currentId = messages[messages.length - 1].payload.embedInitId
 
   assert.notEqual(abandonedId, currentId)
 
   post({
     messageType: "launch-error",
-    correlationId: abandonedId,
+    embedInitId: abandonedId,
     message: "too late",
   })
   post({
     messageType: "launched",
-    correlationId: abandonedId,
+    embedInitId: abandonedId,
     sessionToken: "stale-token",
   })
 
@@ -298,16 +298,16 @@ test("ignores a terminal reply from an abandoned launch", async () => {
 
   post({
     messageType: "launched",
-    correlationId: currentId,
+    embedInitId: currentId,
     sessionToken: "session-token",
   })
 
   const info = await current
 
   assert.equal(info.sessionToken, "session-token")
-  assert.equal(info.correlationId, currentId)
+  assert.equal(info.embedInitId, currentId)
   assert.deepEqual(
-    statuses.map((status) => status.correlationId),
+    statuses.map((status) => status.embedInitId),
     [currentId],
   )
 
@@ -324,12 +324,12 @@ test("posts init for a launch that replaces an acknowledged one", async () => {
   const current = importer.launch()
 
   assert.equal(messages.length, 2)
-  const currentId = messages[1].payload.correlationId
-  assert.notEqual(currentId, messages[0].payload.correlationId)
+  const currentId = messages[1].payload.embedInitId
+  assert.notEqual(currentId, messages[0].payload.embedInitId)
 
-  post({ messageType: "launched", correlationId: currentId })
+  post({ messageType: "launched", embedInitId: currentId })
 
-  assert.equal((await current).correlationId, currentId)
+  assert.equal((await current).embedInitId, currentId)
 
   importer.destroy()
 })
@@ -339,7 +339,7 @@ test("posts init for a launch that replaces a running session", async () => {
 
   const first = importer.launch()
   iframe.onload()
-  post({ messageType: "launched", correlationId: messages[0].payload.correlationId })
+  post({ messageType: "launched", embedInitId: messages[0].payload.embedInitId })
   await first
   assert.equal(importer.status, "launched")
 
@@ -348,10 +348,10 @@ test("posts init for a launch that replaces a running session", async () => {
   assert.equal(messages.length, 2)
   assert.equal(importer.status, "launching")
 
-  const replacementId = messages[1].payload.correlationId
-  post({ messageType: "launched", correlationId: replacementId })
+  const replacementId = messages[1].payload.embedInitId
+  post({ messageType: "launched", embedInitId: replacementId })
 
-  assert.equal((await replacement).correlationId, replacementId)
+  assert.equal((await replacement).embedInitId, replacementId)
 
   importer.destroy()
 })
@@ -364,24 +364,24 @@ test("keeps retrying init when a replaced launch is acknowledged late", async (t
 
   launch(importer)
   iframe.onload()
-  const abandonedId = messages[0].payload.correlationId
+  const abandonedId = messages[0].payload.embedInitId
 
   const current = importer.launch()
-  const currentId = messages[1].payload.correlationId
+  const currentId = messages[1].payload.embedInitId
 
-  post({ messageType: "init-received", correlationId: abandonedId })
+  post({ messageType: "init-received", embedInitId: abandonedId })
   clock.tick(500)
 
   assert.equal(messages.length, 3)
-  assert.equal(messages[2].payload.correlationId, currentId)
+  assert.equal(messages[2].payload.embedInitId, currentId)
 
-  post({ messageType: "init-received", correlationId: currentId })
+  post({ messageType: "init-received", embedInitId: currentId })
   clock.tick(500)
 
   assert.equal(messages.length, 3)
 
-  post({ messageType: "launched", correlationId: currentId })
-  assert.equal((await current).correlationId, currentId)
+  post({ messageType: "launched", embedInitId: currentId })
+  assert.equal((await current).embedInitId, currentId)
 
   importer.destroy()
 })
@@ -393,22 +393,22 @@ test("ignores a completion from a session a later launch replaced", async () => 
 
   const first = importer.launch()
   iframe.onload()
-  const firstId = messages[0].payload.correlationId
-  post({ messageType: "launched", correlationId: firstId })
+  const firstId = messages[0].payload.embedInitId
+  post({ messageType: "launched", embedInitId: firstId })
   await first
 
   const replacement = importer.launch()
-  const replacementId = messages[1].payload.correlationId
+  const replacementId = messages[1].payload.embedInitId
 
-  post({ messageType: "complete", correlationId: firstId, data: { rows: [] } })
+  post({ messageType: "complete", embedInitId: firstId, data: { rows: [] } })
 
   assert.deepEqual(results, [])
   assert.equal(importer.status, "launching")
 
-  post({ messageType: "launched", correlationId: replacementId })
+  post({ messageType: "launched", embedInitId: replacementId })
   await replacement
 
-  post({ messageType: "complete", correlationId: replacementId, data: { rows: [] } })
+  post({ messageType: "complete", embedInitId: replacementId, data: { rows: [] } })
 
   assert.deepEqual(results, [{ type: "local", data: { rows: [] } }])
 
@@ -422,7 +422,7 @@ test("ignores a terminal reply that arrives after the launch was closed", async 
 
   const launched = launch(importer)
   iframe.onload()
-  const attempt = messages[0].payload.correlationId
+  const attempt = messages[0].payload.embedInitId
 
   importer.close()
   assert.equal(
@@ -432,7 +432,7 @@ test("ignores a terminal reply that arrives after the launch was closed", async 
 
   post({
     messageType: "launched",
-    correlationId: attempt,
+    embedInitId: attempt,
     sessionToken: "late-token",
   })
 
