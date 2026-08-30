@@ -83,7 +83,9 @@ source. To repeat that comparison later, run the `Verify release` workflow on
 the tag, or locally:
 
 ```sh
-git checkout @oneschema/importer@0.7.6
+git checkout @oneschema/importer@0.7.7
 yarn install --immutable && yarn build
 node scripts/verify-published.mjs
 ```
+
+The comparison skips the packages changesets ignores, since a hand-published legacy release does not come from a known revision; pass a package name to check one of those anyway.

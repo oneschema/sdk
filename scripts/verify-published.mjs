@@ -5,6 +5,9 @@
 //   yarn build && node scripts/verify-published.mjs
 //   node scripts/verify-published.mjs @oneschema/importer
 //
+// Packages changesets ignores are released by hand, from whichever revision the
+// maintainer built, so they are only checked when named explicitly.
+//
 // Only reads the public registry, so it needs no npm credentials.
 import { createHash } from "node:crypto"
 import { spawnSync } from "node:child_process"
@@ -23,6 +26,10 @@ const packageDirectories = [
 ]
 
 const only = process.argv.slice(2)
+
+const { ignore = [] } = JSON.parse(
+  await readFile(join(repoRoot, ".changeset/config.json"), "utf8"),
+)
 
 const publicRegistry = "https://registry.npmjs.org"
 
@@ -61,7 +68,10 @@ async function packTo(directory, spec, { attempts = 1, registry } = {}) {
   }
 
   if (result.status !== 0) {
-    return { error: (result.stderr || result.stdout).trim() }
+    // `npm pack --silent` can fail without writing anything, and an empty
+    // message would read as a success to the caller.
+    const output = (result.stderr || result.stdout || "").trim()
+    return { error: output || `npm pack exited with ${result.status} for ${spec}` }
   }
 
   const tarballs = (await readdir(directory)).filter((file) => file.endsWith(".tgz"))
@@ -130,7 +140,8 @@ try {
     const directory = join(repoRoot, packageDirectory)
     const manifest = JSON.parse(await readFile(join(directory, "package.json"), "utf8"))
     const { name, version } = manifest
-    if (only.length > 0 && !only.includes(name) && !only.includes(`${name}@${version}`)) {
+    const named = only.includes(name) || only.includes(`${name}@${version}`)
+    if (only.length > 0 ? !named : ignore.includes(name)) {
       continue
     }
 
