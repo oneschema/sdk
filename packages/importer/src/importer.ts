@@ -1,8 +1,8 @@
 import { EventEmitter } from "eventemitter3"
 import { version } from "../package.json"
 import {
+  BaseFileUploadImportConfig,
   DEFAULT_PARAMS,
-  FileUploadImportConfig,
   OneSchemaError,
   OneSchemaErrorSeverity,
   OneSchemaEventMap,
@@ -251,9 +251,15 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       }
     }
 
-    this.#hasAttemptedLaunch = true
-
     const mergedParams = merged(this.#params, launchParams)
+    let importConfig = mergedParams.importConfig
+    if (importConfig && importConfig.type === "file-upload" && !importConfig.format) {
+      importConfig = {
+        ...(importConfig as BaseFileUploadImportConfig),
+        format: "csv",
+      }
+    }
+
     const baseMessage: OneSchemaSharedInitParams = {
       version: this.#version,
       client: this.#client,
@@ -274,7 +280,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
         messageType: "init",
         userJwt: mergedParams.userJwt,
         templateKey: mergedParams.templateKey,
-        importConfig: mergedParams.importConfig,
+        importConfig,
         customizationKey: mergedParams.customizationKey,
         customizationOverrides: mergedParams.customizationOverrides,
         templateOverrides: mergedParams.templateOverrides,
@@ -311,15 +317,8 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       }
     }
 
-    if (
-      mergedParams.importConfig &&
-      mergedParams.importConfig.type === "file-upload" &&
-      !mergedParams.importConfig.format
-    ) {
-      ;(mergedParams.importConfig as FileUploadImportConfig).format = "csv"
-    }
-
     this.#initMessage = message as OneSchemaInitMessage
+    this.#hasAttemptedLaunch = true
     this.#launch()
     return { success: true }
   }

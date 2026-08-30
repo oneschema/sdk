@@ -3638,7 +3638,6 @@ __metadata:
     tslib: "npm:^2.x"
     typescript: "npm:^4.7.3"
   peerDependencies:
-    "@oneschema/importer": ^0.7.7
     react: ">=17"
   languageName: unknown
   linkType: soft
@@ -3670,8 +3669,6 @@ __metadata:
     tslib: "npm:^2.x"
     typescript: "npm:^4.7.3"
     vue: "npm:^3.3.4"
-  peerDependencies:
-    "@oneschema/importer": ^0.7.7
   languageName: unknown
   linkType: soft
 

@@ -86,6 +86,32 @@ test("releases only its own iframe on destroy", () => {
   second.importer.destroy()
 })
 
+test("defaults the file-upload format without touching the caller's config", () => {
+  const { iframe, importer, messages } = createImporter()
+  const importConfig = { type: "file-upload" }
+
+  importer.launch({ importConfig })
+  iframe.onload()
+
+  assert.equal(messages[0].payload.importConfig.format, "csv")
+  assert.deepEqual(importConfig, { type: "file-upload" })
+
+  importer.destroy()
+})
+
+test("stays idle when launch params are invalid", () => {
+  const importer = new OneSchemaImporterClass({
+    baseUrl: "https://embed.test",
+    clientId: "client-id",
+    manageDOM: false,
+  })
+
+  assert.equal(importer.launch().success, false)
+  assert.equal(importer.status, "idle")
+
+  importer.destroy()
+})
+
 test("reports where the instance is in its lifecycle", () => {
   const { iframe, importer } = createImporter()
 
