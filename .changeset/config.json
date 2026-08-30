@@ -4,11 +4,14 @@
   "commit": false,
   "fixed": [],
   "linked": [
-    ["@oneschema/importer", "@oneschema/react", "@oneschema/vue", "@oneschema/angular"],
-    ["@oneschema/filefeeds", "@oneschema/filefeeds-react"]
+    ["@oneschema/importer", "@oneschema/react", "@oneschema/vue", "@oneschema/angular"]
   ],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@oneschema/angular-example"]
+  "ignore": [
+    "@oneschema/angular-example",
+    "@oneschema/filefeeds",
+    "@oneschema/filefeeds-react"
+  ]
 }

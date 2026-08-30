@@ -5,11 +5,20 @@ of OneSchema Importer packages.
 
 `@oneschema/filefeeds` and `@oneschema/filefeeds-react` are legacy packages in
 maintenance mode. They keep working and still receive critical and security
-fixes, but no new features and no major updates are planned.
+fixes, but no new features and no major updates are planned. They are excluded
+from the automated release, so this log is maintained by hand and a version is
+published only when a maintenance fix warrants it — see
+[Releasing](./README.md#releasing).
 
 This log is intended to keep track of package changes, including
 but not limited to API changes and file location changes. Minor behavioral
 changes may not be included if they are not expected to break existing code.
+
+## Unreleased
+
+- Mark the packages as legacy and maintenance-only in their READMEs and npm
+  descriptions.
+- Publish dual ESM and CommonJS entrypoints with explicit export maps.
 
 ## 0.5.2 (2024-10-18)
 
