@@ -54,7 +54,7 @@ sequenceDiagram
 
     alt the iframe never loads (blocked, offline, CSP)
         Note over SDK,Embed: no init message is ever posted
-        SDK-->>Host: "launched" { success: false, error: Timeout }
+        SDK-->>Host: "launched" { success: false, correlationId, error: Timeout }
         SDK-->>Host: launch() rejects with OneSchemaLaunchError.Timeout
     else the embed never acknowledges
         loop until the deadline
@@ -67,7 +67,7 @@ sequenceDiagram
         SDK-->>Host: launch() rejects with OneSchemaLaunchError.Timeout
     else the embed rejects the launch
         Embed-->>SDK: launch-error (message)
-        SDK-->>Host: "launched" { success: false, error: LaunchError, status, data }
+        SDK-->>Host: "launched" { success: false, correlationId, error: LaunchError, status, data }
         SDK-->>Host: launch() rejects with OneSchemaLaunchError.LaunchError
     end
 ```
