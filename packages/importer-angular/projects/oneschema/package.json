@@ -1,6 +1,6 @@
 {
   "name": "@oneschema/angular",
-  "version": "0.7.5",
+  "version": "0.7.6",
   "description": "Angular module for embedding OneSchema Importer",
   "author": "OneSchema",
   "license": "MIT",
@@ -27,6 +27,6 @@
   "peerDependencies": {
     "@angular/common": ">=15",
     "@angular/core": ">=15",
-    "@oneschema/importer": "^0.7.0"
+    "@oneschema/importer": "^0.7.6"
   }
 }
