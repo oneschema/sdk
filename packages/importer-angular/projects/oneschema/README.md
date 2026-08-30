@@ -16,13 +16,13 @@ with your application.
 You can install this package with npm:
 
 ```bash
-npm i --save @oneschema/angular @oneschema/importer
+npm i --save @oneschema/angular
 ```
 
-With pnpm, install `eventemitter3` alongside them:
+With pnpm, install `eventemitter3` alongside it:
 
 ```bash
-pnpm add @oneschema/angular @oneschema/importer eventemitter3@^4.0.7
+pnpm add @oneschema/angular eventemitter3@^4.0.7
 ```
 
 The importer class this service wraps extends `EventEmitter` from
@@ -33,12 +33,12 @@ and yarn hoist it for you.
 
 ### Compatibility
 
-`@oneschema/angular` keeps `@oneschema/importer` as a peer dependency so that
-your application resolves a single copy of the importer core, and its peer
-range always admits the core released alongside it: a given
-`@oneschema/angular` release requires the matching `@oneschema/importer` minor
-(currently `^0.7.0`). Install both packages together, and upgrade them
-together.
+`@oneschema/angular` depends on `@oneschema/importer` directly, as the React
+and Vue wrappers do, so installing the wrapper installs the matching core and
+there is no second package to keep in step. If your application also imports
+`@oneschema/importer` itself, declare it as your own dependency with a range
+that admits the one this wrapper requires (currently `^0.7.7`), so your
+package manager resolves a single copy of the core.
 
 The package is published in the Angular Package Format with partial-Ivy
 bundles, which the Angular linker in your application's build fully compiles

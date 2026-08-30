@@ -3511,11 +3511,11 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@oneschema/angular@workspace:packages/importer-angular/projects/oneschema"
   dependencies:
+    "@oneschema/importer": "npm:^0.7.7"
     tslib: "npm:^2.x"
   peerDependencies:
     "@angular/common": ">=15"
     "@angular/core": ">=15"
-    "@oneschema/importer": ^0.7.7
   languageName: unknown
   linkType: soft
 

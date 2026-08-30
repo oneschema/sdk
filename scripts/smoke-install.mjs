@@ -192,7 +192,7 @@ try {
         failures.push(
           `a fresh install of @oneschema/angular resolved ` +
             `@oneschema/importer@${resolved.version}, but the current core is ` +
-            `${publishedCoreVersion}; the wrapper's peer range strands consumers ` +
+            `${publishedCoreVersion}; the wrapper's core range strands consumers ` +
             "on an old core",
         )
       } else {
