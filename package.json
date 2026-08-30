@@ -20,8 +20,10 @@
     "fix": "yarn docs:api && prettier --write . && yarn workspaces foreach -A run fix",
     "check": "node scripts/generate-api-docs.mjs --check && prettier --check . && htmlhint \"packages/**/test/*.html\" && yarn workspaces foreach -A run check",
     "check:packages": "node scripts/check-packages.mjs",
+    "check:ranges": "node scripts/check-internal-ranges.mjs",
+    "check:install": "node scripts/smoke-install.mjs",
     "test:ci": "yarn workspaces foreach -A run test:ci",
-    "release": "yarn build && changeset publish"
+    "release": "yarn build && yarn check:ranges && changeset publish"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",
@@ -29,10 +31,11 @@
     "@parcel/core": "2.8.3",
     "@parcel/transformer-vue": "2.8.3",
     "htmlhint": "1.9.2",
-    "publint": "0.3.24",
     "prettier": "3.9.6",
     "process": "^0.11.10",
-    "react": "^18.2.0"
+    "publint": "0.3.24",
+    "react": "^18.2.0",
+    "semver": "7.7.4"
   },
   "resolutions": {
     "human-id": "4.1.3"

@@ -1,6 +1,5 @@
 {
   "name": "@oneschema/importer",
-  "private": false,
   "version": "0.7.5",
   "description": "Vanilla JS library for embedding OneSchema Importer",
   "author": "OneSchema",

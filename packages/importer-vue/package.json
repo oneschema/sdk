@@ -1,6 +1,5 @@
 {
   "name": "@oneschema/vue",
-  "private": false,
   "version": "0.7.5",
   "description": "Vue plugin for embedding OneSchema Importer",
   "author": "OneSchema",
