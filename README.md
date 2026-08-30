@@ -59,3 +59,15 @@ See [TESTING.md](./TESTING.md) for how to run and test the SDK packages locally.
 
 Add a changeset in your pull request when changing a published package. Merging
 the Version Packages pull request updates package versions and publishes them.
+
+Every published package is tagged `<package>@<version>` on the commit it was
+built from, and the release workflow then compares each tarball on npm with a
+fresh build of that commit, so a release can always be traced back to its
+source. To repeat that comparison later, run the `Verify release` workflow on
+the tag, or locally:
+
+```sh
+git checkout @oneschema/importer@0.7.6
+yarn install --immutable && yarn build
+node scripts/verify-published.mjs
+```

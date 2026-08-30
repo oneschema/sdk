@@ -53,7 +53,10 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          persist-credentials: false
+          # The changesets action pushes the version branch and the
+          # `<package>@<version>` tags that identify what a release was built
+          # from, so it needs the credentials to stay in the git config.
+          persist-credentials: true
 
       - name: Enable Corepack
         run: corepack enable
@@ -69,6 +72,7 @@ jobs:
         run: yarn install --immutable
 
       - name: Create release or publish packages
+        id: changesets
         uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -78,3 +82,40 @@ jobs:
         with:
           version: yarn changeset version
           publish: yarn release
+
+      - name: Check that the release is tagged
+        if: steps.changesets.outputs.published == 'true'
+        env:
+          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
+        run: |
+          git fetch --tags --quiet
+          # Resolve the tag names first: a malformed or empty payload has to
+          # fail the release instead of leaving the loop with nothing to check.
+          tags="$(node -e '
+            const published = JSON.parse(process.env.PUBLISHED_PACKAGES || "null")
+            if (!Array.isArray(published) || published.length === 0) {
+              throw new Error("publishedPackages is not a non-empty array")
+            }
+            for (const p of published) {
+              if (!p || typeof p.name !== "string" || !p.name || typeof p.version !== "string" || !p.version) {
+                throw new Error("publishedPackages entry is missing a name or version: " + JSON.stringify(p))
+              }
+              console.log(p.name + "@" + p.version)
+            }
+          ')"
+          missing=0
+          while read -r tag; do
+            if [ "$(git rev-parse -q --verify "refs/tags/${tag}^{commit}")" = "$(git rev-parse HEAD)" ]; then
+              echo "tagged ${tag}"
+            else
+              echo "::error::${tag} is missing or does not point at the commit it was published from"
+              missing=1
+            fi
+          done <<< "${tags}"
+          exit "${missing}"
+
+      # Tags pushed with GITHUB_TOKEN do not start a workflow run, so the
+      # verification cannot rely on the `Verify release` tag trigger.
+      - name: Compare the published packages with this revision
+        if: steps.changesets.outputs.published == 'true'
+        run: node scripts/verify-published.mjs
