@@ -97,7 +97,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     reject: (failure: OneSchemaLaunchFailure) => void
   }
   #launchDeadline?: ReturnType<typeof setTimeout>
-  #launchCorrelationId?: string
+  #sessionCorrelationId?: string
 
   constructor(params: OneSchemaParams) {
     super()
@@ -331,11 +331,13 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     // A launch already in flight is abandoned rather than joined: its params
     // are not the ones the caller just passed.
     this.#cancelPendingLaunch()
+    // A session the new launch replaces keeps running in the embed until its
+    // init message lands, so its replies are stale from here on.
+    this.#sessionCorrelationId = undefined
 
     this.#initMessage = message as OneSchemaInitMessage
     this.#hasAttemptedLaunch = true
 
-    this.#launchCorrelationId = attempt
     const launched = new Promise<OneSchemaLaunchInfo>((resolve, reject) => {
       this.#pendingLaunch = { correlationId: attempt, resolve, reject }
     })
@@ -631,6 +633,17 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
   // Terminal replies only belong to a launch that is still waiting for one.
   // Embeds released before 0.8 do not echo the correlation id, so a reply
   // without one is attributed to that launch.
+  // The replies of a running session are attributed the same way: an embed
+  // that echoes the correlation id can be told apart from a session a later
+  // launch replaced, and one that does not is attributed to the session in
+  // flight.
+  #isStaleSessionReply(replyCorrelationId: unknown): boolean {
+    return (
+      typeof replyCorrelationId === "string" &&
+      replyCorrelationId !== this.#sessionCorrelationId
+    )
+  }
+
   #isStaleLaunchReply(replyCorrelationId: unknown): boolean {
     const pending = this.#pendingLaunch
     return (
@@ -669,6 +682,10 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       // spell-checker: enable
       // The correct spelling added in 2024-10.
       case "init-received": {
+        if (this.#isStaleLaunchReply(data.correlationId)) {
+          return
+        }
+
         this.#hasAppReceivedInitMessage = true
         return
       }
@@ -680,6 +697,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
         }
 
         this.#hasLaunched = true
+        this.#sessionCorrelationId = pending.correlationId
         let sessionToken = data.sessionToken
         const embedId = data.embedId
         if (this.#resumeTokenKey && sessionToken) {
@@ -736,6 +754,10 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       }
 
       case "complete": {
+        if (this.#isStaleSessionReply(data.correlationId)) {
+          return
+        }
+
         this.emit("success", this.#importResult(data))
         if (this.#resumeTokenKey) {
           try {
@@ -753,6 +775,10 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       }
 
       case "cancel": {
+        if (this.#isStaleSessionReply(data.correlationId)) {
+          return
+        }
+
         this.emit("cancel")
         if (this.#resumeTokenKey) {
           try {

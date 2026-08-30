@@ -25,6 +25,7 @@
   "files": [
     "dist",
     "README.md",
+    "LAUNCH-SEQUENCE.md",
     "LICENSE"
   ],
   "targets": {

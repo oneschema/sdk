@@ -186,3 +186,5 @@ Or, instead of those, with a session token created through the API:
 ## Documentation
 
 Please see [📚 OneSchema's documentation](https://docs.oneschema.co/) for [📒 API reference](https://docs.oneschema.co/docs/javascript#api-reference) and other helpful guides.
+
+[LAUNCH-SEQUENCE.md](LAUNCH-SEQUENCE.md) diagrams what the SDK and the embed exchange from construction until the user can pick a file, including the launch deadline and how overlapping launches are told apart.

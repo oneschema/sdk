@@ -356,6 +356,65 @@ test("posts init for a launch that replaces a running session", async () => {
   importer.destroy()
 })
 
+test("keeps retrying init when a replaced launch is acknowledged late", async (t) => {
+  const clock = t.mock.timers
+  clock.enable({ apis: ["setTimeout"] })
+
+  const { iframe, importer, post, messages } = createImporter({ autoClose: false })
+
+  launch(importer)
+  iframe.onload()
+  const abandonedId = messages[0].payload.correlationId
+
+  const current = importer.launch()
+  const currentId = messages[1].payload.correlationId
+
+  post({ messageType: "init-received", correlationId: abandonedId })
+  clock.tick(500)
+
+  assert.equal(messages.length, 3)
+  assert.equal(messages[2].payload.correlationId, currentId)
+
+  post({ messageType: "init-received", correlationId: currentId })
+  clock.tick(500)
+
+  assert.equal(messages.length, 3)
+
+  post({ messageType: "launched", correlationId: currentId })
+  assert.equal((await current).correlationId, currentId)
+
+  importer.destroy()
+})
+
+test("ignores a completion from a session a later launch replaced", async () => {
+  const { iframe, importer, post, messages } = createImporter({ autoClose: true })
+  const results = []
+  importer.on("success", (result) => results.push(result))
+
+  const first = importer.launch()
+  iframe.onload()
+  const firstId = messages[0].payload.correlationId
+  post({ messageType: "launched", correlationId: firstId })
+  await first
+
+  const replacement = importer.launch()
+  const replacementId = messages[1].payload.correlationId
+
+  post({ messageType: "complete", correlationId: firstId, data: { rows: [] } })
+
+  assert.deepEqual(results, [])
+  assert.equal(importer.status, "launching")
+
+  post({ messageType: "launched", correlationId: replacementId })
+  await replacement
+
+  post({ messageType: "complete", correlationId: replacementId, data: { rows: [] } })
+
+  assert.deepEqual(results, [{ type: "local", data: { rows: [] } }])
+
+  importer.destroy()
+})
+
 test("ignores a terminal reply that arrives after the launch was closed", async () => {
   const { iframe, importer, post, messages } = createImporter({ autoClose: false })
   const statuses = []
