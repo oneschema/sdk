@@ -4,9 +4,12 @@ const { test } = require("node:test")
 const { version } = require("../package.json")
 const { OneSchemaImporterClass } = require("../dist/main.js")
 
-function createImporter() {
+function createImporter(params) {
+  const listeners = []
   global.window = {
-    addEventListener() {},
+    addEventListener(_type, listener) {
+      listeners.push(listener)
+    },
     removeEventListener() {},
   }
 
@@ -27,11 +30,15 @@ function createImporter() {
     manageDOM: false,
     templateKey: "template-key",
     userJwt: "user-jwt",
+    ...params,
   })
 
   importer.setIframe(iframe)
 
-  return { iframe, importer, messages }
+  const post = (data) =>
+    listeners.forEach((listener) => listener({ source: iframe.contentWindow, data }))
+
+  return { iframe, importer, messages, post }
 }
 
 function postInitMessage(importer, iframe, messages) {
@@ -88,13 +95,16 @@ test("releases only its own iframe on destroy", () => {
 
 test("defaults the file-upload format without touching the caller's config", () => {
   const { iframe, importer, messages } = createImporter()
-  const importConfig = { type: "file-upload" }
+  const importConfig = { type: "file-upload", url: "https://upload.test/file" }
 
   importer.launch({ importConfig })
   iframe.onload()
 
   assert.equal(messages[0].payload.importConfig.format, "csv")
-  assert.deepEqual(importConfig, { type: "file-upload" })
+  assert.deepEqual(importConfig, {
+    type: "file-upload",
+    url: "https://upload.test/file",
+  })
 
   importer.destroy()
 })
@@ -107,6 +117,21 @@ test("stays idle when launch params are invalid", () => {
   })
 
   assert.equal(importer.launch().success, false)
+  assert.equal(importer.status, "idle")
+
+  importer.destroy()
+})
+
+test("returns to idle when the embed rejects the launch", () => {
+  const { iframe, importer, post } = createImporter({ autoClose: false })
+
+  importer.launch()
+  iframe.onload()
+
+  assert.equal(importer.status, "launching")
+
+  post({ messageType: "launch-error", message: "invalid template" })
+
   assert.equal(importer.status, "idle")
 
   importer.destroy()

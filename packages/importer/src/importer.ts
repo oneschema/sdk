@@ -126,7 +126,8 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
   /**
    * Where this instance is in its lifecycle:
    *
-   * - `idle`: created and never launched, or closed and ready to launch again
+   * - `idle`: created and never launched, closed, or launched and failed, and
+   *   ready to launch again
    * - `launching`: `launch()` was called and the import session is starting
    * - `launched`: the import session is running and the iframe is shown
    * - `destroyed`: `destroy()` was called and the instance is inert
@@ -366,6 +367,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
         message: msg,
         severity: OneSchemaErrorSeverity.Fatal,
       })
+      this.#hasAttemptedLaunch = false
       if (this.#params.devMode) {
         // Display the iframe for debugging purposes.
         this.#show()
@@ -548,6 +550,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
           error: OneSchemaLaunchError.LaunchError,
           ...detail,
         })
+        this.#hasAttemptedLaunch = false
         if (this.#params.devMode) {
           // In dev mode the embed does not follow up with an "error" message,
           // so this is the only chance the host gets to hear why.
