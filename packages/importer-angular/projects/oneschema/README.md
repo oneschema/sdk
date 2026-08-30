@@ -19,6 +19,18 @@ You can install this package with npm:
 npm i --save @oneschema/angular @oneschema/importer
 ```
 
+With pnpm, install `eventemitter3` alongside them:
+
+```bash
+pnpm add @oneschema/angular @oneschema/importer eventemitter3
+```
+
+The importer class this service wraps extends `EventEmitter` from
+`eventemitter3`, so that type is part of the published declarations. pnpm keeps
+each package's dependencies isolated instead of hoisting them, so your build
+cannot resolve `eventemitter3` unless it is declared in your project too. npm
+and yarn hoist it for you.
+
 ### Compatibility
 
 `@oneschema/angular` keeps `@oneschema/importer` as a peer dependency so that

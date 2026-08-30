@@ -17,6 +17,14 @@ You can install this package with npm:
 npm i --save @oneschema/vue
 ```
 
+With pnpm, install `eventemitter3` alongside it:
+
+```bash
+pnpm add @oneschema/vue eventemitter3
+```
+
+The importer class this component wraps extends `EventEmitter` from `eventemitter3`, so that type is part of the published declarations. pnpm keeps each package's dependencies isolated instead of hoisting them, so your build cannot resolve `eventemitter3` unless it is declared in your project too. npm and yarn hoist it for you.
+
 ### Configure the SDK
 
 Create an instance of the `OneSchemaPlugin` by calling `createOneSchemaImporter` and passing it to Vue's `app.use()`

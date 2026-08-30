@@ -23,6 +23,14 @@ or with a script tag:
 <script src="https://d3ah8o189k1llu.cloudfront.net/oneschema-importer-0.3.latest.min.js"></script>
 ```
 
+With pnpm, install `eventemitter3` alongside it:
+
+```bash
+pnpm add @oneschema/importer eventemitter3
+```
+
+The importer class extends `EventEmitter` from `eventemitter3`, so that type is part of the published declarations. pnpm keeps each package's dependencies isolated instead of hoisting them, so your build cannot resolve `eventemitter3` unless it is declared in your project too. npm and yarn hoist it for you.
+
 ### Sample usage
 
 ```javascript
