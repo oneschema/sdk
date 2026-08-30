@@ -60,6 +60,12 @@ See [TESTING.md](./TESTING.md) for how to run and test the SDK packages locally.
 Add a changeset in your pull request when changing a published package. Merging
 the Version Packages pull request updates package versions and publishes them.
 
+The legacy FileFeeds packages are ignored by that automation: do not write a
+changeset for them, and note the change under `Unreleased` in
+[CHANGELOG-filefeeds.md](./CHANGELOG-filefeeds.md) instead. Their versions and
+their publish are handled by hand, only when a maintenance fix warrants a
+release.
+
 Every published package is tagged `<package>@<version>` on the commit it was
 built from, and the release workflow then compares each tarball on npm with a
 fresh build of that commit, so a release can always be traced back to its
