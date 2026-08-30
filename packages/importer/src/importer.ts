@@ -1,11 +1,12 @@
 import { EventEmitter } from "eventemitter3"
 import { version } from "../package.json"
 import {
+  BaseFileUploadImportConfig,
   DEFAULT_PARAMS,
-  FileUploadImportConfig,
   OneSchemaError,
   OneSchemaErrorSeverity,
   OneSchemaEventMap,
+  OneSchemaImporterStatus,
   OneSchemaInitMessage,
   OneSchemaInitSessionMessage,
   OneSchemaInitSimpleMessage,
@@ -19,6 +20,10 @@ import {
 import { merged } from "./shared/utils"
 
 const MAX_LAUNCH_RETRY = 40
+
+const LAUNCH_RETRY_DELAY_MS = 500
+
+let iframeCount = 0
 
 const IMPORTER_EMBED_MARKER = "importer.oneschema.co"
 
@@ -63,18 +68,19 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
   #coreVersion = version
 
   #resumeTokenKey = ""
-  /** @internal */
-  _hasAttemptedLaunch = false
+  #hasAttemptedLaunch = false
   #destroyed = false
   #onWindowMessage = (event: MessageEvent) => this.#iframeEventListener(event)
   #hasLaunched = false
   #hasCancelled = false
+  #launchGeneration = 0
   #initMessage?: OneSchemaInitMessage
   #hasAppReceivedInitMessage = false
   // NOTE: This describes the iframe, which persists across launches, so it is
   // not reset in close().
   #hasReceivedFrameMessage = false
-  static #iframeIsLoaded = false
+  #iframeIsLoaded = false
+  #launchOnLoad = false
 
   constructor(params: OneSchemaParams) {
     super()
@@ -89,24 +95,54 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     window.addEventListener("message", this.#onWindowMessage)
 
     if (this.#params.manageDOM) {
-      const iframeId = "_oneschema-iframe"
-      this.iframe = document.getElementById(iframeId) as HTMLIFrameElement
-      if (this.iframe) {
-        this.iframe.dataset.count = `${parseInt(this.iframe.dataset.count || "0") + 1}`
-      } else {
-        const iframe = document.createElement("iframe")
-        iframe.id = iframeId
-        iframe.dataset.count = "1"
-        this.setIframe(iframe)
-      }
-
-      let parent = document.body
-      if (this.#params.parentId) {
-        parent = document.getElementById(this.#params.parentId) || parent
-      }
-
-      this.setParent(parent)
+      const iframe = document.createElement("iframe")
+      iframe.id = `_oneschema-iframe-${++iframeCount}`
+      this.setIframe(iframe)
+      this.setParent(this.#resolveParent())
     }
+  }
+
+  #resolveParent(): HTMLElement {
+    if (this.#params.parent) {
+      return this.#params.parent
+    }
+
+    if (this.#params.parentId) {
+      console.warn(
+        "OneSchema: parentId is deprecated, pass parent as an HTMLElement instead",
+      )
+      const parent = document.getElementById(this.#params.parentId)
+      if (parent) {
+        return parent
+      }
+
+      console.error(
+        `OneSchema config error: no element with id "${this.#params.parentId}" exists yet, appending the importer to document.body instead`,
+      )
+    }
+
+    return document.body
+  }
+
+  /**
+   * Where this instance is in its lifecycle:
+   *
+   * - `idle`: created and never launched, closed, or launched and failed, and
+   *   ready to launch again
+   * - `launching`: `launch()` was called and the import session is starting
+   * - `launched`: the import session is running and the iframe is shown
+   * - `destroyed`: `destroy()` was called and the instance is inert
+   */
+  get status(): OneSchemaImporterStatus {
+    if (this.#destroyed) {
+      return "destroyed"
+    }
+
+    if (this.#hasLaunched) {
+      return "launched"
+    }
+
+    return this.#hasAttemptedLaunch ? "launching" : "idle"
   }
 
   /**
@@ -152,9 +188,13 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       this.setStyles(this.#params.styles)
     }
 
-    OneSchemaImporterClass.#iframeIsLoaded = false
+    this.#iframeIsLoaded = false
     this.iframe.onload = () => {
-      OneSchemaImporterClass.#iframeIsLoaded = true
+      this.#iframeIsLoaded = true
+      if (this.#launchOnLoad) {
+        this.#launchOnLoad = false
+        this.#initSession()
+      }
     }
 
     this.#hide()
@@ -188,7 +228,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
 
   /**
    * Will change the parent container of the iframe
-   * NOTE: will reload the URL
+   * NOTE: will reload the URL, discarding any session in progress
    * @param parent DOM element to append to
    */
   setParent(parent: HTMLElement) {
@@ -213,9 +253,15 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       }
     }
 
-    this._hasAttemptedLaunch = true
-
     const mergedParams = merged(this.#params, launchParams)
+    let importConfig = mergedParams.importConfig
+    if (importConfig && importConfig.type === "file-upload" && !importConfig.format) {
+      importConfig = {
+        ...(importConfig as BaseFileUploadImportConfig),
+        format: "csv",
+      }
+    }
+
     const baseMessage: OneSchemaSharedInitParams = {
       version: this.#version,
       client: this.#client,
@@ -236,7 +282,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
         messageType: "init",
         userJwt: mergedParams.userJwt,
         templateKey: mergedParams.templateKey,
-        importConfig: mergedParams.importConfig,
+        importConfig,
         customizationKey: mergedParams.customizationKey,
         customizationOverrides: mergedParams.customizationOverrides,
         templateOverrides: mergedParams.templateOverrides,
@@ -273,16 +319,9 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       }
     }
 
-    if (
-      mergedParams.importConfig &&
-      mergedParams.importConfig.type === "file-upload" &&
-      !mergedParams.importConfig.format
-    ) {
-      ;(mergedParams.importConfig as FileUploadImportConfig).format = "csv"
-    }
-
     this.#initMessage = message as OneSchemaInitMessage
-    this._launch()
+    this.#hasAttemptedLaunch = true
+    this.#launch()
     return { success: true }
   }
 
@@ -297,24 +336,40 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     return this.launch(launchParams)
   }
 
-  /** @internal */
-  _launch() {
-    const postInit = () => {
-      this.#hasCancelled = false
-      this._initWithRetry()
-      OneSchemaImporterClass.#iframeIsLoaded = true
-    }
-
-    if (OneSchemaImporterClass.#iframeIsLoaded) {
-      postInit()
-    } else if (this.iframe) {
-      this.iframe.onload = postInit
+  // Moving the iframe in the DOM reloads it, so the launch waits on the load
+  // handler set in setIframe rather than replacing it.
+  #launch() {
+    if (this.#iframeIsLoaded) {
+      this.#initSession()
+    } else {
+      this.#launchOnLoad = true
     }
   }
 
-  /** @internal */
-  _initWithRetry(count = 1) {
-    if (this.#hasLaunched || this.#hasCancelled || this.#hasAppReceivedInitMessage) {
+  #initSession() {
+    this.#hasCancelled = false
+    this.#initWithRetry(++this.#launchGeneration)
+  }
+
+  // A terminal launch failure ends the attempt: bumping the generation strands
+  // the scheduled retry so it cannot keep posting, or overlap the loop of a
+  // later launch, and the instance is idle again rather than stuck launching.
+  #failLaunch() {
+    this.#launchGeneration++
+    this.#hasAttemptedLaunch = false
+    this.#hasAppReceivedInitMessage = false
+  }
+
+  // The embed acknowledges the init message with "init-received", so the
+  // message is repeated until it does: MAX_LAUNCH_RETRY attempts,
+  // LAUNCH_RETRY_DELAY_MS apart, before the launch is declared fatally failed.
+  #initWithRetry(generation: number, count = 1) {
+    if (
+      generation !== this.#launchGeneration ||
+      this.#hasLaunched ||
+      this.#hasCancelled ||
+      this.#hasAppReceivedInitMessage
+    ) {
       return
     }
 
@@ -327,6 +382,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
         message: msg,
         severity: OneSchemaErrorSeverity.Fatal,
       })
+      this.#failLaunch()
       if (this.#params.devMode) {
         // Display the iframe for debugging purposes.
         this.#show()
@@ -338,11 +394,10 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     }
 
     this.#iframeEventEmit(this.#initMessage || {})
-    setTimeout(() => this._initWithRetry(count + 1), 500)
+    setTimeout(() => this.#initWithRetry(generation, count + 1), LAUNCH_RETRY_DELAY_MS)
   }
 
-  /** @internal */
-  _resetSession(
+  #resetSession(
     launchParams?: Partial<OneSchemaLaunchParams> & Partial<OneSchemaLaunchSessionParams>,
   ) {
     if (this.#resumeTokenKey) {
@@ -373,11 +428,12 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     }
 
     this.#hide()
-    if (this.iframe && OneSchemaImporterClass.#iframeIsLoaded) {
+    if (this.iframe && this.#iframeIsLoaded) {
       this.#iframeEventEmit({ messageType: "close" })
     }
 
-    this._hasAttemptedLaunch = false
+    this.#launchOnLoad = false
+    this.#hasAttemptedLaunch = false
     this.#hasAppReceivedInitMessage = false
     this.#hasLaunched = false
     this.#hasCancelled = true
@@ -386,8 +442,8 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
   /**
    * Destroy will close the importing session and release everything this
    * instance holds: its window message listener, its event listeners and, when
-   * `manageDOM` is true and no other instance shares it, its iframe. The
-   * instance is inert afterwards and cannot be launched again.
+   * `manageDOM` is true, its iframe. The instance is inert afterwards and
+   * cannot be launched again.
    *
    * Safe to call more than once.
    */
@@ -407,21 +463,19 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     this.#releaseIframe()
   }
 
-  // The iframe is shared between instances that manage the DOM, so it is only
-  // removed once the last instance using it lets go.
   #releaseIframe() {
     if (!this.iframe) {
       return
     }
 
-    const count = parseInt(this.iframe.dataset.count || "1")
-    if (count > 1) {
-      this.iframe.dataset.count = `${count - 1}`
-    } else if (this.#params.manageDOM) {
+    this.iframe.onload = null
+    if (this.#params.manageDOM) {
       this.iframe.remove()
     }
 
     this.iframe = undefined
+    this.#iframeIsLoaded = false
+    this.#launchOnLoad = false
   }
 
   #iframeEventEmit(message: Record<string, any>) {
@@ -511,6 +565,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
           error: OneSchemaLaunchError.LaunchError,
           ...detail,
         })
+        this.#failLaunch()
         if (this.#params.devMode) {
           // In dev mode the embed does not follow up with an "error" message,
           // so this is the only chance the host gets to hear why.
@@ -569,7 +624,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       }
 
       case "reset-embed": {
-        this._resetSession(data.embedSessionConfig)
+        this.#resetSession(data.embedSessionConfig)
         return
       }
 

@@ -1,12 +1,15 @@
 const assert = require("node:assert/strict")
-const { test } = require("node:test")
+const { mock, test } = require("node:test")
 
 const { version } = require("../package.json")
 const { OneSchemaImporterClass } = require("../dist/main.js")
 
-function createImporter() {
-  global.window = {
-    addEventListener() {},
+function createImporter(params) {
+  const listeners = []
+  globalThis.window = {
+    addEventListener(_type, listener) {
+      listeners.push(listener)
+    },
     removeEventListener() {},
   }
 
@@ -27,11 +30,15 @@ function createImporter() {
     manageDOM: false,
     templateKey: "template-key",
     userJwt: "user-jwt",
+    ...params,
   })
 
   importer.setIframe(iframe)
 
-  return { iframe, importer, messages }
+  const post = (data) =>
+    listeners.forEach((listener) => listener({ source: iframe.contentWindow, data }))
+
+  return { iframe, importer, messages, post }
 }
 
 function postInitMessage(importer, iframe, messages) {
@@ -48,6 +55,140 @@ test("posts the core package version on init messages", () => {
 
   assert.equal(payload.messageType, "init")
   assert.equal(payload.coreVersion, version)
+})
+
+test("waits for its own iframe to load before initializing", () => {
+  const first = createImporter()
+  first.importer.launch()
+  first.iframe.onload()
+
+  const second = createImporter()
+  second.importer.launch()
+
+  assert.deepEqual(second.messages, [])
+
+  second.iframe.onload()
+
+  assert.equal(second.messages.length, 1)
+  assert.equal(first.messages.length, 1)
+
+  first.importer.destroy()
+  second.importer.destroy()
+})
+
+test("releases only its own iframe on destroy", () => {
+  const first = createImporter()
+  const second = createImporter()
+
+  first.importer.destroy()
+
+  assert.equal(first.importer.iframe, undefined)
+  assert.equal(second.importer.iframe, second.iframe)
+
+  second.importer.launch()
+  second.iframe.onload()
+
+  assert.equal(second.messages.length, 1)
+
+  second.importer.destroy()
+})
+
+test("defaults the file-upload format without touching the caller's config", () => {
+  const { iframe, importer, messages } = createImporter()
+  const importConfig = { type: "file-upload", url: "https://upload.test/file" }
+
+  importer.launch({ importConfig })
+  iframe.onload()
+
+  assert.equal(messages[0].payload.importConfig.format, "csv")
+  assert.deepEqual(importConfig, {
+    type: "file-upload",
+    url: "https://upload.test/file",
+  })
+
+  importer.destroy()
+})
+
+test("stays idle when launch params are invalid", () => {
+  const importer = new OneSchemaImporterClass({
+    baseUrl: "https://embed.test",
+    clientId: "client-id",
+    manageDOM: false,
+  })
+
+  assert.equal(importer.launch().success, false)
+  assert.equal(importer.status, "idle")
+
+  importer.destroy()
+})
+
+test("returns to idle and stops retrying when the embed rejects the launch", () => {
+  mock.timers.enable({ apis: ["setTimeout"] })
+
+  try {
+    const { iframe, importer, messages, post } = createImporter({
+      autoClose: false,
+    })
+
+    importer.launch()
+    iframe.onload()
+
+    assert.equal(importer.status, "launching")
+    assert.equal(messages.length, 1)
+
+    post({ messageType: "launch-error", message: "invalid template" })
+
+    assert.equal(importer.status, "idle")
+
+    // The retry scheduled before the rejection must not post again.
+    mock.timers.tick(5000)
+
+    assert.equal(messages.length, 1)
+
+    importer.destroy()
+  } finally {
+    mock.timers.reset()
+  }
+})
+
+test("can relaunch after the embed acknowledged the rejected launch", () => {
+  const { iframe, importer, messages, post } = createImporter({
+    autoClose: false,
+  })
+
+  importer.launch()
+  iframe.onload()
+
+  post({ messageType: "init-received" })
+  post({ messageType: "launch-error", message: "invalid template" })
+
+  assert.equal(importer.status, "idle")
+
+  importer.launch()
+
+  assert.equal(messages.length, 2)
+  assert.equal(importer.status, "launching")
+
+  importer.destroy()
+})
+
+test("reports where the instance is in its lifecycle", () => {
+  const { iframe, importer } = createImporter()
+
+  assert.equal(importer.status, "idle")
+
+  importer.launch()
+  iframe.onload()
+
+  assert.equal(importer.status, "launching")
+
+  importer.close()
+
+  assert.equal(importer.status, "idle")
+
+  importer.destroy()
+
+  assert.equal(importer.status, "destroyed")
 })
 
 test("keeps the core version separate from the wrapper identity", () => {

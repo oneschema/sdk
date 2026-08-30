@@ -62,6 +62,7 @@ function docOf(node) {
     .map((line) => line.replace(/^\s*\*?\s?/, ""))
     .join(" ")
     .replace(/\s+/g, " ")
+    .replace(/@deprecated\s*/g, "**Deprecated:** ")
     .trim()
 }
 
