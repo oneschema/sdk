@@ -49,14 +49,15 @@ Every published package here that references another one — `@oneschema/react`,
 `@oneschema/filefeeds-react` on `@oneschema/filefeeds` — must always admit the
 version of that package this repository would release. `@oneschema/filefeeds`
 and `@oneschema/importer` are standalone cores with no internal references, so
-they have nothing to widen themselves. React and Vue depend on
-`@oneschema/importer` directly;
-`@oneschema/angular` declares it as a peer dependency so the host application
-resolves a single copy of the core. Either way the declared range must include
-the current core version — `@oneschema/angular@0.7.5` shipped with a
-`^0.6.0` peer range, which left a fresh `npm install @oneschema/angular` pinned
-to core `0.6.1` and made `npm install` fail outright for anyone already on a
-`0.7.x` core.
+they have nothing to widen themselves. All three wrappers depend on
+`@oneschema/importer` directly, so installing a wrapper installs the core it
+was built against. `@oneschema/angular` declared it as a peer dependency
+through `0.7.x`, and ng-packagr requires the exemption in
+`projects/oneschema/ng-package.json` for the non-peer form. The declared range
+must include the current core version — `@oneschema/angular@0.7.5` shipped with
+a `^0.6.0` peer range, which left a fresh `npm install @oneschema/angular`
+pinned to core `0.6.1` and made `npm install` fail outright for anyone already
+on a `0.7.x` core.
 
 Two checks enforce this, on pull requests and again before publishing:
 

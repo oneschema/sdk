@@ -1,6 +1,7 @@
 {
   "$schema": "../../node_modules/ng-packagr/ng-package.schema.json",
   "dest": "../../dist/@oneschema/angular",
+  "allowedNonPeerDependencies": ["@oneschema/importer"],
   "lib": {
     "entryFile": "base-index.ts"
   }
