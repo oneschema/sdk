@@ -66,6 +66,16 @@ changeset for them, and note the change under `Unreleased` in
 their publish are handled by hand, only when a maintenance fix warrants a
 release.
 
+The workflow publishes through npm's trusted publishing: every package is
+registered on npm with a GitHub Actions trusted publisher for `oneschema/sdk`
+and the `release.yml` workflow in the `release` environment, so authentication
+and provenance both come from the workflow's OIDC identity and no npm token is
+involved. The environment is restricted to `main`, which is what keeps a rewritten
+workflow on another branch from publishing. A new package has to be registered
+the same way before its first automated publish — org `oneschema`, repository
+`sdk`, workflow `release.yml`, environment `release`, allowed action
+`npm publish`.
+
 Every published package is tagged `<package>@<version>` on the commit it was
 built from, and the release workflow then compares each tarball on npm with a
 fresh build of that commit, so a release can always be traced back to its

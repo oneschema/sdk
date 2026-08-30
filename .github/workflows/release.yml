@@ -45,6 +45,10 @@ jobs:
   release:
     needs: verify
     runs-on: ubuntu-latest
+    # npm's trusted publisher for each package requires this environment, and
+    # the environment only allows `main`, so an OIDC token that npm accepts
+    # cannot be minted from a branch that rewrote this workflow.
+    environment: release
     permissions:
       contents: write
       pull-requests: write
@@ -66,19 +70,23 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: yarn
-          registry-url: https://registry.npmjs.org
+          # No `registry-url`: it writes `_authToken=${NODE_AUTH_TOKEN}` into the
+          # npmrc, and an empty token there makes npm take the token path
+          # instead of exchanging its OIDC credential. The publish goes to the
+          # default registry, registry.npmjs.org, either way.
 
       - name: Install dependencies
         run: yarn install --immutable
 
+      # npm authenticates this job through its trusted publisher for the
+      # `oneschema/sdk` `release.yml` workflow: the OIDC token minted from
+      # `id-token: write` replaces a registry token, and provenance is attested
+      # automatically.
       - name: Create release or publish packages
         id: changesets
         uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
         with:
           version: yarn changeset version
           publish: yarn release
