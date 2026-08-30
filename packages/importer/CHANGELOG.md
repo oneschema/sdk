@@ -1,5 +1,11 @@
 # @oneschema/importer
 
+## 0.7.7
+
+### Patch Changes
+
+- 1e273db: Include the core importer version in initialization messages for server-side SDK telemetry.
+
 ## 0.7.6
 
 ### Patch Changes
