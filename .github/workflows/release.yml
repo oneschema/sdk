@@ -88,7 +88,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          version: yarn changeset version
+          version: yarn version:packages
           publish: yarn release
 
       - name: Check that the release is tagged
