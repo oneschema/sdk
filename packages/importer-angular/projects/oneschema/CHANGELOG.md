@@ -1,5 +1,13 @@
 # @oneschema/angular
 
+## 0.7.7
+
+### Patch Changes
+
+- 1e273db: Include the core importer version in initialization messages for server-side SDK telemetry.
+- Updated dependencies [1e273db]
+  - @oneschema/importer@0.7.7
+
 ## 0.7.6
 
 ### Patch Changes

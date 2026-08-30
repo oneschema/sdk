@@ -1,6 +1,6 @@
 {
   "name": "@oneschema/react",
-  "version": "0.7.6",
+  "version": "0.7.7",
   "description": "React component for embedding OneSchema Importer",
   "author": "OneSchema",
   "license": "MIT",
@@ -53,7 +53,7 @@
     "clean": "npx --yes rimraf dist"
   },
   "dependencies": {
-    "@oneschema/importer": "^0.7.6",
+    "@oneschema/importer": "^0.7.7",
     "tslib": "^2.x"
   },
   "devDependencies": {
