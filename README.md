@@ -69,8 +69,8 @@ release.
 The workflow publishes through npm's trusted publishing: every package is
 registered on npm with a GitHub Actions trusted publisher for `oneschema/sdk`
 and the `release.yml` workflow in the `release` environment, so authentication
-and provenance both come from the workflow's OIDC identity and no npm token
-exists. The environment is restricted to `main`, which is what keeps a rewritten
+and provenance both come from the workflow's OIDC identity and no npm token is
+involved. The environment is restricted to `main`, which is what keeps a rewritten
 workflow on another branch from publishing. A new package has to be registered
 the same way before its first automated publish — org `oneschema`, repository
 `sdk`, workflow `release.yml`, environment `release`, allowed action
