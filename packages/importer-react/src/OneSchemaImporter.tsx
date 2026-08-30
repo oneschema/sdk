@@ -202,19 +202,33 @@ export default function OneSchemaImporter({
     }
   }, [importer, style])
 
+  // Rerendering rebuilds the rest-params object, so the warning compares the
+  // params by value against the ones the current import was launched with.
+  const launchedParams = useRef<string>()
+  const serializedParams = JSON.stringify(params)
+
   useEffect(() => {
-    if (importer && importer._hasAttemptedLaunch && isOpen) {
+    if (!importer || !isOpen || importer.status === "idle") {
+      return
+    }
+
+    if (
+      launchedParams.current !== undefined &&
+      launchedParams.current !== serializedParams
+    ) {
       console.warn(
         "The OneSchema importer has already launched. Updated launch params will not update the current import",
       )
     }
-  }, [params, importer, isOpen])
+  }, [importer, isOpen, serializedParams])
 
   useEffect(() => {
     if (importer) {
       if (isOpen) {
+        launchedParams.current = serializedParams
         importer.launch(params)
       } else {
+        launchedParams.current = undefined
         importer.close()
       }
     }

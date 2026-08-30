@@ -73,6 +73,21 @@ importer.on("error", (error) => {
 importer.destroy()
 ```
 
+Each instance owns its own iframe, so several importers can coexist on a page. Mount one in a specific container by passing `parent`:
+
+```javascript
+const importer = oneschemaImporter({
+  clientId: "YOUR_CLIENT_ID",
+  parent: document.querySelector("#import-container"),
+})
+```
+
+### Launch status
+
+`importer.status` reports where an instance is in its lifecycle: `idle` before the first launch and after `close()`, `launching` while the import session is starting, `launched` once the embed is running, and `destroyed` after `destroy()`.
+
+`launch()` returns as soon as the session request succeeds; the embed is only ready to accept data once the `launched` event fires. Until it acknowledges the launch, the importer re-sends its initialization message 40 times, 500 ms apart — so a browser-blocked or misconfigured iframe emits a `fatal` `error` after roughly 20 seconds.
+
 ## API reference
 
 The tables below are generated from the TypeScript types by
@@ -82,18 +97,19 @@ The tables below are generated from the TypeScript types by
 
 <!-- BEGIN GENERATED importer-init-options -->
 
-| Option         | Type                           | Required | Default                                     | Description                                                                                                                                   |
-| -------------- | ------------------------------ | -------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `clientId`     | `string`                       | yes      |                                             | The client id from your OneSchema developer dashboard                                                                                         |
-| `devMode`      | `boolean`                      |          | `!!(process.env.NODE_ENV !== "production")` | Whether to launch the importer in dev mode, which shows the iframe even when launching fails                                                  |
-| `className`    | `string`                       |          | `"oneschema-iframe"`                        | CSS class for the iframe                                                                                                                      |
-| `styles`       | `Partial<CSSStyleDeclaration>` |          |                                             | CSS Styles to be applied directly to the iframe                                                                                               |
-| `languageCode` | `string`                       |          |                                             | Optional language code (like 'en' or 'zh') to force importer language By default, will use user's set language. Requires enterprise licensing |
-| `parentId`     | `string`                       |          |                                             | The id of the DOM element the iframe should be appended to By default appends to document.body                                                |
-| `saveSession`  | `boolean`                      |          | `true`                                      | Whether to save session information to local storage and enable resuming                                                                      |
-| `autoClose`    | `boolean`                      |          | `true`                                      | Whether to close the importer when complete                                                                                                   |
-| `manageDOM`    | `boolean`                      |          | `true`                                      | Whether the class should create and append the iframe to the DOM                                                                              |
-| `baseUrl`      | `string`                       |          | `"https://embed.oneschema.co"`              | The base URL for the iframe. By default uses OneSchema's production instance                                                                  |
+| Option         | Type                           | Required | Default                                     | Description                                                                                                                                                                                                       |
+| -------------- | ------------------------------ | -------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `clientId`     | `string`                       | yes      |                                             | The client id from your OneSchema developer dashboard                                                                                                                                                             |
+| `devMode`      | `boolean`                      |          | `!!(process.env.NODE_ENV !== "production")` | Whether to launch the importer in dev mode, which shows the iframe even when launching fails                                                                                                                      |
+| `className`    | `string`                       |          | `"oneschema-iframe"`                        | CSS class for the iframe                                                                                                                                                                                          |
+| `styles`       | `Partial<CSSStyleDeclaration>` |          |                                             | CSS Styles to be applied directly to the iframe                                                                                                                                                                   |
+| `languageCode` | `string`                       |          |                                             | Optional language code (like 'en' or 'zh') to force importer language By default, will use user's set language. Requires enterprise licensing                                                                     |
+| `parent`       | `HTMLElement`                  |          |                                             | The DOM element the iframe should be appended to By default appends to document.body                                                                                                                              |
+| `parentId`     | `string`                       |          |                                             | The id of the DOM element the iframe should be appended to **Deprecated:** Pass `parent` instead. An id is resolved once, at construction, so it falls back to document.body when the element does not exist yet. |
+| `saveSession`  | `boolean`                      |          | `true`                                      | Whether to save session information to local storage and enable resuming                                                                                                                                          |
+| `autoClose`    | `boolean`                      |          | `true`                                      | Whether to close the importer when complete                                                                                                                                                                       |
+| `manageDOM`    | `boolean`                      |          | `true`                                      | Whether the class should create and append the iframe to the DOM                                                                                                                                                  |
+| `baseUrl`      | `string`                       |          | `"https://embed.oneschema.co"`              | The base URL for the iframe. By default uses OneSchema's production instance                                                                                                                                      |
 
 <!-- END GENERATED importer-init-options -->
 
@@ -138,6 +154,12 @@ Or, instead of those, with a session token created through the API:
 | `user-activity` | none                    | The user interacted with the importer. Throttled to once every 30 seconds, and useful for resetting idle timers in the host application |
 
 <!-- END GENERATED importer-events -->
+
+## Migrating from 0.7
+
+- `parentId` is deprecated in favor of `parent`, which takes the element itself. `parentId` is resolved once when the importer is constructed, so it silently falls back to `document.body` when the container is not in the DOM yet.
+- Each importer instance now creates and removes its own iframe instead of sharing a single `_oneschema-iframe` element. Anything that looked that element up by id should keep a reference to `importer.iframe` instead.
+- The internal `_hasAttemptedLaunch` field is gone; use `importer.status` instead.
 
 ## Documentation
 

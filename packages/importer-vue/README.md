@@ -14,13 +14,15 @@ A tool for embedding OneSchema into your application with Vue. This library cont
 You can install this package with npm:
 
 ```bash
-npm i --save @oneschema/vue
+npm i --save @oneschema/vue @oneschema/importer
 ```
 
-With pnpm, install `eventemitter3` alongside it:
+`@oneschema/importer` is a peer dependency, so your project decides which core version the component uses.
+
+With pnpm, install `eventemitter3` alongside them:
 
 ```bash
-pnpm add @oneschema/vue eventemitter3@^4.0.7
+pnpm add @oneschema/vue @oneschema/importer eventemitter3@^4.0.7
 ```
 
 The importer class this component wraps extends `EventEmitter` from `eventemitter3`, so that type is part of the published declarations. pnpm keeps each package's dependencies isolated instead of hoisting them, so your build cannot resolve `eventemitter3` unless it is declared in your project too. npm and yarn hoist it for you.

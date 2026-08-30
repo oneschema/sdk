@@ -546,8 +546,13 @@ export interface OneSchemaInitParams {
    */
   languageCode?: string
   /**
-   * The id of the DOM element the iframe should be appended to
+   * The DOM element the iframe should be appended to
    * By default appends to document.body
+   */
+  parent?: HTMLElement
+  /**
+   * The id of the DOM element the iframe should be appended to
+   * @deprecated Pass `parent` instead. An id is resolved once, at construction, so it falls back to document.body when the element does not exist yet.
    */
   parentId?: string
   /**
@@ -641,6 +646,11 @@ export interface OneSchemaError {
   message: string
   severity: OneSchemaErrorSeverity
 }
+
+/**
+ * Where an importer instance is in its lifecycle
+ */
+export type OneSchemaImporterStatus = "idle" | "launching" | "launched" | "destroyed"
 
 /**
  * The result of an import, either passed through to the frontend or

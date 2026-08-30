@@ -50,6 +50,61 @@ test("posts the core package version on init messages", () => {
   assert.equal(payload.coreVersion, version)
 })
 
+test("waits for its own iframe to load before initializing", () => {
+  const first = createImporter()
+  first.importer.launch()
+  first.iframe.onload()
+
+  const second = createImporter()
+  second.importer.launch()
+
+  assert.deepEqual(second.messages, [])
+
+  second.iframe.onload()
+
+  assert.equal(second.messages.length, 1)
+  assert.equal(first.messages.length, 1)
+
+  first.importer.destroy()
+  second.importer.destroy()
+})
+
+test("releases only its own iframe on destroy", () => {
+  const first = createImporter()
+  const second = createImporter()
+
+  first.importer.destroy()
+
+  assert.equal(first.importer.iframe, undefined)
+  assert.equal(second.importer.iframe, second.iframe)
+
+  second.importer.launch()
+  second.iframe.onload()
+
+  assert.equal(second.messages.length, 1)
+
+  second.importer.destroy()
+})
+
+test("reports where the instance is in its lifecycle", () => {
+  const { iframe, importer } = createImporter()
+
+  assert.equal(importer.status, "idle")
+
+  importer.launch()
+  iframe.onload()
+
+  assert.equal(importer.status, "launching")
+
+  importer.close()
+
+  assert.equal(importer.status, "idle")
+
+  importer.destroy()
+
+  assert.equal(importer.status, "destroyed")
+})
+
 test("keeps the core version separate from the wrapper identity", () => {
   const { iframe, importer, messages } = createImporter()
   importer.setClient("React", "0.7.4")
