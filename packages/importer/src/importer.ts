@@ -60,6 +60,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
 
   #client = "Importer"
   #version = version
+  #coreVersion = version
 
   #resumeTokenKey = ""
   /** @internal */
@@ -430,6 +431,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       JSON.stringify({
         version: this.#version,
         client: this.#client,
+        coreVersion: this.#coreVersion,
         "@from": `${this.#client}#${this.#version}`,
         "@to": IMPORTER_EMBED_MARKER,
         ...message,
