@@ -22,7 +22,7 @@ npm i --save @oneschema/angular @oneschema/importer
 With pnpm, install `eventemitter3` alongside them:
 
 ```bash
-pnpm add @oneschema/angular @oneschema/importer eventemitter3
+pnpm add @oneschema/angular @oneschema/importer eventemitter3@^4.0.7
 ```
 
 The importer class this service wraps extends `EventEmitter` from

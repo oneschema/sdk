@@ -20,7 +20,7 @@ npm i --save @oneschema/react
 With pnpm, install `eventemitter3` alongside it:
 
 ```bash
-pnpm add @oneschema/react eventemitter3
+pnpm add @oneschema/react eventemitter3@^4.0.7
 ```
 
 The importer class this component wraps extends `EventEmitter` from `eventemitter3`, so that type is part of the published declarations. pnpm keeps each package's dependencies isolated instead of hoisting them, so your build cannot resolve `eventemitter3` unless it is declared in your project too. npm and yarn hoist it for you.
