@@ -500,6 +500,11 @@ export enum OneSchemaLaunchError {
  */
 export interface OneSchemaLaunchInfo {
   /**
+   * An id shared with the `launched` event for the same attempt, so a support
+   * report can name one launch
+   */
+  correlationId: string
+  /**
    * The session token for the running import, when there is one
    */
   sessionToken?: string
@@ -541,8 +546,8 @@ export interface OneSchemaLaunchStatus {
    */
   data?: unknown
   /**
-   * If success is false, an id shared with the `launch()` rejection for the
-   * same attempt, so a support report can name one launch
+   * An id shared with the `launch()` resolution or rejection for the same
+   * attempt, so a support report can name one launch
    */
   correlationId?: string
 }
@@ -625,6 +630,12 @@ export type OneSchemaParams = OneSchemaInitParams & Partial<OneSchemaLaunchParam
  */
 export interface OneSchemaSharedInitParams {
   manualClose: boolean
+  /**
+   * Identifies the launch attempt this message belongs to. The embed echoes it
+   * on `launched` and `launch-error` so a reply from an abandoned attempt can
+   * be told apart from the one in flight
+   */
+  correlationId: string
 
   // debug info
   version: string

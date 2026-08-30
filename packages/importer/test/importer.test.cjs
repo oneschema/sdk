@@ -148,15 +148,20 @@ test("rejects and stays idle when launch params are invalid", async () => {
 
 test("resolves with the running session once the embed launches", async () => {
   const { iframe, importer, post } = createImporter()
+  const statuses = []
+  importer.on("launched", (status) => statuses.push(status))
 
   const launched = importer.launch()
   iframe.onload()
   post({ messageType: "launched", sessionToken: "session-token", embedId: "embed-id" })
 
-  assert.deepEqual(await launched, {
-    sessionToken: "session-token",
-    embedId: "embed-id",
-  })
+  const info = await launched
+
+  assert.equal(info.sessionToken, "session-token")
+  assert.equal(info.embedId, "embed-id")
+  assert.equal(typeof info.correlationId, "string")
+  assert.equal(statuses.length, 1)
+  assert.equal(statuses[0].correlationId, info.correlationId)
   assert.equal(importer.status, "launched")
 
   importer.destroy()
@@ -214,7 +219,6 @@ test("rejects with a timeout when the embed never acknowledges init", async () =
     // schedules the next one.
     mock.timers.tick(500)
     mock.timers.tick(500)
-    mock.timers.tick(500)
 
     const failure = await launched.then(
       () => assert.fail("launch should not resolve without an acknowledgement"),
@@ -229,6 +233,85 @@ test("rejects with a timeout when the embed never acknowledges init", async () =
   } finally {
     mock.timers.reset()
   }
+})
+
+test("rejects with a timeout when the iframe never loads", async () => {
+  mock.timers.enable({ apis: ["setTimeout"] })
+
+  try {
+    const { importer, messages } = createImporter({
+      autoClose: false,
+      initTimeoutMs: 1000,
+    })
+
+    const launched = importer.launch()
+
+    assert.deepEqual(messages, [])
+
+    mock.timers.tick(1000)
+
+    const failure = await launched.then(
+      () => assert.fail("launch should not resolve without a loaded iframe"),
+      (error) => error,
+    )
+
+    assert.equal(failure.error, OneSchemaLaunchError.Timeout)
+    assert.deepEqual(messages, [])
+    assert.equal(importer.status, "idle")
+
+    importer.destroy()
+  } finally {
+    mock.timers.reset()
+  }
+})
+
+test("ignores a terminal reply from an abandoned launch", async () => {
+  const { iframe, importer, post, messages } = createImporter({ autoClose: false })
+  const statuses = []
+  importer.on("launched", (status) => statuses.push(status))
+
+  const abandoned = launch(importer)
+  iframe.onload()
+  const abandonedId = messages[0].payload.correlationId
+
+  const current = importer.launch()
+  const currentId = messages[messages.length - 1].payload.correlationId
+
+  assert.notEqual(abandonedId, currentId)
+
+  post({
+    messageType: "launch-error",
+    correlationId: abandonedId,
+    message: "too late",
+  })
+  post({
+    messageType: "launched",
+    correlationId: abandonedId,
+    sessionToken: "stale-token",
+  })
+
+  assert.equal(
+    (await abandoned.then(null, (error) => error)).error,
+    OneSchemaLaunchError.Cancelled,
+  )
+  assert.equal(importer.status, "launching")
+
+  post({
+    messageType: "launched",
+    correlationId: currentId,
+    sessionToken: "session-token",
+  })
+
+  const info = await current
+
+  assert.equal(info.sessionToken, "session-token")
+  assert.equal(info.correlationId, currentId)
+  assert.deepEqual(
+    statuses.map((status) => status.correlationId),
+    [currentId],
+  )
+
+  importer.destroy()
 })
 
 test("rejects the launch in flight when the importer is closed", async () => {

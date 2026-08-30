@@ -58,11 +58,15 @@ try {
 
 // OR
 // pass overrides and values not specified at creation time:
-await importer.launch({
-  templateKey: "YOUR_TEMPLATE_KEY",
-  userJwt: "YOUR_USER_JWT",
-  importConfig: { type: "local" },
-})
+try {
+  await importer.launch({
+    templateKey: "YOUR_TEMPLATE_KEY",
+    userJwt: "YOUR_USER_JWT",
+    importConfig: { type: "local" },
+  })
+} catch (failure) {
+  // handle the launch failure
+}
 
 importer.on("success", (result) => {
   // result.type is "local", "file-upload" or "webhook"

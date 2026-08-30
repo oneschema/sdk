@@ -96,6 +96,8 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     resolve: (info: OneSchemaLaunchInfo) => void
     reject: (failure: OneSchemaLaunchFailure) => void
   }
+  #launchDeadline?: ReturnType<typeof setTimeout>
+  #launchCorrelationId?: string
 
   constructor(params: OneSchemaParams) {
     super()
@@ -273,10 +275,12 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       }
     }
 
+    const attempt = correlationId()
     const baseMessage: OneSchemaSharedInitParams = {
       version: this.#version,
       client: this.#client,
       manualClose: true,
+      correlationId: attempt,
     }
 
     let message: Partial<OneSchemaInitMessage>
@@ -331,10 +335,15 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     this.#initMessage = message as OneSchemaInitMessage
     this.#hasAttemptedLaunch = true
 
+    this.#launchCorrelationId = attempt
     const launched = new Promise<OneSchemaLaunchInfo>((resolve, reject) => {
-      this.#pendingLaunch = { correlationId: correlationId(), resolve, reject }
+      this.#pendingLaunch = { correlationId: attempt, resolve, reject }
     })
 
+    // The deadline is armed here rather than alongside the retry loop: until
+    // the iframe fires its load handler nothing posts to the embed at all, and
+    // a launch that never leaves that state still has to fail.
+    this.#armLaunchDeadline()
     this.#launch()
     return launched
   }
@@ -359,6 +368,53 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     return Promise.reject(failure)
   }
 
+  #armLaunchDeadline() {
+    this.#clearLaunchDeadline()
+
+    const timeout = this.#params.initTimeoutMs ?? 0
+    if (timeout <= 0) {
+      return
+    }
+
+    this.#launchDeadline = setTimeout(() => this.#timeoutLaunch(), timeout)
+  }
+
+  #clearLaunchDeadline() {
+    if (this.#launchDeadline !== undefined) {
+      clearTimeout(this.#launchDeadline)
+      this.#launchDeadline = undefined
+    }
+  }
+
+  #timeoutLaunch() {
+    this.#launchDeadline = undefined
+    if (this.#hasLaunched || this.#destroyed) {
+      return
+    }
+
+    const msg = this.#hasReceivedFrameMessage
+      ? "OneSchema failed to respond for initialization"
+      : `OneSchema iframe was blocked: no message was ever received from ${this.iframe?.src}, so the OneSchema embed page never ran. The browser most likely blocked the iframe — check this page's console for a Content-Security-Policy "frame-ancestors" violation, and verify that this page's origin (${window.location.origin}) is on the allowed domains list for OneSchema client ID ${this.#params.clientId}.`
+    console.error(msg)
+    const correlation = this.#settlePendingLaunchFailure(
+      OneSchemaLaunchError.Timeout,
+      msg,
+    )
+    this.emit("launched", {
+      success: false,
+      error: OneSchemaLaunchError.Timeout,
+      message: msg,
+      correlationId: correlation,
+    })
+    this.#failLaunch()
+    if (this.#params.devMode) {
+      // Display the iframe for debugging purposes.
+      this.#show()
+    } else if (this.#params.autoClose) {
+      this.close()
+    }
+  }
+
   #cancelPendingLaunch() {
     this.#settlePendingLaunchFailure(OneSchemaLaunchError.Cancelled, CANCELLED_MESSAGE)
   }
@@ -372,6 +428,8 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     message: string,
     detail: { status?: number; data?: unknown; cause?: unknown } = {},
   ): string | undefined {
+    this.#clearLaunchDeadline()
+
     const pending = this.#pendingLaunch
     if (!pending) {
       return undefined
@@ -419,15 +477,10 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     this.#hasAppReceivedInitMessage = false
   }
 
-  #maxLaunchRetry(): number {
-    const timeout = this.#params.initTimeoutMs ?? 0
-    return Math.max(1, Math.ceil(timeout / LAUNCH_RETRY_DELAY_MS))
-  }
-
   // The embed acknowledges the init message with "init-received", so the
-  // message is repeated LAUNCH_RETRY_DELAY_MS apart until it does, for as long
-  // as initTimeoutMs allows, before the launch is declared fatally failed.
-  #initWithRetry(generation: number, count = 1) {
+  // message is repeated LAUNCH_RETRY_DELAY_MS apart until it does. The loop is
+  // bounded by the launch deadline rather than a retry count.
+  #initWithRetry(generation: number) {
     if (
       generation !== this.#launchGeneration ||
       this.#hasLaunched ||
@@ -437,34 +490,8 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       return
     }
 
-    if (count > this.#maxLaunchRetry()) {
-      const msg = this.#hasReceivedFrameMessage
-        ? "OneSchema failed to respond for initialization"
-        : `OneSchema iframe was blocked: no message was ever received from ${this.iframe?.src}, so the OneSchema embed page never ran. The browser most likely blocked the iframe — check this page's console for a Content-Security-Policy "frame-ancestors" violation, and verify that this page's origin (${window.location.origin}) is on the allowed domains list for OneSchema client ID ${this.#params.clientId}.`
-      console.error(msg)
-      const correlation = this.#settlePendingLaunchFailure(
-        OneSchemaLaunchError.Timeout,
-        msg,
-      )
-      this.emit("launched", {
-        success: false,
-        error: OneSchemaLaunchError.Timeout,
-        message: msg,
-        correlationId: correlation,
-      })
-      this.#failLaunch()
-      if (this.#params.devMode) {
-        // Display the iframe for debugging purposes.
-        this.#show()
-      } else if (this.#params.autoClose) {
-        this.close()
-      }
-
-      return
-    }
-
     this.#iframeEventEmit(this.#initMessage || {})
-    setTimeout(() => this.#initWithRetry(generation, count + 1), LAUNCH_RETRY_DELAY_MS)
+    setTimeout(() => this.#initWithRetry(generation), LAUNCH_RETRY_DELAY_MS)
   }
 
   #resetSession(
@@ -596,6 +623,15 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     }
   }
 
+  // Embeds released before 0.8 do not echo the correlation id, so a reply
+  // without one is attributed to the launch in flight.
+  #isStaleLaunchReply(replyCorrelationId: unknown): boolean {
+    return (
+      typeof replyCorrelationId === "string" &&
+      replyCorrelationId !== this.#launchCorrelationId
+    )
+  }
+
   #hide() {
     if (this.iframe) {
       this.iframe.style.display = "none"
@@ -630,6 +666,10 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       }
 
       case "launched": {
+        if (this.#isStaleLaunchReply(data.correlationId)) {
+          return
+        }
+
         this.#hasLaunched = true
         let sessionToken = data.sessionToken
         const embedId = data.embedId
@@ -649,17 +689,23 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
         }
         const pending = this.#pendingLaunch
         this.#pendingLaunch = undefined
-        this.emit("launched", {
-          success: true,
+        this.#clearLaunchDeadline()
+        const info: OneSchemaLaunchInfo = {
+          correlationId: pending?.correlationId ?? correlationId(),
           sessionToken,
           embedId,
-        })
+        }
+        this.emit("launched", { success: true, ...info })
         this.#show()
-        pending?.resolve({ sessionToken, embedId })
+        pending?.resolve(info)
         return
       }
 
       case "launch-error": {
+        if (this.#isStaleLaunchReply(data.correlationId)) {
+          return
+        }
+
         const detail = parseLaunchErrorDetail(data.message)
         const correlation = this.#settlePendingLaunchFailure(
           OneSchemaLaunchError.LaunchError,
