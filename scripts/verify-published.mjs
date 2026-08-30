@@ -24,6 +24,8 @@ const packageDirectories = [
 
 const only = process.argv.slice(2)
 
+const publicRegistry = "https://registry.npmjs.org"
+
 const run = (command, args, cwd = repoRoot) => {
   const result = spawnSync(command, args, { cwd, encoding: "utf8" })
   if (result.error) {
@@ -34,12 +36,21 @@ const run = (command, args, cwd = repoRoot) => {
 
 const sleep = (seconds) => new Promise((done) => setTimeout(done, seconds * 1000))
 
-async function packTo(directory, spec, attempts = 1) {
+async function packTo(directory, spec, { attempts = 1, registry } = {}) {
   await mkdir(directory, { recursive: true })
+
+  const registryArgs = registry ? [`--registry=${registry}`] : []
 
   let result
   for (let attempt = 1; attempt <= attempts; attempt++) {
-    result = run("npm", ["pack", "--silent", "--pack-destination", directory, spec])
+    result = run("npm", [
+      "pack",
+      "--silent",
+      ...registryArgs,
+      "--pack-destination",
+      directory,
+      spec,
+    ])
     if (result.status === 0) {
       break
     }
@@ -128,7 +139,7 @@ try {
     const published = await packTo(
       join(workspace, "published", name),
       `${name}@${version}`,
-      4,
+      { attempts: 4, registry: publicRegistry },
     )
     if (published.error) {
       failures.push(
