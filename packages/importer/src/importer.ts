@@ -24,6 +24,20 @@ import { merged } from "./shared/utils"
 
 const LAUNCH_RETRY_DELAY_MS = 500
 
+// The events whose handlers the importer waits on before it ends a session.
+type AwaitedEvent = "success" | "cancel"
+
+type ImporterEventListener = NonNullable<
+  Parameters<OneSchemaImporterClass["removeListener"]>[1]
+>
+
+// One entry of eventemitter3's own listener bookkeeping.
+interface RegisteredListener {
+  fn: (...args: never[]) => unknown
+  context?: unknown
+  once?: boolean
+}
+
 const CANCELLED_MESSAGE =
   "OneSchema launch was cancelled before the import session started"
 
@@ -610,6 +624,151 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     this.emit("error", error)
   }
 
+  /**
+   * Hand the end of a session to the host and clean up after it either way: the
+   * resume token clear and `autoClose` sit in a `finally`, so a handler that
+   * throws, rejects or never settles cannot leave the embed open with a token
+   * that resumes a session the host already consumed.
+   */
+  async #endSession<E extends AwaitedEvent>(event: E, ...args: OneSchemaEventMap[E]) {
+    // Forgetting the session before the first await makes every later terminal
+    // reply for it stale, so a `complete` the embed repeats while the host
+    // handler is still running cannot submit the same rows twice. A new launch
+    // sets its own session id.
+    this.#sessionEmbedInitId = undefined
+
+    // The cleanup belongs to the session that ended, so it is captured before
+    // the handler runs: a `launch()` the handler makes takes over the instance,
+    // and this finalizer must not clear its resume token or close it.
+    const generation = this.#launchGeneration
+    const resumeTokenKey = this.#resumeTokenKey
+
+    try {
+      await this.#dispatch(event, ...args)
+    } finally {
+      const replaced = generation !== this.#launchGeneration
+
+      if (!replaced || resumeTokenKey !== this.#resumeTokenKey) {
+        this.#clearResumeToken(resumeTokenKey)
+      }
+
+      if (this.#params.autoClose && !replaced) {
+        this.close()
+      }
+    }
+  }
+
+  /**
+   * Emit an event whose handlers the importer waits on. `emit` from
+   * eventemitter3 discards what a listener returns, so the registrations are
+   * invoked directly here: each one is timed and reported on its own, so a
+   * failing handler neither hides another's failure nor cuts short another's
+   * timeout, and `once` registrations are dropped by hand because nothing else
+   * will.
+   */
+  async #dispatch<E extends AwaitedEvent>(event: E, ...args: OneSchemaEventMap[E]) {
+    const registered = this.#registeredListeners(event)
+
+    registered.forEach(({ fn, context, once }) => {
+      if (once) {
+        this.removeListener(event, fn as unknown as ImporterEventListener, context, true)
+      }
+    })
+
+    await Promise.all(
+      registered.map(async ({ fn, context }) => {
+        // An async callback turns a listener throwing synchronously into a
+        // rejection, so one bad handler cannot skip the others.
+        const handled = (async () =>
+          (fn as unknown as (...args: OneSchemaEventMap[E]) => unknown).apply(
+            context ?? this,
+            args,
+          ))()
+
+        try {
+          await this.#withHandlerTimeout(handled, event)
+        } catch (cause) {
+          this.#reportHandlerFailure(event, cause)
+        }
+      }),
+    )
+  }
+
+  // eventemitter3 remembers the context a listener was registered with, but
+  // `listeners()` hands back only the functions, so an awaited handler would be
+  // called with the wrong `this`. The registrations themselves carry both.
+  #registeredListeners(event: AwaitedEvent): RegisteredListener[] {
+    const { _events: events } = this as unknown as {
+      _events?: Record<string, RegisteredListener | RegisteredListener[] | undefined>
+    }
+    // eventemitter3 prefixes its event keys only where `Object.create` is
+    // missing, which no supported browser is, but the fallback is cheap.
+    const registered = events?.[event] ?? events?.[`~${event}`]
+
+    if (!registered) {
+      return []
+    }
+
+    return Array.isArray(registered) ? [...registered] : [registered]
+  }
+
+  #withHandlerTimeout(handled: Promise<unknown>, event: string): Promise<unknown> {
+    const configured = this.#params.handlerTimeoutMs
+    const timeout =
+      typeof configured === "number" && Number.isFinite(configured) && configured >= 0
+        ? configured
+        : DEFAULT_PARAMS.handlerTimeoutMs!
+
+    if (timeout === 0) {
+      return handled
+    }
+
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        // Cleanup goes ahead without the handler, but the host still hears how
+        // it ended rather than losing the failure to an unhandled rejection.
+        handled.catch((cause) => this.#reportHandlerFailure(event, cause))
+        reject(
+          new Error(
+            `OneSchema "${event}" handler did not settle within handlerTimeoutMs (${timeout}ms)`,
+          ),
+        )
+      }, timeout)
+
+      handled.then(
+        (value) => {
+          clearTimeout(timer)
+          resolve(value)
+        },
+        (cause) => {
+          clearTimeout(timer)
+          reject(cause)
+        },
+      )
+    })
+  }
+
+  #reportHandlerFailure(event: string, cause: unknown) {
+    const detail = cause instanceof Error ? cause.message : String(cause)
+    this.emitErrorEvent({
+      message: `OneSchema "${event}" handler failed: ${detail}`,
+      severity: OneSchemaErrorSeverity.Error,
+      cause,
+    })
+  }
+
+  #clearResumeToken(key = this.#resumeTokenKey) {
+    if (!key) {
+      return
+    }
+
+    try {
+      window.localStorage.removeItem(key)
+    } catch {
+      /* local storage is not available, don't sweat it */
+    }
+  }
+
   // The embed reports a `complete` payload of rows for both local and
   // file-upload imports, so the configured delivery says which one it was. Only
   // a session launch, which carries no import config, has to fall back to the
@@ -776,19 +935,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
           return
         }
 
-        this.emit("success", this.#importResult(data))
-        if (this.#resumeTokenKey) {
-          try {
-            window.localStorage.removeItem(this.#resumeTokenKey)
-          } catch {
-            /* local storage is not available, don't sweat it */
-          }
-        }
-
-        if (this.#params.autoClose) {
-          this.close()
-        }
-
+        void this.#endSession("success", this.#importResult(data))
         return
       }
 
@@ -797,19 +944,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
           return
         }
 
-        this.emit("cancel")
-        if (this.#resumeTokenKey) {
-          try {
-            window.localStorage.removeItem(this.#resumeTokenKey)
-          } catch {
-            /* local storage is not available, don't sweat it */
-          }
-        }
-
-        if (this.#params.autoClose) {
-          this.close()
-        }
-
+        void this.#endSession("cancel")
         return
       }
 
