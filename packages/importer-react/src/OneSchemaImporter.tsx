@@ -278,8 +278,10 @@ function OneSchemaImporter(
     // that never settles only produces that same event once the importer's own
     // deadline passes, so closing has to happen either way or a controlled
     // importer stays open over a session the importer has already cleaned up.
-    const endSession = async (handled: unknown) => {
-      const settled = Promise.resolve(handled)
+    // The handler runs inside the chain so a synchronous throw becomes a
+    // rejection here rather than escaping before the cleanup below.
+    const endSession = async (run: () => unknown) => {
+      const settled = (async () => run())()
       // The importer reports the failure; this only keeps a rejection arriving
       // after the bound from surfacing as an unhandled one.
       settled.catch(() => undefined)
@@ -293,9 +295,9 @@ function OneSchemaImporter(
       }
     }
 
-    importer.on("success", (data) => endSession(handlers.current.onSuccess?.(data)))
+    importer.on("success", (data) => endSession(() => handlers.current.onSuccess?.(data)))
 
-    importer.on("cancel", () => endSession(handlers.current.onCancel?.()))
+    importer.on("cancel", () => endSession(() => handlers.current.onCancel?.()))
 
     importer.on("error", (error) => {
       handlers.current.onError?.(error)
