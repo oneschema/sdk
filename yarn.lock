@@ -401,17 +401,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/platform-browser-dynamic@npm:^16.2.12":
-  version: 16.2.12
-  resolution: "@angular/platform-browser-dynamic@npm:16.2.12"
+"@angular/platform-browser-dynamic@npm:^20.0.7":
+  version: 20.0.7
+  resolution: "@angular/platform-browser-dynamic@npm:20.0.7"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/common": 16.2.12
-    "@angular/compiler": 16.2.12
-    "@angular/core": 16.2.12
-    "@angular/platform-browser": 16.2.12
-  checksum: 10c0/b11bcc6a5f09d775a037385475f1b06123b31ef545b3c58e6458a6bedb9565faf2f0b85e226ebb2172f14d79a1928d8294d559ff700695077b88f8fd4b812094
+    "@angular/common": 20.0.7
+    "@angular/compiler": 20.0.7
+    "@angular/core": 20.0.7
+    "@angular/platform-browser": 20.0.7
+  checksum: 10c0/640952a5da81a96564f2dc3cced049ebc157dedf924daf137bf00ebbf956245089eeb4c77d545bff2d0528af81233081b96026d6a9359a1048a8c2ed91c911e0
   languageName: node
   linkType: hard
 
@@ -3485,7 +3485,7 @@ __metadata:
     "@angular/core": "npm:^16.2.12"
     "@angular/forms": "npm:^16.2.12"
     "@angular/platform-browser": "npm:^16.2.12"
-    "@angular/platform-browser-dynamic": "npm:^16.2.12"
+    "@angular/platform-browser-dynamic": "npm:^20.0.7"
     "@angular/router": "npm:^16.2.12"
     "@babel/core": "npm:^7.22.9"
     "@oneschema/importer": "npm:^0.7.7"
