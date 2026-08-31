@@ -9,7 +9,7 @@ function updateStatus(message: string, data?: Record<string, any>) {
 
 const importer = oneSchemaImporter({
   className: "oneschema-iframe",
-  parentId: "oneschema-container",
+  parent: document.getElementById("oneschema-container")!,
   baseUrl: "http://embed.localschema.co:9450",
   templateKey: "crm_test",
   clientId: "67bb2e5f-f0f7-42a6-a511-18b25e67b8c4",

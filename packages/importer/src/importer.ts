@@ -12,10 +12,10 @@ import {
   OneSchemaInitSessionMessage,
   OneSchemaInitSimpleMessage,
   OneSchemaLaunchError,
+  OneSchemaLaunchFailed,
   OneSchemaLaunchInfo,
   OneSchemaLaunchParams,
   OneSchemaLaunchSessionParams,
-  OneSchemaLaunchStatus,
   OneSchemaParams,
   OneSchemaSharedInitParams,
 } from "./config"
@@ -62,7 +62,7 @@ const DEFAULT_LAUNCH_ERROR_MESSAGE = "OneSchema failed to launch the import sess
  */
 function parseLaunchErrorDetail(
   detail: unknown,
-): Pick<OneSchemaLaunchStatus, "message" | "status" | "data"> {
+): Pick<OneSchemaLaunchFailed, "message" | "status" | "data"> {
   if (typeof detail === "string") {
     return { message: detail }
   }
@@ -129,30 +129,8 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       const iframe = document.createElement("iframe")
       iframe.id = `_oneschema-iframe-${++iframeCount}`
       this.setIframe(iframe)
-      this.setParent(this.#resolveParent())
+      this.setParent(this.#params.parent ?? document.body)
     }
-  }
-
-  #resolveParent(): HTMLElement {
-    if (this.#params.parent) {
-      return this.#params.parent
-    }
-
-    if (this.#params.parentId) {
-      console.warn(
-        "OneSchema: parentId is deprecated, pass parent as an HTMLElement instead",
-      )
-      const parent = document.getElementById(this.#params.parentId)
-      if (parent) {
-        return parent
-      }
-
-      console.error(
-        `OneSchema config error: no element with id "${this.#params.parentId}" exists yet, appending the importer to document.body instead`,
-      )
-    }
-
-    return document.body
   }
 
   /**

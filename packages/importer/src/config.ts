@@ -515,43 +515,48 @@ export interface OneSchemaLaunchInfo {
   embedId?: string
 }
 
-export interface OneSchemaLaunchStatus {
+/**
+ * A launch attempt that started an import session
+ */
+export interface OneSchemaLaunchSucceeded extends OneSchemaLaunchInfo {
+  success: true
+}
+
+/**
+ * A launch attempt that could not start an import session. The same detail is
+ * carried by the `OneSchemaLaunchFailure` the `launch()` promise rejects with
+ */
+export interface OneSchemaLaunchFailed {
+  success: false
   /**
-   * Whether or not launch was successful
+   * Why the launch failed
    */
-  success: boolean
+  error: OneSchemaLaunchError
   /**
-   * If success is true, include a session token
+   * A human-readable description of the failure
    */
-  sessionToken?: string
+  message: string
   /**
-   * If success is true, include the embed ID
-   */
-  embedId?: string
-  /**
-   * If success is false, this will be why it failed
-   */
-  error?: OneSchemaLaunchError
-  /**
-   * If success is false, a human-readable description of the failure
-   */
-  message?: string
-  /**
-   * If success is false, the HTTP status OneSchema responded with, when the
-   * failure came from an API call
+   * The HTTP status OneSchema responded with, when the failure came from an
+   * API call
    */
   status?: number
   /**
-   * If success is false, the raw error body OneSchema responded with, when
-   * one was included
+   * The raw error body OneSchema responded with, when one was included
    */
   data?: unknown
   /**
-   * An id shared with the `launch()` resolution or rejection for the same
-   * attempt, so a support report can name one launch
+   * An id shared with the `launch()` rejection for the same attempt, so a
+   * support report can name one launch
    */
   embedInitId: string
 }
+
+/**
+ * The outcome of one launch attempt, as reported by the `launched` event.
+ * Narrow on `success` before reading either branch's fields
+ */
+export type OneSchemaLaunchEvent = OneSchemaLaunchSucceeded | OneSchemaLaunchFailed
 
 /**
  * Parameters for the OneSchema importer set at initialization
@@ -563,7 +568,8 @@ export interface OneSchemaInitParams {
   clientId: string
   /**
    * Whether to launch the importer in dev mode, which shows the iframe even
-   * when launching fails
+   * when launching fails. Defaults to `false`; wire it to your own build
+   * condition to enable it during development
    */
   devMode?: boolean
   /**
@@ -585,11 +591,6 @@ export interface OneSchemaInitParams {
    * By default appends to document.body
    */
   parent?: HTMLElement
-  /**
-   * The id of the DOM element the iframe should be appended to
-   * @deprecated Pass `parent` instead. An id is resolved once, at construction, so it falls back to document.body when the element does not exist yet.
-   */
-  parentId?: string
   /**
    * Whether to save session information to local storage and enable resuming
    */
@@ -691,7 +692,7 @@ export type OneSchemaInitMessage =
  */
 export const DEFAULT_PARAMS: Partial<OneSchemaParams> = {
   baseUrl: "https://embed.oneschema.co",
-  devMode: !!(process.env.NODE_ENV !== "production"),
+  devMode: false,
   className: "oneschema-iframe",
   initTimeoutMs: 20000,
   handlerTimeoutMs: 30000,
@@ -769,7 +770,7 @@ export interface OneSchemaEventMap {
   /**
    * The import session was launched, or launching it failed
    */
-  launched: [OneSchemaLaunchStatus]
+  launched: [OneSchemaLaunchEvent]
   /**
    * The user finished importing. For `local` imports the data is the payload,
    * for `webhook` imports it summarizes the delivery.
