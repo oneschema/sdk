@@ -24,6 +24,20 @@ import { merged } from "./shared/utils"
 
 const LAUNCH_RETRY_DELAY_MS = 500
 
+// The events whose handlers the importer waits on before it ends a session.
+type AwaitedEvent = "success" | "cancel"
+
+type ImporterEventListener = NonNullable<
+  Parameters<OneSchemaImporterClass["removeListener"]>[1]
+>
+
+// One entry of eventemitter3's own listener bookkeeping.
+interface RegisteredListener {
+  fn: (...args: never[]) => unknown
+  context?: unknown
+  once?: boolean
+}
+
 const CANCELLED_MESSAGE =
   "OneSchema launch was cancelled before the import session started"
 
@@ -616,10 +630,13 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
    * throws, rejects or never settles cannot leave the embed open with a token
    * that resumes a session the host already consumed.
    */
-  async #endSession<E extends "success" | "cancel">(
-    event: E,
-    ...args: OneSchemaEventMap[E]
-  ) {
+  async #endSession<E extends AwaitedEvent>(event: E, ...args: OneSchemaEventMap[E]) {
+    // Forgetting the session before the first await makes every later terminal
+    // reply for it stale, so a `complete` the embed repeats while the host
+    // handler is still running cannot submit the same rows twice. A new launch
+    // sets its own session id.
+    this.#sessionEmbedInitId = undefined
+
     try {
       await this.#dispatch(event, ...args)
     } finally {
@@ -632,30 +649,56 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
 
   /**
    * Emit an event whose handlers the importer waits on. `emit` from
-   * eventemitter3 discards what a listener returns, so the listeners are
-   * invoked directly here; `once` registrations are dropped by hand because
-   * nothing else will.
+   * eventemitter3 discards what a listener returns, so the registrations are
+   * invoked directly here: each one is timed and reported on its own, so a
+   * failing handler neither hides another's failure nor cuts short another's
+   * timeout, and `once` registrations are dropped by hand because nothing else
+   * will.
    */
-  async #dispatch<E extends "success" | "cancel">(
-    event: E,
-    ...args: OneSchemaEventMap[E]
-  ) {
-    const listeners = this.listeners(event)
-    listeners.forEach((listener) => this.removeListener(event, listener, undefined, true))
+  async #dispatch<E extends AwaitedEvent>(event: E, ...args: OneSchemaEventMap[E]) {
+    const registered = this.#registeredListeners(event)
 
-    // An async callback turns a listener throwing synchronously into a
-    // rejection, so one bad handler cannot skip the others.
-    const handled = Promise.all(
-      (listeners as unknown as Array<(...args: OneSchemaEventMap[E]) => unknown>).map(
-        async (listener) => listener(...args),
-      ),
+    registered.forEach(({ fn, context, once }) => {
+      if (once) {
+        this.removeListener(event, fn as unknown as ImporterEventListener, context, true)
+      }
+    })
+
+    await Promise.all(
+      registered.map(async ({ fn, context }) => {
+        // An async callback turns a listener throwing synchronously into a
+        // rejection, so one bad handler cannot skip the others.
+        const handled = (async () =>
+          (fn as unknown as (...args: OneSchemaEventMap[E]) => unknown).apply(
+            context ?? this,
+            args,
+          ))()
+
+        try {
+          await this.#withHandlerTimeout(handled, event)
+        } catch (cause) {
+          this.#reportHandlerFailure(event, cause)
+        }
+      }),
     )
+  }
 
-    try {
-      await this.#withHandlerTimeout(handled, event)
-    } catch (cause) {
-      this.#reportHandlerFailure(event, cause)
+  // eventemitter3 remembers the context a listener was registered with, but
+  // `listeners()` hands back only the functions, so an awaited handler would be
+  // called with the wrong `this`. The registrations themselves carry both.
+  #registeredListeners(event: AwaitedEvent): RegisteredListener[] {
+    const { _events: events } = this as unknown as {
+      _events?: Record<string, RegisteredListener | RegisteredListener[] | undefined>
     }
+    // eventemitter3 prefixes its event keys only where `Object.create` is
+    // missing, which no supported browser is, but the fallback is cheap.
+    const registered = events?.[event] ?? events?.[`~${event}`]
+
+    if (!registered) {
+      return []
+    }
+
+    return Array.isArray(registered) ? [...registered] : [registered]
   }
 
   #withHandlerTimeout(handled: Promise<unknown>, event: string): Promise<unknown> {

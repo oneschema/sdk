@@ -725,18 +725,82 @@ test("waits without a bound when handlerTimeoutMs is zero", async () => {
   importer.destroy()
 })
 
-test("calls a once handler for one import only", async () => {
+test("reports every failing handler and times them apart", async () => {
+  let rejectLate
+  const errors = []
+  const { importer, reply } = await launchWithHandler({ handlerTimeoutMs: 10 })
+  importer.on("error", (error) => errors.push(error))
+  importer.on("success", async () => {
+    throw new Error("first handler blew up")
+  })
+  importer.on("success", () => new Promise((_resolve, fail) => (rejectLate = fail)))
+
+  reply({ messageType: "complete", data: { rows: [] } })
+  await drain(30)
+
+  // The first handler failing must not swallow the second's timeout.
+  assert.deepEqual(
+    errors.map((error) => error.message),
+    [
+      'OneSchema "success" handler failed: first handler blew up',
+      'OneSchema "success" handler failed: OneSchema "success" handler did not settle within handlerTimeoutMs (10ms)',
+    ],
+  )
+
+  rejectLate(new Error("second handler blew up late"))
+  await drain()
+
+  assert.match(errors[2].message, /second handler blew up late/)
+
+  importer.destroy()
+})
+
+test("runs a handler with the context it was registered with", async () => {
+  const contexts = []
+  const host = { name: "host" }
+  const { importer, reply } = await launchWithHandler()
+  importer.on(
+    "success",
+    function handler() {
+      contexts.push(this)
+    },
+    host,
+  )
+  importer.once(
+    "success",
+    function onceHandler() {
+      contexts.push(this)
+    },
+    host,
+  )
+
+  reply({ messageType: "complete", data: { rows: [] } })
+  await drain()
+
+  assert.deepEqual(contexts, [host, host])
+  assert.equal(importer.listenerCount("success"), 1)
+
+  importer.destroy()
+})
+
+test("ignores a terminal message the embed repeats while a handler runs", async () => {
+  let release
   const results = []
-  const { iframe, importer, reply } = await launchWithHandler({ autoClose: false })
-  importer.once("success", (result) => results.push(result))
+  const { importer, reply } = await launchWithHandler({ autoClose: false })
+  importer.on("success", (result) => {
+    results.push(result)
+    return new Promise((resolve) => (release = resolve))
+  })
 
   reply({ messageType: "complete", data: { rows: [1] } })
   await drain()
   reply({ messageType: "complete", data: { rows: [2] } })
   await drain()
 
+  release()
+  await drain()
+
   assert.deepEqual(results, [{ type: "local", data: { rows: [1] } }])
-  assert.equal(iframe.style.display, "initial")
 
   importer.destroy()
 })
@@ -746,17 +810,25 @@ test("tags the import result with how the data was delivered", async () => {
   const { iframe, importer, reply } = createImporter({ autoClose: false })
   importer.on("success", (result) => results.push(result))
 
+  // Each delivery needs its own launch: a session stops accepting terminal
+  // messages once it has handed one to the host.
   launch(importer)
   iframe.onload()
   reply({ messageType: "launched" })
   reply({ messageType: "complete", data: { rows: [] } })
+  await drain()
+
+  launch(importer)
+  reply({ messageType: "launched" })
   reply({ messageType: "complete", eventId: "event-id", responses: [{ status: 200 }] })
+  await drain()
 
   launch(importer, {
     importConfig: { type: "file-upload", url: "https://upload.test/file" },
   })
   reply({ messageType: "launched" })
   reply({ messageType: "complete", data: { count: 2 } })
+  await drain()
 
   assert.deepEqual(results, [
     { type: "local", data: { rows: [] } },
