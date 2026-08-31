@@ -128,11 +128,29 @@ reads 1 on that path; under `devMode: true` it posts none.
 
 ## Cleanup
 
-Record the starting state before touching anything, because the worktree may already carry unrelated edits or untracked files. Run this — and every cleanup command below — from the repo root, since the harness commands above leave the shell inside a package directory and pathspecs would then resolve against it: `cd "$(git rev-parse --show-toplevel)"`. Use `--untracked-files=all` so a scratch file inside an already-untracked directory is listed individually instead of collapsing into one `?? dir/` entry:
+Run the harness in a dedicated worktree, so cleanup is a directory removal and the checkout carrying real work is never edited at all:
 
 ```bash
 cd "$(git rev-parse --show-toplevel)"
-git status --porcelain=v1 --untracked-files=all > /tmp/harness-baseline.txt
+git worktree add ../sdk-harness HEAD
+# run the harness from ../sdk-harness, then:
+git worktree remove --force ../sdk-harness
 ```
 
-Then revert every harness edit one edit at a time rather than by restoring whole directories: read `git diff -- packages/importer/test packages/importer-react/test packages/importer-react/src` and undo only the lines the harness run added. Delete only the scratch plan/notes files this run created, and finish by diffing against the baseline rather than demanding an empty tree: `diff <(git status --porcelain=v1 --untracked-files=all) /tmp/harness-baseline.txt`. A whole-directory `git checkout --` would throw away unrelated uncommitted work, so prefer a dedicated `git worktree` for harness runs.
+If the harness has to run in the working checkout anyway, snapshot **contents**, not just status codes — a file the harness edits on top of an existing modification, or an untracked file it overwrites, keeps its status letter and would pass a status-only comparison. Run this and every command below from the repo root, since the harness commands above leave the shell inside a package directory and pathspecs would then resolve against it:
+
+```bash
+cd "$(git rev-parse --show-toplevel)"
+git diff HEAD > /tmp/harness-baseline.patch
+git status --porcelain=v1 --untracked-files=all > /tmp/harness-baseline.txt
+tar czf /tmp/harness-baseline-untracked.tgz -T <(git ls-files --others --exclude-standard)
+```
+
+`--untracked-files=all` matters so a scratch file inside an already-untracked directory is listed individually instead of collapsing into one `?? dir/` entry. Then revert every harness edit one edit at a time rather than by restoring whole directories — read `git diff -- packages/importer/test packages/importer-react/test packages/importer-react/src` and undo only the lines the harness run added — and delete only the scratch plan/notes files this run created. Verify by content, treating the status diff as a supplementary check:
+
+```bash
+diff /tmp/harness-baseline.patch <(git diff HEAD)
+diff /tmp/harness-baseline.txt <(git status --porcelain=v1 --untracked-files=all)
+```
+
+A whole-directory `git checkout --` would throw away unrelated uncommitted work; never use one to finish a harness run.
