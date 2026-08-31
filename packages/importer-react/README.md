@@ -154,11 +154,11 @@ params.
 
 ### Ref handle
 
-| Member   | Type                                                 | Description                                                                                                                     |
-| -------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `launch` | `(overrides?) => Promise<OneSchemaLaunchInfo>`       | Launches the importer, resolving once the session is running and rejecting with a `OneSchemaLaunchFailure` when it cannot start |
-| `close`  | `(clean?: boolean) => void`                          | Closes the importer, discarding the session in progress                                                                         |
-| `status` | `"idle" \| "launching" \| "launched" \| "destroyed"` | Lifecycle state of the underlying importer                                                                                      |
+| Member   | Type                                                 | Description                                                                                                                                                                                            |
+| -------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `launch` | `(overrides?) => Promise<OneSchemaLaunchInfo>`       | Launches the importer, resolving once the session is running and rejecting with a `OneSchemaLaunchFailure` when it cannot start, or with a plain `Error` before the component has mounted its importer |
+| `close`  | `(clean?: boolean) => void`                          | Closes the importer, discarding the session in progress                                                                                                                                                |
+| `status` | `"idle" \| "launching" \| "launched" \| "destroyed"` | Lifecycle state of the underlying importer                                                                                                                                                             |
 
 `launch()` accepts the same launch params as props, overriding them for that launch.
 

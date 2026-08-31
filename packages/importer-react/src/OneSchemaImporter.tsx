@@ -29,7 +29,8 @@ export type OneSchemaLaunchOverrides = Partial<OneSchemaLaunchParams> &
 export interface OneSchemaImporterHandle {
   /**
    * Launch the importer. Resolves when the import session is running and
-   * rejects with a `OneSchemaLaunchFailure` when it cannot start
+   * rejects with a `OneSchemaLaunchFailure` when it cannot start, or with a
+   * plain `Error` when the component has not mounted its importer yet
    */
   launch: (launchParams?: OneSchemaLaunchOverrides) => Promise<OneSchemaLaunchInfo>
 
@@ -232,17 +233,25 @@ function OneSchemaImporter(
       return
     }
 
+    // A handler that rejects is reported as a non-fatal `error` event, so
+    // closing has to happen either way or a controlled importer stays open.
     importer.on("success", async (data) => {
-      await handlers.current.onSuccess?.(data)
-      if (controlled) {
-        handlers.current.onRequestClose?.()
+      try {
+        await handlers.current.onSuccess?.(data)
+      } finally {
+        if (controlled) {
+          handlers.current.onRequestClose?.()
+        }
       }
     })
 
     importer.on("cancel", async () => {
-      await handlers.current.onCancel?.()
-      if (controlled) {
-        handlers.current.onRequestClose?.()
+      try {
+        await handlers.current.onCancel?.()
+      } finally {
+        if (controlled) {
+          handlers.current.onRequestClose?.()
+        }
       }
     })
 
