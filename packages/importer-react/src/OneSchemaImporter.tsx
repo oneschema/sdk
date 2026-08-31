@@ -2,19 +2,56 @@ import oneschemaImporter, {
   OneSchemaError,
   OneSchemaErrorSeverity,
   OneSchemaImporterClass,
+  OneSchemaImporterStatus,
   OneSchemaImportResult,
+  OneSchemaLaunchInfo,
   OneSchemaLaunchParamOptions,
+  OneSchemaLaunchParams,
+  OneSchemaLaunchSessionParams,
   OneSchemaLaunchStatus,
 } from "@oneschema/importer"
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import React, {
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react"
 
 import { version } from "../package.json"
 
+export type OneSchemaLaunchOverrides = Partial<OneSchemaLaunchParams> &
+  Partial<OneSchemaLaunchSessionParams>
+
+/**
+ * Imperative handle exposed through the component's `ref`
+ */
+export interface OneSchemaImporterHandle {
+  /**
+   * Launch the importer. Resolves when the import session is running and
+   * rejects with a `OneSchemaLaunchFailure` when it cannot start
+   */
+  launch: (launchParams?: OneSchemaLaunchOverrides) => Promise<OneSchemaLaunchInfo>
+
+  /**
+   * Close the importer, discarding the session in progress
+   */
+  close: (clean?: boolean) => void
+
+  /**
+   * Lifecycle state of the underlying importer
+   */
+  readonly status: OneSchemaImporterStatus
+}
+
 export interface OneSchemaImporterBaseProps {
   /**
-   * Whether to show the iframe or not
+   * Whether to show the iframe or not.
+   * Omit it to let the importer manage its own visibility: it then closes
+   * itself when the import completes, the user cancels, or a fatal error
+   * occurs, and the host launches it through the component's `ref`
    */
-  isOpen: boolean
+  isOpen?: boolean
 
   /**
    * Whether the iframe should be rendered in the component tree.
@@ -62,19 +99,22 @@ export interface OneSchemaImporterBaseProps {
 
   /**
    * Handler for when the importer wants to close
-   * should set isOpen prop to false
+   * should set isOpen prop to false.
+   * Only called when `isOpen` is supplied
    */
   onRequestClose?: () => void
 
   /**
-   * Handler for when the importing flow completes successfully
+   * Handler for when the importing flow completes successfully.
+   * The importer waits for a returned promise to settle before it closes
    */
-  onSuccess?: (data: OneSchemaImportResult) => void
+  onSuccess?: (data: OneSchemaImportResult) => void | Promise<void>
 
   /**
-   * Handler for when the importing flow is cancelled by user
+   * Handler for when the importing flow is cancelled by user.
+   * The importer waits for a returned promise to settle before it closes
    */
-  onCancel?: () => void
+  onCancel?: () => void | Promise<void>
 
   /**
    * Handler for when an error occurs during the import
@@ -106,27 +146,70 @@ export interface OneSchemaImporterBaseProps {
 export type OneSchemaImporterProps = OneSchemaImporterBaseProps &
   OneSchemaLaunchParamOptions
 
+type Handlers = Pick<
+  OneSchemaImporterBaseProps,
+  | "onRequestClose"
+  | "onSuccess"
+  | "onCancel"
+  | "onError"
+  | "onPageLoad"
+  | "onLaunched"
+  | "onUserActivity"
+>
+
+const ALREADY_LAUNCHED_MESSAGE =
+  "The OneSchema importer has already launched. Updated launch params will not update the current import"
+
 /**
  * Component for importing data with OneSchema
  */
-export default function OneSchemaImporter({
-  isOpen,
-  style,
-  className,
-  inline = true,
-  onRequestClose,
-  onSuccess,
-  onCancel,
-  onError,
-  onPageLoad,
-  onLaunched,
-  onUserActivity,
-  ...params
-}: OneSchemaImporterProps) {
+function OneSchemaImporter(
+  {
+    isOpen,
+    style,
+    className,
+    inline = true,
+    onRequestClose,
+    onSuccess,
+    onCancel,
+    onError,
+    onPageLoad,
+    onLaunched,
+    onUserActivity,
+    ...params
+  }: OneSchemaImporterProps,
+  ref: React.ForwardedRef<OneSchemaImporterHandle>,
+) {
+  // Whether the host owns visibility is fixed for the instance's lifetime: the
+  // two modes disagree about who closes the importer, so switching would leave
+  // the iframe in a state neither side expects.
+  const controlled = useRef(isOpen !== undefined).current
+
   const initParams = useRef({
     ...params,
-    autoClose: false,
+    autoClose: !controlled,
     manageDOM: !inline,
+  })
+
+  // Handlers are read through a ref so the listeners register once per
+  // instance: re-registering whenever an inline handler's identity changes
+  // drops listeners the importer is in the middle of emitting to.
+  const handlers = useRef<Handlers>({})
+  useEffect(() => {
+    handlers.current = {
+      onRequestClose,
+      onSuccess,
+      onCancel,
+      onError,
+      onPageLoad,
+      onLaunched,
+      onUserActivity,
+    }
+  })
+
+  const latestParams = useRef(params)
+  useEffect(() => {
+    latestParams.current = params
   })
 
   // The instance is owned by a mount effect rather than by lazy state: it is
@@ -145,50 +228,47 @@ export default function OneSchemaImporter({
   }, [])
 
   useEffect(() => {
-    if (importer) {
-      importer.on("success", (data) => {
-        onSuccess?.(data)
-        onRequestClose?.()
-      })
-
-      importer.on("cancel", () => {
-        onCancel?.()
-        onRequestClose?.()
-      })
-
-      importer.on("error", (error) => {
-        onError?.(error)
-        if (error.severity === OneSchemaErrorSeverity.Fatal) {
-          onRequestClose?.()
-        }
-      })
-
-      importer.on("page-loaded", () => {
-        onPageLoad?.()
-      })
-
-      importer.on("launched", (data) => {
-        onLaunched?.(data)
-      })
-
-      importer.on("user-activity", () => {
-        onUserActivity?.()
-      })
+    if (!importer) {
+      return
     }
+
+    importer.on("success", async (data) => {
+      await handlers.current.onSuccess?.(data)
+      if (controlled) {
+        handlers.current.onRequestClose?.()
+      }
+    })
+
+    importer.on("cancel", async () => {
+      await handlers.current.onCancel?.()
+      if (controlled) {
+        handlers.current.onRequestClose?.()
+      }
+    })
+
+    importer.on("error", (error) => {
+      handlers.current.onError?.(error)
+      if (controlled && error.severity === OneSchemaErrorSeverity.Fatal) {
+        handlers.current.onRequestClose?.()
+      }
+    })
+
+    importer.on("page-loaded", () => {
+      handlers.current.onPageLoad?.()
+    })
+
+    importer.on("launched", (data) => {
+      handlers.current.onLaunched?.(data)
+    })
+
+    importer.on("user-activity", () => {
+      handlers.current.onUserActivity?.()
+    })
 
     return () => {
-      importer?.removeAllListeners()
+      importer.removeAllListeners()
     }
-  }, [
-    importer,
-    onSuccess,
-    onCancel,
-    onError,
-    onRequestClose,
-    onLaunched,
-    onPageLoad,
-    onUserActivity,
-  ])
+  }, [importer, controlled])
 
   useEffect(() => {
     if (className) {
@@ -202,37 +282,44 @@ export default function OneSchemaImporter({
     }
   }, [importer, style])
 
-  // Rerendering rebuilds the rest-params object, so the warning compares the
-  // params by value against the ones the current import was launched with.
-  const launchedParams = useRef<string>()
-  const serializedParams = JSON.stringify(params)
+  const launch = useCallback(
+    (launchParams?: OneSchemaLaunchOverrides) => {
+      if (!importer) {
+        return Promise.reject(new Error("The OneSchema importer is not mounted yet"))
+      }
+
+      if (importer.status !== "idle") {
+        console.warn(ALREADY_LAUNCHED_MESSAGE)
+      }
+
+      return importer.launch({ ...latestParams.current, ...launchParams })
+    },
+    [importer],
+  )
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      launch,
+      close: (clean?: boolean) => importer?.close(clean),
+      get status(): OneSchemaImporterStatus {
+        return importer?.status ?? "idle"
+      },
+    }),
+    [importer, launch],
+  )
 
   useEffect(() => {
-    if (!importer || !isOpen || importer.status === "idle") {
+    if (!importer || !controlled) {
       return
     }
 
-    if (
-      launchedParams.current !== undefined &&
-      launchedParams.current !== serializedParams
-    ) {
-      console.warn(
-        "The OneSchema importer has already launched. Updated launch params will not update the current import",
-      )
-    }
-  }, [importer, isOpen, serializedParams])
-
-  useEffect(() => {
-    if (importer) {
-      if (isOpen) {
-        launchedParams.current = serializedParams
-        // Launch failures reach the host through onLaunched, so the rejection
-        // itself is redundant here.
-        importer.launch(params).catch(() => undefined)
-      } else {
-        launchedParams.current = undefined
-        importer.close()
-      }
+    if (isOpen) {
+      // Launch failures reach the host through onLaunched, so the rejection
+      // itself is redundant here.
+      launch().catch(() => undefined)
+    } else {
+      importer.close()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [importer, isOpen])
@@ -260,3 +347,5 @@ const Iframe = React.memo(
     return <iframe ref={ref} />
   }),
 )
+
+export default React.forwardRef(OneSchemaImporter)

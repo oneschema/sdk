@@ -13,7 +13,10 @@ export class OneSchemaButtonComponent {
   constructor(public oneschema: OneSchemaService) {}
 
   launch() {
-    this.oneschema.launch()
+    this.oneschema.launch().catch((failure) => {
+      // handle the launch failure; the launched and error events report it too
+      console.error(failure)
+    })
   }
 }
 
