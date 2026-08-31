@@ -611,7 +611,9 @@ export interface OneSchemaInitParams {
    * How long a launch may stay pending before `launch()` rejects with
    * `OneSchemaLaunchError.Timeout`, in milliseconds. The deadline covers the
    * whole launch, not only the init acknowledgement. Raise it for hosts on
-   * slow or distant connections. Defaults to 20000
+   * slow or distant connections. The deadline cannot be turned off: `0`, a
+   * negative number and a non-finite number all fall back to the default,
+   * because a launch that never settles cannot be reported. Defaults to 20000
    */
   initTimeoutMs?: number
 }

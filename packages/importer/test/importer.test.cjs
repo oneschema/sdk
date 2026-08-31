@@ -251,6 +251,34 @@ test("rejects with a timeout when the embed never acknowledges init", async () =
   }
 })
 
+test("still deadlines a launch when initTimeoutMs cannot be one", async () => {
+  mock.timers.enable({ apis: ["setTimeout"] })
+
+  try {
+    const { importer, messages } = createImporter({
+      autoClose: false,
+      initTimeoutMs: 0,
+    })
+
+    const launched = importer.launch()
+
+    mock.timers.tick(20000)
+
+    const failure = await launched.then(
+      () => assert.fail("launch should not resolve without a loaded iframe"),
+      (error) => error,
+    )
+
+    assert.equal(failure.error, OneSchemaLaunchError.Timeout)
+    assert.deepEqual(messages, [])
+    assert.equal(importer.status, "idle")
+
+    importer.destroy()
+  } finally {
+    mock.timers.reset()
+  }
+})
+
 test("rejects with a timeout when the iframe never loads", async () => {
   mock.timers.enable({ apis: ["setTimeout"] })
 

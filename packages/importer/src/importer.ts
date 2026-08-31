@@ -375,13 +375,17 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     return Promise.reject(failure)
   }
 
+  // Every launch is deadlined, so the retry loop below is always bounded and a
+  // launch always settles: a value that cannot be one falls back to the default
+  // rather than leaving the promise pending for the life of the page.
   #armLaunchDeadline() {
     this.#clearLaunchDeadline()
 
-    const timeout = this.#params.initTimeoutMs ?? 0
-    if (timeout <= 0) {
-      return
-    }
+    const configured = this.#params.initTimeoutMs
+    const timeout =
+      typeof configured === "number" && Number.isFinite(configured) && configured > 0
+        ? configured
+        : DEFAULT_PARAMS.initTimeoutMs!
 
     this.#launchDeadline = setTimeout(() => this.#timeoutLaunch(), timeout)
   }
@@ -485,7 +489,8 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
 
   // The embed acknowledges the init message with "init-received", so the
   // message is repeated LAUNCH_RETRY_DELAY_MS apart until it does. The loop is
-  // bounded by the launch deadline rather than a retry count.
+  // bounded by the launch deadline rather than a retry count: the deadline ends
+  // the attempt, which strands the scheduled retry.
   #initWithRetry(generation: number) {
     if (
       generation !== this.#launchGeneration ||
