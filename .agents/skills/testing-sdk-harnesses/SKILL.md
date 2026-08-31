@@ -115,7 +115,7 @@ even though the embed had visibly rendered, and then succeed in ~300ms on every 
 any `devMode: true` case at least twice before reporting a timeout as a real finding.
 
 Also useful when a launch failure is under test: with `devMode` unset the embed posts a generic
-`error` (`severity: "fatal"`) *in addition to* `launch-error`, so the harness's SDK-error counter
+`error` (`severity: "fatal"`) _in addition to_ `launch-error`, so the harness's SDK-error counter
 reads 1 on that path; under `devMode: true` it posts none.
 
 ## Devin Secrets Needed
