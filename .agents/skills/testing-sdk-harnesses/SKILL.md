@@ -21,9 +21,11 @@ harness `baseUrl` at staging instead — no backend needs to run locally.
   `Authorization: Bearer`. A Bearer token returns `401 No auth credentials provided`.
 - User JWTs are HS256 with claims `{ iss: <embed_client_id>, user_id: "<anything>" }` — same shape as
   `oneschema/browser-tests/tests/helpers/embed-jwt.ts`. Sign it in a tiny local server (e.g. port 4300) that reads the secret from the environment so the harness can `fetch()` a fresh token and the
-  secret never lands in a file or in the bundle.
+  secret never lands in a file or in the bundle. That server is a different origin from the harness, so it must answer with `Access-Control-Allow-Origin: http://localhost:4242` (or `:4243`, whichever harness is fetching) and handle the `OPTIONS` preflight — otherwise the browser blocks the token response.
 
 ## Harnesses
+
+Each command below is a long-running Parcel dev server, so run each in its own terminal (or its own persistent shell):
 
 ```bash
 cd packages/importer && yarn test        # serves test/index.html on :4242 (edit test/index.ts)
@@ -39,7 +41,7 @@ with `ss -ltnp` / `pkill -f`.
 
 To exercise local core changes from the React package, temporarily change the import in
 `packages/importer-react/src/OneSchemaImporter.tsx` from `@oneschema/importer` to `../../importer/src`
-and **revert it before finishing** (`git checkout -- packages/importer-react/src`).
+and **revert it before finishing** — revert that one import line, not the directory: read `git diff -- packages/importer-react/src` and undo exactly the harness edit, or do the whole run in a dedicated `git worktree` so unrelated uncommitted work is never in reach.
 
 A useful harness shape for multi-instance work: several importer instances side by side in their own
 containers, a visible status readout polled from `importer.status`, buttons for
@@ -126,6 +128,4 @@ reads 1 on that path; under `devMode: true` it posts none.
 
 ## Cleanup
 
-Revert every harness edit before finishing:
-`git checkout -- packages/importer/test packages/importer-react/test packages/importer-react/src`
-and delete any scratch plan/notes files, then confirm `git status --porcelain` is clean.
+Revert every harness edit before finishing, one edit at a time rather than by restoring whole directories: read `git diff -- packages/importer/test packages/importer-react/test packages/importer-react/src` and undo only the lines the harness run added. Then delete any scratch plan/notes files and confirm `git status --porcelain` is clean. A whole-directory `git checkout --` would also throw away unrelated uncommitted work, so prefer a dedicated `git worktree` for harness runs.
