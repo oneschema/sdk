@@ -4,7 +4,10 @@ import { useOneSchemaImporter } from "../src"
 const importer = useOneSchemaImporter()
 
 const launchOneSchema = function () {
-  importer.launch()
+  importer.launch().catch((failure) => {
+    // TODO: handle the launch failure
+    console.error(failure)
+  })
 }
 
 importer.on("success", (data) => {

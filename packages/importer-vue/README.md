@@ -48,7 +48,7 @@ app.mount("#app")
 
 ### Sample usage
 
-Once the OneSchema plugin has been registered, you can call the `useOneSchemaImporter` function to obtain the `OneSchemaImporterClass` instance.
+Once the OneSchema plugin has been registered, you can call the `useOneSchemaImporter` function to obtain the `OneSchemaImporterClass` instance. The importer manages its own visibility: it closes itself when the import completes, the user cancels, or a fatal error occurs. Register the handlers once, in setup, rather than per launch — registering them inside the launch handler adds another copy of each on every launch.
 
 ```vue
 <script setup lang="ts">
@@ -56,23 +56,29 @@ import { useOneSchemaImporter } from "@oneschema/vue"
 
 const importer = useOneSchemaImporter()
 
-const launchOneSchema = function () {
-  importer.launch()
-
-  importer.on("success", (data) => {
-    // TODO: handle success
-    console.log(data)
-  })
-
-  importer.on("cancel", () => {
-    // TODO: handle cancel
-  })
-
-  importer.on("error", (message) => {
-    // TODO: handle errors
-    console.log(message)
-  })
+const launchOneSchema = async function () {
+  try {
+    const { embedId } = await importer.launch()
+    console.log(embedId)
+  } catch (failure) {
+    // TODO: handle the launch failure
+    console.error(failure)
+  }
 }
+
+importer.on("success", async (data) => {
+  // the importer stays open until this resolves
+  console.log(data)
+})
+
+importer.on("cancel", () => {
+  // TODO: handle cancel
+})
+
+importer.on("error", (error) => {
+  // TODO: handle errors
+  console.log(error)
+})
 </script>
 <template>
   <button @click="launchOneSchema">Launch embed</button>
