@@ -21,6 +21,13 @@ const REMOVED_MEMBERS = [
 
 const LAUNCH_METHODS = ["launch", "launchSession"]
 
+const IMPORTER_MODULES = [
+  "@oneschema/importer",
+  "@oneschema/react",
+  "@oneschema/vue",
+  "@oneschema/angular",
+]
+
 module.exports = function transform(fileInfo, api) {
   const j = api.jscodeshift
   const root = j(fileInfo.source)
@@ -50,36 +57,204 @@ module.exports = function transform(fileInfo, api) {
     node.comments = [...comments, j.commentLine(` ${TODO}${message}`, true, false)]
   }
 
+  // Only names the file imports from an @oneschema package can be recognized as
+  // the importer; every other `.launch()` or `parentId` in the codebase belongs
+  // to the host and must not be rewritten.
+  const oneschemaLocals = new Set()
+
+  root.find(j.ImportDeclaration).forEach((path) => {
+    if (!IMPORTER_MODULES.includes(path.node.source.value)) {
+      return
+    }
+
+    path.node.specifiers.forEach((specifier) => {
+      if (specifier.local) {
+        oneschemaLocals.add(specifier.local.name)
+      }
+    })
+  })
+
+  root.find(j.VariableDeclarator).forEach((path) => {
+    const { id, init } = path.node
+    if (
+      id.type !== "Identifier" ||
+      !init ||
+      init.type !== "CallExpression" ||
+      init.callee.type !== "Identifier" ||
+      init.callee.name !== "require" ||
+      init.arguments.length !== 1
+    ) {
+      return
+    }
+
+    const [source] = init.arguments
+    if (source.type === "StringLiteral" && IMPORTER_MODULES.includes(source.value)) {
+      oneschemaLocals.add(id.name)
+    }
+  })
+
+  // Instances: `const importer = oneschemaImporter(...)`, `new OneSchemaImporterClass(...)`,
+  // and refs whose declaration names a OneSchema type (`useRef<OneSchemaImporterRef>`).
+  const importerLocals = new Set()
+  const refLocals = new Set()
+
+  root.find(j.VariableDeclarator).forEach((path) => {
+    const { id, init } = path.node
+    if (id.type !== "Identifier" || !init) {
+      return
+    }
+
+    const callee =
+      init.type === "CallExpression" || init.type === "NewExpression"
+        ? init.callee
+        : undefined
+
+    if (callee && callee.type === "Identifier" && oneschemaLocals.has(callee.name)) {
+      importerLocals.add(id.name)
+      return
+    }
+
+    if (
+      init.type === "CallExpression" &&
+      init.callee.type === "Identifier" &&
+      init.callee.name === "useRef" &&
+      j(path).toSource().includes("OneSchema")
+    ) {
+      refLocals.add(id.name)
+    }
+  })
+
+  const isImporterReceiver = (node) => {
+    if (node.type === "Identifier") {
+      return importerLocals.has(node.name) || oneschemaLocals.has(node.name)
+    }
+
+    // `importerRef.current.launch()`; any other property receiver only counts
+    // when a local of that name is itself a known importer.
+    if (node.type === "MemberExpression" && node.property.type === "Identifier") {
+      if (node.property.name === "current" && node.object.type === "Identifier") {
+        return refLocals.has(node.object.name) || importerLocals.has(node.object.name)
+      }
+
+      return importerLocals.has(node.property.name)
+    }
+
+    return false
+  }
+
   const isLaunchCall = (node) =>
     node.type === "CallExpression" &&
     node.callee.type === "MemberExpression" &&
     node.callee.property.type === "Identifier" &&
-    LAUNCH_METHODS.includes(node.callee.property.name)
+    LAUNCH_METHODS.includes(node.callee.property.name) &&
+    isImporterReceiver(node.callee.object)
 
-  // parentId: "x" -> parent: document.getElementById("x")
-  root.find(j.ObjectProperty, { key: { name: "parentId" } }).forEach((path) => {
-    path.node.key = j.identifier("parent")
-    path.node.value = j.callExpression(
+  const isUnrecognizedLaunchCall = (node) =>
+    node.type === "CallExpression" &&
+    node.callee.type === "MemberExpression" &&
+    node.callee.property.type === "Identifier" &&
+    LAUNCH_METHODS.includes(node.callee.property.name) &&
+    !isImporterReceiver(node.callee.object)
+
+  const parentIdReplacement = (value) =>
+    j.callExpression(
       j.memberExpression(j.identifier("document"), j.identifier("getElementById")),
-      [path.node.value],
+      [value],
     )
+
+  // parentId: "x" -> parent: document.getElementById("x"), inside the options
+  // object of a recognized importer factory only.
+  root.find(j.ObjectProperty, { key: { name: "parentId" } }).forEach((path) => {
+    const call = j(path).closest(j.CallExpression)
+    const callee = call.size() ? call.paths()[0].node.callee : undefined
+    const inImporterOptions =
+      callee &&
+      ((callee.type === "Identifier" && oneschemaLocals.has(callee.name)) ||
+        (callee.type === "MemberExpression" &&
+          callee.property.type === "Identifier" &&
+          LAUNCH_METHODS.includes(callee.property.name) &&
+          isImporterReceiver(callee.object)))
+
+    if (!inImporterOptions) {
+      annotate(
+        path,
+        "parentId is gone: if this is a OneSchema option, pass parent: HTMLElement instead",
+      )
+      note(
+        "parentId left for a human: not a recognized importer options object",
+        path.node,
+      )
+      return
+    }
+
+    path.node.key = j.identifier("parent")
+    path.node.value = parentIdReplacement(path.node.value)
     note("parentId rewritten to parent", path.node)
   })
 
-  // parentId="x" -> parent={document.getElementById("x")}
+  // parentId="x" -> parent={document.getElementById("x")}, on an imported
+  // OneSchema component only.
   root.find(j.JSXAttribute, { name: { name: "parentId" } }).forEach((path) => {
+    const element = j(path).closest(j.JSXOpeningElement)
+    const name = element.size() ? element.paths()[0].node.name : undefined
+    const component =
+      name && name.type === "JSXIdentifier"
+        ? name.name
+        : name &&
+            name.type === "JSXMemberExpression" &&
+            name.property.type === "JSXIdentifier"
+          ? name.property.name
+          : undefined
+
+    if (!component || !oneschemaLocals.has(component)) {
+      annotate(
+        path,
+        "parentId is gone: if this is a OneSchema component, pass parent={element} instead",
+      )
+      note(
+        "parentId prop left for a human: not a recognized importer component",
+        path.node,
+      )
+      return
+    }
+
     const value = path.node.value
     const inner =
       value && value.type === "JSXExpressionContainer" ? value.expression : value
     path.node.name = j.jsxIdentifier("parent")
-    path.node.value = j.jsxExpressionContainer(
-      j.callExpression(
-        j.memberExpression(j.identifier("document"), j.identifier("getElementById")),
-        [inner],
-      ),
-    )
+    path.node.value = j.jsxExpressionContainer(parentIdReplacement(inner))
     note("parentId prop rewritten to parent", path.node)
   })
+
+  // Only the exact `{ success }` shorthand can be replaced by a boolean of the
+  // same name; an alias or a second binding would lose its declaration.
+  const isPlainSuccessPattern = (pattern) => {
+    if (pattern.properties.length !== 1) {
+      return false
+    }
+
+    const [property] = pattern.properties
+    return (
+      property.type === "ObjectProperty" &&
+      !property.computed &&
+      property.key.type === "Identifier" &&
+      property.key.name === "success" &&
+      property.value.type === "Identifier" &&
+      property.value.name === "success"
+    )
+  }
+
+  const isSuccessDestructuring = (declarator) =>
+    declarator.type === "VariableDeclarator" &&
+    declarator.id.type === "ObjectPattern" &&
+    declarator.id.properties.some(
+      (property) =>
+        property.type === "ObjectProperty" &&
+        property.key.type === "Identifier" &&
+        property.key.name === "success",
+    ) &&
+    declarator.init &&
+    isLaunchCall(declarator.init)
 
   // const { success } = importer.launch() -> await importer.launch() in a try
   root
@@ -90,12 +265,7 @@ module.exports = function transform(fileInfo, api) {
         path.node.declarations.length === 1 &&
         declarator.type === "VariableDeclarator" &&
         declarator.id.type === "ObjectPattern" &&
-        declarator.id.properties.some(
-          (property) =>
-            property.type === "ObjectProperty" &&
-            property.key.type === "Identifier" &&
-            property.key.name === "success",
-        ) &&
+        isPlainSuccessPattern(declarator.id) &&
         declarator.init &&
         isLaunchCall(declarator.init)
       )
@@ -150,6 +320,26 @@ module.exports = function transform(fileInfo, api) {
       note("launch() destructuring rewritten to await/try", path.node)
     })
 
+  // Anything else destructured off a launch call keeps its bindings and gets a note.
+  root
+    .find(j.VariableDeclaration)
+    .filter(
+      (path) =>
+        path.node.declarations.length === 1 &&
+        isSuccessDestructuring(path.node.declarations[0]) &&
+        !isPlainSuccessPattern(path.node.declarations[0].id),
+    )
+    .forEach((path) => {
+      annotate(
+        path,
+        "launch() now returns a promise: await it and read OneSchemaLaunchInfo, or catch OneSchemaLaunchFailure",
+      )
+      note(
+        "launch() destructuring left for a human: it binds more than success",
+        path.node,
+      )
+    })
+
   // importer.launch() as a discarded statement -> .catch()
   root
     .find(j.ExpressionStatement)
@@ -181,6 +371,18 @@ module.exports = function transform(fileInfo, api) {
         ],
       )
       note("launch() given a reporting .catch()", path.node)
+    })
+
+  // A launch call this transform cannot attribute to an importer: never rewritten.
+  root
+    .find(j.CallExpression)
+    .filter((path) => isUnrecognizedLaunchCall(path.node))
+    .forEach((path) => {
+      annotate(
+        path,
+        "if this is a OneSchema importer, launch() now returns a promise: await it or attach a .catch()",
+      )
+      note("launch() call left for a human: receiver is not a known importer", path.node)
     })
 
   // Removed internals and untagged success payloads: flag only.

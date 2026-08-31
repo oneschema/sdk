@@ -10,6 +10,7 @@ import oneschemaImporter, {
   OneSchemaLaunchParamOptions,
   OneSchemaLaunchParams,
   OneSchemaLaunchSessionParams,
+} from "@oneschema/importer"
 import React, {
   useCallback,
   useEffect,

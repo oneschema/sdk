@@ -96,6 +96,10 @@ A handler returning a promise now holds the resume token and `autoClose` until i
 
 ```javascript
 importer.on("success", async (result) => {
+  if (result.type === "webhook") {
+    return
+  }
+
   await fetch("/import", { method: "POST", body: JSON.stringify(result.data) })
   // the importer closes after this resolves
 })
@@ -185,7 +189,9 @@ import { useOneSchemaImporter } from "@oneschema/vue"
 const importer = useOneSchemaImporter()
 
 importer.on("success", async (result) => {
-  await saveRows(result.data)
+  if (result.type !== "webhook") {
+    await saveRows(result.data)
+  }
 })
 
 const launch = () => importer.launch().catch(console.error)
@@ -208,16 +214,19 @@ launch() {
 
 ## Codemod
 
-An unpublished [jscodeshift](https://github.com/facebook/jscodeshift) transform handles the mechanical part. Run it straight from its raw URL — there is no package to install:
+An unpublished [jscodeshift](https://github.com/facebook/jscodeshift) transform handles the mechanical part. There is no package to install: check the repository out at the release tag and run the transform from disk, so you execute a reviewed revision rather than whatever `main` holds today (`jscodeshift` loads the transform into your Node process, so read it before you run it).
 
 ```bash
+git clone --depth 1 --branch @oneschema/importer@0.8.0 \
+  https://github.com/oneschema/sdk.git /tmp/oneschema-sdk
+
 npx jscodeshift@0.15.2 \
-  -t https://raw.githubusercontent.com/oneschema/sdk/main/scripts/codemod-0.8.cjs \
+  -t /tmp/oneschema-sdk/scripts/codemod-0.8.cjs \
   --parser=tsx \
   src/
 ```
 
-It rewrites `parentId` to `parent: document.getElementById(…)` (as an option and as a React prop), unwraps `const { success } = importer.launch(…)` into an `await` inside a `try`/`catch` where the enclosing function is already `async`, awaits a discarded `launch()` in an `async` function, and gives a discarded one in a synchronous function a `.catch()` that logs the failure for you to replace. Everything it cannot decide safely — a `success` payload read without a `type` check, a destructured `launch()` in a non-`async` function, a `_`-prefixed member — is left in place with a `TODO(oneschema-0.8)` comment. Every rewrite and every `TODO` is listed in the run's summary, so a plain-JavaScript codebase still gets the list of call sites to walk. Add `--dry --print` to preview without writing.
+It only touches what it can attribute to the importer: `parentId` inside the options object of a factory imported from an `@oneschema` package, `parentId` on a component imported from one, and `launch()`/`launchSession()` on a local bound to one. Anything else keeps its `parentId` or its `launch()` and gets a `TODO`. It rewrites `parentId` to `parent: document.getElementById(…)` (as an option and as a React prop), unwraps the exact `const { success } = importer.launch(…)` into an `await` inside a `try`/`catch` where the enclosing function is already `async`, awaits a discarded `launch()` in an `async` function, and gives a discarded one in a synchronous function a `.catch()` that logs the failure for you to replace. Everything it cannot decide safely — a `success` payload read without a `type` check, a destructured `launch()` in a non-`async` function or one binding more than `success`, a launch call whose receiver it cannot attribute, a `_`-prefixed member — is left in place with a `TODO(oneschema-0.8)` comment. Every rewrite and every `TODO` is listed in the run's summary, so a plain-JavaScript codebase still gets the list of call sites to walk. Add `--dry --print` to preview without writing.
 
 TypeScript flags the rest once the old types are gone, so a typed codebase does not need the codemod to find its call sites — only to save the typing.
 
