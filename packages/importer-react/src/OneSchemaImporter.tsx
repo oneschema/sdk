@@ -1,4 +1,5 @@
 import oneschemaImporter, {
+  DEFAULT_PARAMS,
   OneSchemaError,
   OneSchemaErrorSeverity,
   OneSchemaImporterClass,
@@ -94,6 +95,21 @@ export interface OneSchemaImporterBaseProps {
   baseUrl?: string
 
   /**
+   * How long a launch may stay pending before it fails with
+   * `OneSchemaLaunchError.Timeout`, in milliseconds. Raise it for hosts on slow
+   * or distant connections. Defaults to 20000
+   */
+  initTimeoutMs?: number
+
+  /**
+   * How long the importer waits for `onSuccess` and `onCancel` to settle before
+   * it clears the resume token and closes, in milliseconds. Raise it for
+   * handlers that ship rows to a slow or distant backend. `0` waits forever.
+   * Defaults to 30000
+   */
+  handlerTimeoutMs?: number
+
+  /**
    * CSS styles that should be applied to the iframe
    */
   style?: React.CSSProperties
@@ -157,6 +173,29 @@ type Handlers = Pick<
   | "onLaunched"
   | "onUserActivity"
 >
+
+/**
+ * Resolve like the importer does, so a controlled host closes on the same
+ * bound the importer cleans up on.
+ */
+function handlerBound(configured?: number): number {
+  return typeof configured === "number" && Number.isFinite(configured) && configured >= 0
+    ? configured
+    : DEFAULT_PARAMS.handlerTimeoutMs!
+}
+
+/**
+ * Settle once the handler settles or `handlerTimeoutMs` elapses, whichever
+ * comes first. The importer clears the session on that same deadline, so a
+ * handler that never settles must not hold the host's close back either
+ */
+function settledWithinBound(handled: Promise<unknown>, bound: number): Promise<unknown> {
+  if (bound === 0) {
+    return handled
+  }
+
+  return Promise.race([handled, new Promise((resolve) => setTimeout(resolve, bound))])
+}
 
 const ALREADY_LAUNCHED_MESSAGE =
   "The OneSchema importer has already launched. Updated launch params will not update the current import"
@@ -233,27 +272,30 @@ function OneSchemaImporter(
       return
     }
 
-    // A handler that rejects is reported as a non-fatal `error` event, so
-    // closing has to happen either way or a controlled importer stays open.
-    importer.on("success", async (data) => {
-      try {
-        await handlers.current.onSuccess?.(data)
-      } finally {
-        if (controlled) {
-          handlers.current.onRequestClose?.()
-        }
-      }
-    })
+    const bound = handlerBound(initParams.current.handlerTimeoutMs)
 
-    importer.on("cancel", async () => {
+    // A handler that rejects is reported as a non-fatal `error` event, and one
+    // that never settles only produces that same event once the importer's own
+    // deadline passes, so closing has to happen either way or a controlled
+    // importer stays open over a session the importer has already cleaned up.
+    const endSession = async (handled: unknown) => {
+      const settled = Promise.resolve(handled)
+      // The importer reports the failure; this only keeps a rejection arriving
+      // after the bound from surfacing as an unhandled one.
+      settled.catch(() => undefined)
+
       try {
-        await handlers.current.onCancel?.()
+        await settledWithinBound(settled, bound)
       } finally {
         if (controlled) {
           handlers.current.onRequestClose?.()
         }
       }
-    })
+    }
+
+    importer.on("success", (data) => endSession(handlers.current.onSuccess?.(data)))
+
+    importer.on("cancel", () => endSession(handlers.current.onCancel?.()))
 
     importer.on("error", (error) => {
       handlers.current.onError?.(error)
