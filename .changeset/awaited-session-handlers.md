@@ -8,6 +8,6 @@ A handler returning a promise now holds the resume token clear and `autoClose` u
 
 `handlerTimeoutMs` (default `30000`) bounds the wait. A handler that has not settled by the deadline gets an `error` event, the session is cleaned up without it, and the handler's eventual failure is still reported when it arrives. Raise it for handlers on slow or distant connections. `0` waits forever, which is supported but reintroduces the stranded-embed failure mode the bound exists for: with no bound, a handler that never settles does keep the importer open with its resume token.
 
-Each handler is timed and reported on its own, so one handler's failure neither hides another's nor cuts short another's timeout.
+Each handler is timed and reported on its own, so one handler's failure neither hides another's nor cuts short another's timeout. The cleanup belongs to the session that ended: a handler that calls `launch()` itself hands the instance to the new session, and the previous session's cleanup no longer clears that session's resume token or closes it.
 
 Two consequences are observable for hosts that do not change any code: `autoClose` now runs after the `success`/`cancel` handler rather than before it, so a slow handler delays closing the importer, and an exception that used to reach the host's own error boundary is delivered to the `error` event instead.

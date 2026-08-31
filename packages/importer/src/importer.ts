@@ -637,11 +637,22 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     // sets its own session id.
     this.#sessionEmbedInitId = undefined
 
+    // The cleanup belongs to the session that ended, so it is captured before
+    // the handler runs: a `launch()` the handler makes takes over the instance,
+    // and this finalizer must not clear its resume token or close it.
+    const generation = this.#launchGeneration
+    const resumeTokenKey = this.#resumeTokenKey
+
     try {
       await this.#dispatch(event, ...args)
     } finally {
-      this.#clearResumeToken()
-      if (this.#params.autoClose) {
+      const replaced = generation !== this.#launchGeneration
+
+      if (!replaced || resumeTokenKey !== this.#resumeTokenKey) {
+        this.#clearResumeToken(resumeTokenKey)
+      }
+
+      if (this.#params.autoClose && !replaced) {
         this.close()
       }
     }
@@ -746,13 +757,13 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     })
   }
 
-  #clearResumeToken() {
-    if (!this.#resumeTokenKey) {
+  #clearResumeToken(key = this.#resumeTokenKey) {
+    if (!key) {
       return
     }
 
     try {
-      window.localStorage.removeItem(this.#resumeTokenKey)
+      window.localStorage.removeItem(key)
     } catch {
       /* local storage is not available, don't sweat it */
     }

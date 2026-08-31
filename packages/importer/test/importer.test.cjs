@@ -755,6 +755,27 @@ test("reports every failing handler and times them apart", async () => {
   importer.destroy()
 })
 
+test("leaves a replacement session alone when the previous handler settles", async () => {
+  let release
+  const { iframe, importer, reply, storage } = await launchWithHandler()
+  importer.on("success", () => new Promise((resolve) => (release = resolve)))
+
+  reply({ messageType: "complete", data: { rows: [] } })
+  await drain()
+
+  const relaunched = launch(importer)
+  reply({ messageType: "launched", sessionToken: "replacement-token" })
+  await relaunched
+
+  release()
+  await drain()
+
+  assert.equal(storage.get(RESUME_TOKEN_KEY), "replacement-token")
+  assert.equal(iframe.style.display, "initial")
+
+  importer.destroy()
+})
+
 test("runs a handler with the context it was registered with", async () => {
   const contexts = []
   const host = { name: "host" }
