@@ -199,13 +199,17 @@ Each event below is exposed as the matching `on*` prop.
 | Event           | Listener arguments      | Description                                                                                                                                                                                                                                                                                                                     |
 | --------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `page-loaded`   | `Record<string, never>` | The embedded importer page finished loading behind the scenes                                                                                                                                                                                                                                                                   |
-| `launched`      | `OneSchemaLaunchStatus` | The import session was launched, or launching it failed                                                                                                                                                                                                                                                                         |
+| `launched`      | `OneSchemaLaunchEvent`  | The import session was launched, or launching it failed                                                                                                                                                                                                                                                                         |
 | `success`       | `OneSchemaImportResult` | The user finished importing. For `local` imports the data is the payload, for `webhook` imports it summarizes the delivery. Awaited: a handler returning a promise holds the resume token and `autoClose` until it settles, bounded by `handlerTimeoutMs`, and a handler that throws or rejects is reported as an `error` event |
 | `cancel`        | none                    | The user cancelled the import. Awaited on the same terms as `success`                                                                                                                                                                                                                                                           |
 | `error`         | `OneSchemaError`        | Something went wrong. `severity` is `fatal` when the session cannot continue                                                                                                                                                                                                                                                    |
 | `user-activity` | none                    | The user interacted with the importer. Throttled to once every 30 seconds, and useful for resetting idle timers in the host application                                                                                                                                                                                         |
 
 <!-- END GENERATED importer-events -->
+
+## Migrating from 0.7
+
+[MIGRATING-0.8.md](https://github.com/oneschema/sdk/blob/main/MIGRATING-0.8.md) walks through the 0.7.7 → 0.8 hop for this package and the core importer it wraps, with a codemod for the mechanical parts.
 
 ## Documentation
 

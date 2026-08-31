@@ -5,12 +5,11 @@ import oneschemaImporter, {
   OneSchemaImporterClass,
   OneSchemaImporterStatus,
   OneSchemaImportResult,
+  OneSchemaLaunchEvent,
   OneSchemaLaunchInfo,
   OneSchemaLaunchParamOptions,
   OneSchemaLaunchParams,
   OneSchemaLaunchSessionParams,
-  OneSchemaLaunchStatus,
-} from "@oneschema/importer"
 import React, {
   useCallback,
   useEffect,
@@ -147,7 +146,7 @@ export interface OneSchemaImporterBaseProps {
    * Handler for when the importer is launched (aka is ready to be shown)
    * Or when launching fails, based on result
    */
-  onLaunched?: (result: OneSchemaLaunchStatus) => void
+  onLaunched?: (result: OneSchemaLaunchEvent) => void
 
   /**
    * Handler for when user activity is detected inside the importer iframe.

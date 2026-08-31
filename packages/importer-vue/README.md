@@ -97,6 +97,10 @@ importer.on("error", (error) => {
 </style>
 ```
 
+## Migrating from 0.7
+
+[MIGRATING-0.8.md](https://github.com/oneschema/sdk/blob/main/MIGRATING-0.8.md) walks through the 0.7.7 → 0.8 hop for this package and the core importer it wraps, with a codemod for the mechanical parts.
+
 ## Documentation
 
 Please see [📚 OneSchema's documentation](https://docs.oneschema.co/) for [📒 API reference](https://docs.oneschema.co/docs/vue#api-reference) and other helpful guides.
