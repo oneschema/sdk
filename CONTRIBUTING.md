@@ -84,6 +84,20 @@ pull request and add a changeset for each wrapper.
 ## Pull requests
 
 - Use Conventional Commits for commit messages and PR titles.
+- Open every PR as a draft, and keep it in draft until CI is green and
+  CodeRabbit has completed with no actionable comments; mark it ready for review
+  only then. A CodeRabbit review that never ran, or that it skipped (for example
+  for exceeding its per-PR file limit), is not a green review: request one with
+  a `@coderabbitai review` comment, or split the PR until it is reviewable.
+- When asked to stack PRs, use GitHub's stacked pull requests so the series is
+  reviewed and merged as an ordered stack: base the bottom PR on `main` and
+  each later PR on its predecessor's branch — a chain of PRs that all target
+  `main` is not a stack.
+  GitHub owns the bases from then on: never retarget a stacked PR's base, do not
+  rebase or merge the stack's branches by hand, merge the stack bottom-up in one
+  pass, and never delete a base branch while a dependent PR is still open. See
+  `oneschema/company` `AGENTS.md` → Pull Request Conventions for the
+  company-wide policy.
 - Add a changeset (`yarn changeset`) when changing a published package;
   see the Releasing section of `README.md`.
 - Manual testing of the importer/filefeeds embeds is documented in
