@@ -26,11 +26,11 @@ sequenceDiagram
     loop every LAUNCH_RETRY_DELAY_MS until acknowledged
         SDK->>Embed: init (same embedInitId)
     end
-    Embed-->>SDK: init-received
+    Embed-->>SDK: init-received (echoing embedInitId)
     SDK->>SDK: stop retrying
 
     Embed->>Embed: validate the JWT, create or resume the session
-    Embed-->>SDK: launched (sessionToken, embedId)
+    Embed-->>SDK: launched (embedInitId, sessionToken, embedId)
     SDK->>SDK: status "launched", clear the deadline, persist the resume token
     SDK-->>Host: "launched" event { success: true, embedInitId, sessionToken, embedId }
     SDK->>Embed: show the iframe

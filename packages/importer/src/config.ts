@@ -550,7 +550,7 @@ export interface OneSchemaLaunchStatus {
    * An id shared with the `launch()` resolution or rejection for the same
    * attempt, so a support report can name one launch
    */
-  embedInitId?: string
+  embedInitId: string
 }
 
 /**

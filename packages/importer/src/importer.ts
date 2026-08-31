@@ -395,7 +395,8 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
 
   #timeoutLaunch() {
     this.#launchDeadline = undefined
-    if (this.#hasLaunched || this.#destroyed) {
+    const pending = this.#pendingLaunch
+    if (!pending || this.#hasLaunched || this.#destroyed) {
       return
     }
 
@@ -403,15 +404,12 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       ? "OneSchema failed to respond for initialization"
       : `OneSchema iframe was blocked: no message was ever received from ${this.iframe?.src}, so the OneSchema embed page never ran. The browser most likely blocked the iframe — check this page's console for a Content-Security-Policy "frame-ancestors" violation, and verify that this page's origin (${window.location.origin}) is on the allowed domains list for OneSchema client ID ${this.#params.clientId}.`
     console.error(msg)
-    const embedInitId = this.#settlePendingLaunchFailure(
-      OneSchemaLaunchError.Timeout,
-      msg,
-    )
+    this.#settlePendingLaunchFailure(OneSchemaLaunchError.Timeout, msg)
     this.emit("launched", {
       success: false,
       error: OneSchemaLaunchError.Timeout,
       message: msg,
-      embedInitId,
+      embedInitId: pending.embedInitId,
     })
     this.#failLaunch()
     if (this.#params.devMode) {
@@ -426,27 +424,23 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     this.#settlePendingLaunchFailure(OneSchemaLaunchError.Cancelled, CANCELLED_MESSAGE)
   }
 
-  /**
-   * Fail the launch in flight, if there is one. Returns the embed init id of
-   * the attempt so the `launched` event can carry it too.
-   */
+  /** Fail the launch in flight, if there is one. */
   #settlePendingLaunchFailure(
     error: OneSchemaLaunchError,
     message: string,
     detail: { status?: number; data?: unknown; cause?: unknown } = {},
-  ): string | undefined {
+  ) {
     this.#clearLaunchDeadline()
 
     const pending = this.#pendingLaunch
     if (!pending) {
-      return undefined
+      return
     }
 
     this.#pendingLaunch = undefined
     pending.reject(
       new OneSchemaLaunchFailure(error, message, pending.embedInitId, detail),
     )
-    return pending.embedInitId
   }
 
   /**
@@ -731,12 +725,13 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       }
 
       case "launch-error": {
-        if (this.#isStaleLaunchReply(data.embedInitId)) {
+        const pending = this.#pendingLaunch
+        if (!pending || this.#isStaleLaunchReply(data.embedInitId)) {
           return
         }
 
         const detail = parseLaunchErrorDetail(data.message)
-        const embedInitId = this.#settlePendingLaunchFailure(
+        this.#settlePendingLaunchFailure(
           OneSchemaLaunchError.LaunchError,
           detail.message || DEFAULT_LAUNCH_ERROR_MESSAGE,
           { ...detail, cause: data.message },
@@ -744,7 +739,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
         this.emit("launched", {
           success: false,
           error: OneSchemaLaunchError.LaunchError,
-          embedInitId,
+          embedInitId: pending.embedInitId,
           ...detail,
         })
         this.#failLaunch()
