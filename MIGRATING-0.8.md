@@ -19,7 +19,7 @@ Run the codemod first — it does the mechanical renames — then work through t
 | `parentId: "container"`                           | `parent: document.getElementById("container") ?? undefined`                      |
 | `document.getElementById("_oneschema-iframe")`    | `importer.iframe`                                                                |
 | `importer._hasAttemptedLaunch`                    | `importer.status`                                                                |
-| `devMode` defaulted from `process.env.NODE_ENV`   | `devMode` defaults to `false`; pass it explicitly                                |
+| `devMode` defaulted from `process.env.NODE_ENV`   | `devMode` unset unless you pass it, and OneSchema applies the default            |
 | React `isOpen` required                           | `isOpen` optional; omit it and launch through the component's `ref`              |
 
 ## Core importer
@@ -130,9 +130,9 @@ Instances no longer share a single `_oneschema-iframe` element. Anything that lo
 
 `_hasAttemptedLaunch`, `_launch`, `_initWithRetry` and `_resetSession` are no longer part of the published surface. `importer.status` — `"idle"`, `"launching"`, `"launched"` or `"destroyed"` — is the supported way to ask where an instance is in its lifecycle.
 
-### `devMode` defaults to `false`
+### `devMode` has no SDK-side default
 
-It used to default to `!!(process.env.NODE_ENV !== "production")`, evaluated in your bundle at import time, which both guessed at your intent and threw `ReferenceError: process is not defined` when the ESM build was loaded without a `process` shim (CDN, import maps, Deno, workers). Pass it explicitly, wired to your own build condition, if you want the iframe shown when a launch fails:
+It used to default to `!!(process.env.NODE_ENV !== "production")`, evaluated in your bundle at import time, which both guessed at your intent and threw `ReferenceError: process is not defined` when the ESM build was loaded without a `process` shim (CDN, import maps, Deno, workers). The SDK no longer guesses: leave `devMode` unset and it sends no `dev_mode` at all, so OneSchema applies the default. Pass it explicitly, wired to your own build condition, if you want the iframe shown when a launch fails:
 
 ```javascript
 oneschemaImporter({ clientId, devMode: import.meta.env.DEV })

@@ -568,8 +568,10 @@ export interface OneSchemaInitParams {
   clientId: string
   /**
    * Whether to launch the importer in dev mode, which shows the iframe even
-   * when launching fails. Defaults to `false`; wire it to your own build
-   * condition to enable it during development
+   * when launching fails and renders diagnostics in the embed instead of
+   * end-user error copy. When left unset the SDK sends nothing and OneSchema
+   * applies its own default; wire it to your own build condition to enable it
+   * during development
    */
   devMode?: boolean
   /**
@@ -692,7 +694,6 @@ export type OneSchemaInitMessage =
  */
 export const DEFAULT_PARAMS: Partial<OneSchemaParams> = {
   baseUrl: "https://embed.oneschema.co",
-  devMode: false,
   className: "oneschema-iframe",
   initTimeoutMs: 20000,
   handlerTimeoutMs: 30000,
