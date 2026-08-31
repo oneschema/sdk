@@ -54,8 +54,10 @@ function createImporter(params) {
 
   importer.setIframe(iframe)
 
-  const post = (data) =>
-    listeners.forEach((listener) => listener({ source: iframe.contentWindow, data }))
+  const post = (data, origin = "https://embed.test") =>
+    listeners.forEach((listener) =>
+      listener({ source: iframe.contentWindow, origin, data }),
+    )
 
   // The embed echoes the embed init id of the init message it is replying to,
   // so a reply that stands for a real embed carries the id of the latest one.
@@ -354,6 +356,42 @@ test("ignores a reply that names no launch attempt at all", async () => {
   assert.equal(importer.status, "launching")
   assert.deepEqual(statuses, [])
   assert.deepEqual(results, [])
+
+  post({
+    messageType: "launched",
+    embedInitId: currentId,
+    sessionToken: "session-token",
+  })
+
+  assert.equal((await current).sessionToken, "session-token")
+
+  importer.destroy()
+})
+
+test("ignores a reply that did not come from the embed origin", async () => {
+  const { iframe, importer, post, messages } = createImporter({ autoClose: false })
+  const statuses = []
+  importer.on("launched", (status) => statuses.push(status))
+
+  const current = importer.launch()
+  current.catch(() => undefined)
+  iframe.onload()
+  const currentId = messages[messages.length - 1].payload.embedInitId
+  let settled = false
+  current.then(
+    () => (settled = true),
+    () => (settled = true),
+  )
+
+  post(
+    { messageType: "launched", embedInitId: currentId, sessionToken: "evil-token" },
+    "https://evil.test",
+  )
+  await Promise.resolve()
+
+  assert.equal(settled, false)
+  assert.equal(importer.status, "launching")
+  assert.deepEqual(statuses, [])
 
   post({
     messageType: "launched",

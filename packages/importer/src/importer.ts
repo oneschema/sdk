@@ -662,8 +662,22 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     }
   }
 
-  #iframeEventListener({ source, data }: MessageEvent) {
-    if (this.#destroyed || source !== this.iframe?.contentWindow) {
+  // Messages are only accepted from the origin this instance posts to, so a
+  // frame that navigated away from baseUrl cannot answer for the embed.
+  #isEmbedOrigin(origin: string): boolean {
+    try {
+      return origin === new URL(this.#params.baseUrl!).origin
+    } catch {
+      return false
+    }
+  }
+
+  #iframeEventListener({ source, origin, data }: MessageEvent) {
+    if (
+      this.#destroyed ||
+      source !== this.iframe?.contentWindow ||
+      !this.#isEmbedOrigin(origin)
+    ) {
       return
     }
     this.#hasReceivedFrameMessage = true

@@ -102,7 +102,7 @@ sequenceDiagram
     SDK->>SDK: ignored, A's session was replaced
 ```
 
-Every reply the embed sends echoes the `embedInitId` of the init message it answers, and a reply that names a different attempt — or names none at all — is dropped rather than attributed to the attempt in flight, since it may carry the session of a launch this one replaced.
+Every reply the embed sends echoes the `embedInitId` of the init message it answers, and a reply that names a different attempt — or names none at all — is dropped rather than attributed to the attempt in flight, since it may carry the session of a launch this one replaced. A reply is only read at all when it comes from this instance's iframe *and* from the `baseUrl` origin the init messages are posted to.
 
 ## Once the session is running
 
