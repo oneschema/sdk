@@ -133,9 +133,12 @@ Run the harness in a dedicated worktree, so cleanup is a directory removal and t
 ```bash
 cd "$(git rev-parse --show-toplevel)"
 git worktree add ../sdk-harness HEAD
+git diff HEAD | git -C ../sdk-harness apply   # only if the code under test is still uncommitted
 # run the harness from ../sdk-harness, then:
 git worktree remove --force ../sdk-harness
 ```
+
+The worktree checks out `HEAD`, so without that second command the harness validates committed code only — verify the behaviour under test is actually in the worktree (`git -C ../sdk-harness diff --stat`) before trusting a result.
 
 If the harness has to run in the working checkout anyway, snapshot **contents**, not just status codes — a file the harness edits on top of an existing modification, or an untracked file it overwrites, keeps its status letter and would pass a status-only comparison. Run this and every command below from the repo root, since the harness commands above leave the shell inside a package directory and pathspecs would then resolve against it:
 
@@ -150,7 +153,10 @@ tar czf /tmp/harness-baseline-untracked.tgz -T <(git ls-files --others --exclude
 
 ```bash
 diff /tmp/harness-baseline.patch <(git diff HEAD)
+tar dzf /tmp/harness-baseline-untracked.tgz   # from the repo root: contents of every archived untracked path; a "Mod time differs" line alone is benign
 diff /tmp/harness-baseline.txt <(git status --porcelain=v1 --untracked-files=all)
 ```
+
+The untracked archive has to be compared, not just captured: an untracked file the harness overwrote keeps its `??` status and never appears in `git diff`, so the status and patch checks alone would pass. `git diff HEAD` compares blob contents, so it also covers a modified tracked binary.
 
 A whole-directory `git checkout --` would throw away unrelated uncommitted work; never use one to finish a harness run.
