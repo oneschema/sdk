@@ -1,9 +1,10 @@
 /**
  * jscodeshift transform for the @oneschema/importer 0.7.7 -> 0.8 migration.
  *
- * Unpublished on purpose: run it from its raw URL, see MIGRATING-0.8.md.
+ * Unpublished on purpose: check the repository out at the release tag and run
+ * this file from disk, see MIGRATING-0.8.md.
  *
- *   npx jscodeshift@0.15.2 -t <url> --parser=tsx src/
+ *   npx jscodeshift@0.15.2 -t <path>/scripts/codemod-0.8.cjs --parser=tsx src/
  *
  * It only rewrites what it can decide from the syntax alone. Anything that
  * needs a human gets a TODO(oneschema-0.8) comment instead, so a codebase
