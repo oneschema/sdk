@@ -16,7 +16,7 @@ Run the codemod first — it does the mechanical renames — then work through t
 | `onSuccess: (data) => …`, `data` untyped          | `onSuccess: (result) => …`, narrow on `result.type` before reading `result.data` |
 | an `async` handler ran unawaited                  | `success` and `cancel` are awaited, bounded by `handlerTimeoutMs`                |
 | a blocked iframe reported a `fatal` `error` event | `launch()` rejects with `OneSchemaLaunchError.Timeout` after `initTimeoutMs`     |
-| `parentId: "container"`                           | `parent: document.getElementById("container")`                                   |
+| `parentId: "container"`                           | `parent: document.getElementById("container") ?? undefined`                      |
 | `document.getElementById("_oneschema-iframe")`    | `importer.iframe`                                                                |
 | `importer._hasAttemptedLaunch`                    | `importer.status`                                                                |
 | `devMode` defaulted from `process.env.NODE_ENV`   | `devMode` defaults to `false`; pass it explicitly                                |
@@ -116,7 +116,10 @@ Pass the element itself. `parentId` was resolved once, at construction, so it si
 oneschemaImporter({ clientId, parentId: "oneschema-container" })
 
 // 0.8
-oneschemaImporter({ clientId, parent: document.getElementById("oneschema-container") })
+oneschemaImporter({
+  clientId,
+  parent: document.getElementById("oneschema-container") ?? undefined,
+})
 ```
 
 ### Each instance owns its iframe
@@ -226,7 +229,7 @@ npx jscodeshift@0.15.2 \
   src/
 ```
 
-It only touches what it can attribute to the importer: `parentId` inside the options object of a factory imported from an `@oneschema` package, `parentId` on a component imported from one, and `launch()`/`launchSession()` on a local bound to one. Anything else keeps its `parentId` or its `launch()` and gets a `TODO`. It rewrites `parentId` to `parent: document.getElementById(…)` (as an option and as a React prop), unwraps the exact `const { success } = importer.launch(…)` into an `await` inside a `try`/`catch` where the enclosing function is already `async`, awaits a discarded `launch()` in an `async` function, and gives a discarded one in a synchronous function a `.catch()` that logs the failure for you to replace. Everything it cannot decide safely — a `success` payload read without a `type` check, a destructured `launch()` in a non-`async` function or one binding more than `success`, a launch call whose receiver it cannot attribute, a `_`-prefixed member — is left in place with a `TODO(oneschema-0.8)` comment. Every rewrite and every `TODO` is listed in the run's summary, so a plain-JavaScript codebase still gets the list of call sites to walk. Add `--dry --print` to preview without writing.
+It only touches what it can attribute to the importer: `parentId` inside the options object of a factory imported from an `@oneschema` package, `parentId` on a component imported from one, and `launch()`/`launchSession()` on a local bound to one. Anything else keeps its `parentId` or its `launch()` and gets a `TODO`. It rewrites `parentId` to `parent: document.getElementById(…) ?? undefined` (as an option and as a React prop, since `parent` is `HTMLElement | undefined` and `getElementById` can return `null`), unwraps the exact `const { success } = importer.launch(…)` into an `await` inside a `try`/`catch` where the enclosing function is already `async`, awaits a discarded `launch()` in an `async` function, and gives a discarded one in a synchronous function a `.catch()` that logs the failure for you to replace. Everything it cannot decide safely — a `success` payload read without a `type` check, a destructured `launch()` in a non-`async` function or one binding more than `success`, a launch call whose receiver it cannot attribute, a `_`-prefixed member — is left in place with a `TODO(oneschema-0.8)` comment. Every rewrite and every `TODO` is listed in the run's summary, so a plain-JavaScript codebase still gets the list of call sites to walk. Add `--dry --print` to preview without writing.
 
 TypeScript flags the rest once the old types are gone, so a typed codebase does not need the codemod to find its call sites — only to save the typing.
 

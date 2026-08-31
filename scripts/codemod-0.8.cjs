@@ -157,10 +157,16 @@ module.exports = function transform(fileInfo, api) {
     LAUNCH_METHODS.includes(node.callee.property.name) &&
     !isImporterReceiver(node.callee.object)
 
+  // getElementById() widens to HTMLElement | null, which parent?: HTMLElement
+  // does not accept.
   const parentIdReplacement = (value) =>
-    j.callExpression(
-      j.memberExpression(j.identifier("document"), j.identifier("getElementById")),
-      [value],
+    j.logicalExpression(
+      "??",
+      j.callExpression(
+        j.memberExpression(j.identifier("document"), j.identifier("getElementById")),
+        [value],
+      ),
+      j.identifier("undefined"),
     )
 
   // parentId: "x" -> parent: document.getElementById("x"), inside the options
@@ -222,6 +228,13 @@ module.exports = function transform(fileInfo, api) {
     const value = path.node.value
     const inner =
       value && value.type === "JSXExpressionContainer" ? value.expression : value
+
+    if (!inner || inner.type === "JSXEmptyExpression") {
+      annotate(path, "parentId is gone: pass parent={element} instead")
+      note("parentId prop left for a human: it carries no value", path.node)
+      return
+    }
+
     path.node.name = j.jsxIdentifier("parent")
     path.node.value = j.jsxExpressionContainer(parentIdReplacement(inner))
     note("parentId prop rewritten to parent", path.node)
@@ -408,7 +421,12 @@ module.exports = function transform(fileInfo, api) {
     })
     .filter((path) => {
       const [event] = path.node.arguments
-      return event && event.type === "StringLiteral" && event.value === "success"
+      return (
+        event &&
+        event.type === "StringLiteral" &&
+        event.value === "success" &&
+        isImporterReceiver(path.node.callee.object)
+      )
     })
     .forEach((path) => {
       annotate(
