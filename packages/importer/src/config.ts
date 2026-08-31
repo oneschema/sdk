@@ -483,6 +483,36 @@ export enum OneSchemaLaunchError {
   MissingSessionToken,
   LaunchError,
   Destroyed,
+  /**
+   * The import session did not start within `initTimeoutMs`, usually because
+   * the browser blocked the iframe or the embed never acknowledged the init
+   * message
+   */
+  Timeout,
+  /**
+   * The launch was abandoned by `close()`, `destroy()` or a newer `launch()`
+   * before the import session started
+   */
+  Cancelled,
+}
+
+/**
+ * The running import session `launch()` resolves with
+ */
+export interface OneSchemaLaunchInfo {
+  /**
+   * An id shared with the `launched` event for the same attempt, so a support
+   * report can name one launch
+   */
+  embedInitId: string
+  /**
+   * The session token for the running import, when there is one
+   */
+  sessionToken?: string
+  /**
+   * The embed id for the running import, when the embed reported one
+   */
+  embedId?: string
 }
 
 export interface OneSchemaLaunchStatus {
@@ -516,6 +546,11 @@ export interface OneSchemaLaunchStatus {
    * one was included
    */
   data?: unknown
+  /**
+   * An id shared with the `launch()` resolution or rejection for the same
+   * attempt, so a support report can name one launch
+   */
+  embedInitId: string
 }
 
 /**
@@ -572,6 +607,15 @@ export interface OneSchemaInitParams {
    * By default uses OneSchema's production instance
    */
   baseUrl?: string
+  /**
+   * How long a launch may stay pending before `launch()` rejects with
+   * `OneSchemaLaunchError.Timeout`, in milliseconds. The deadline covers the
+   * whole launch, not only the init acknowledgement. Raise it for hosts on
+   * slow or distant connections. The deadline cannot be turned off: `0`, a
+   * negative number and a non-finite number all fall back to the default,
+   * because a launch that never settles cannot be reported. Defaults to 20000
+   */
+  initTimeoutMs?: number
 }
 
 /**
@@ -590,6 +634,12 @@ export type OneSchemaParams = OneSchemaInitParams & Partial<OneSchemaLaunchParam
  */
 export interface OneSchemaSharedInitParams {
   manualClose: boolean
+  /**
+   * Identifies the launch attempt this message belongs to. The embed echoes it
+   * on `launched` and `launch-error` so a reply from an abandoned attempt can
+   * be told apart from the one in flight
+   */
+  embedInitId: string
 
   // debug info
   version: string
@@ -632,6 +682,7 @@ export const DEFAULT_PARAMS: Partial<OneSchemaParams> = {
   baseUrl: "https://embed.oneschema.co",
   devMode: !!(process.env.NODE_ENV !== "production"),
   className: "oneschema-iframe",
+  initTimeoutMs: 20000,
   autoClose: true,
   manageDOM: true,
   saveSession: true,
@@ -653,10 +704,41 @@ export interface OneSchemaError {
 export type OneSchemaImporterStatus = "idle" | "launching" | "launched" | "destroyed"
 
 /**
- * The result of an import, either passed through to the frontend or
- * summarizing the webhook delivery
+ * An import the host receives the rows for directly
  */
-export type OneSchemaImportResult = Record<string, any>
+export interface OneSchemaLocalImportResult {
+  type: "local"
+  data: Record<string, unknown>
+}
+
+/**
+ * An import OneSchema delivered to the configured webhook
+ */
+export interface OneSchemaWebhookImportResult {
+  type: "webhook"
+  eventId?: string
+  responses?: unknown[]
+}
+
+/**
+ * An import OneSchema wrote to the file the host provided, described by the
+ * metadata the embed reports back
+ */
+export interface OneSchemaFileUploadImportResult {
+  type: "file-upload"
+  data: Record<string, unknown>
+}
+
+/**
+ * The result of an import, discriminated by how the data was delivered. Narrow
+ * on `type` before reading `data`, `eventId` or `responses`: only `local` and
+ * `file-upload` results carry rows, and only `webhook` results carry delivery
+ * metadata
+ */
+export type OneSchemaImportResult =
+  | OneSchemaLocalImportResult
+  | OneSchemaWebhookImportResult
+  | OneSchemaFileUploadImportResult
 
 /**
  * The events emitted by the OneSchema importer, mapped to their listener

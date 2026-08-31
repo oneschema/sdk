@@ -48,17 +48,33 @@ const importer = oneschemaImporter({
   className: "oneschema-importer",
 })
 
-importer.launch()
+// launch() resolves once the import session is running, and rejects with a
+// OneSchemaLaunchFailure as soon as the failure is knowable
+try {
+  const { embedInitId, sessionToken, embedId } = await importer.launch()
+} catch (failure) {
+  // failure is { error, message, embedInitId, status, data, cause }
+}
+
 // OR
 // pass overrides and values not specified at creation time:
-importer.launch({
-  templateKey: "YOUR_TEMPLATE_KEY",
-  userJwt: "YOUR_USER_JWT",
-  importConfig: { type: "local" },
-})
+try {
+  await importer.launch({
+    templateKey: "YOUR_TEMPLATE_KEY",
+    userJwt: "YOUR_USER_JWT",
+    importConfig: { type: "local" },
+  })
+} catch (failure) {
+  // handle the launch failure
+}
 
-importer.on("success", (data) => {
-  // handle success
+importer.on("success", (result) => {
+  // result.type is "local", "file-upload" or "webhook"
+  if (result.type === "webhook") {
+    // result.eventId, result.responses
+  } else {
+    // result.data
+  }
 })
 
 importer.on("cancel", () => {
@@ -86,7 +102,11 @@ const importer = oneschemaImporter({
 
 `importer.status` reports where an instance is in its lifecycle: `idle` before the first launch, after `close()` and after a launch fails, `launching` while the import session is starting, `launched` once the embed is running, and `destroyed` after `destroy()`.
 
-`launch()` is synchronous and only reports whether the parameters were accepted: `{ success: true }` means the session was queued, not that the embed has received it — an iframe that has not finished loading is initialized as soon as it does. A `launched` event with `success: true` is the signal that initialization actually succeeded; the same event fires with `success: false` when the parameters were rejected or the embed failed to start the session, so check `success` before treating the importer as ready. Until the embed acknowledges it, the importer re-sends its initialization message 40 times, 500 ms apart — so a browser-blocked or misconfigured iframe emits a `fatal` `error` after roughly 20 seconds.
+`launch()` returns a promise that resolves with `{ embedInitId, sessionToken, embedId }` only once the embed reports the import session is running. It rejects with a `OneSchemaLaunchFailure` as soon as the failure is knowable — invalid or missing parameters, a destroyed instance, a launch the embed rejected, a `close()`/`destroy()` or a newer `launch()` that abandoned it, and `initTimeoutMs` expiring before the session started. `failure.error` is a `OneSchemaLaunchError`, `failure.status` and `failure.data` are the HTTP status and error body when OneSchema's API rejected the launch, and `failure.cause` is the raw payload or exception the failure came from. A failure the host did not ask for also fires a `launched` event carrying the same `embedInitId`, so a support report can name one launch; a `Cancelled` rejection does not, since `close()`, `destroy()` and a newer `launch()` are the host's own doing.
+
+`embedInitId` identifies one launch attempt, not one iframe: a launch that replaces another reuses the iframe and gets a new id. The embed echoes it on every reply, and the importer drops a reply that names a different attempt or names none, so a replacement launch is never resolved with the session of the launch it replaced. Replies are also only accepted from the `baseUrl` origin, the one the importer posts to. See [LAUNCH-SEQUENCE.md](LAUNCH-SEQUENCE.md).
+
+`initTimeoutMs` (20 seconds by default) is the deadline for the whole launch, not only for the acknowledgement: the importer re-sends its initialization message every 500 ms until the embed acknowledges it, and the deadline keeps running after that until the session starts. So an iframe the browser blocked, and an embed that acknowledges the initialization but never reports a running session, both reject with `OneSchemaLaunchError.Timeout`. Raise `initTimeoutMs` for hosts on slow or distant connections; it cannot be turned off, since `0` or any other value that cannot be a deadline falls back to the default rather than leaving `launch()` pending forever.
 
 ## API reference
 
@@ -97,19 +117,20 @@ The tables below are generated from the TypeScript types by
 
 <!-- BEGIN GENERATED importer-init-options -->
 
-| Option         | Type                           | Required | Default                                     | Description                                                                                                                                                                                                       |
-| -------------- | ------------------------------ | -------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `clientId`     | `string`                       | yes      |                                             | The client id from your OneSchema developer dashboard                                                                                                                                                             |
-| `devMode`      | `boolean`                      |          | `!!(process.env.NODE_ENV !== "production")` | Whether to launch the importer in dev mode, which shows the iframe even when launching fails                                                                                                                      |
-| `className`    | `string`                       |          | `"oneschema-iframe"`                        | CSS class for the iframe                                                                                                                                                                                          |
-| `styles`       | `Partial<CSSStyleDeclaration>` |          |                                             | CSS Styles to be applied directly to the iframe                                                                                                                                                                   |
-| `languageCode` | `string`                       |          |                                             | Optional language code (like 'en' or 'zh') to force importer language By default, will use user's set language. Requires enterprise licensing                                                                     |
-| `parent`       | `HTMLElement`                  |          |                                             | The DOM element the iframe should be appended to By default appends to document.body                                                                                                                              |
-| `parentId`     | `string`                       |          |                                             | The id of the DOM element the iframe should be appended to **Deprecated:** Pass `parent` instead. An id is resolved once, at construction, so it falls back to document.body when the element does not exist yet. |
-| `saveSession`  | `boolean`                      |          | `true`                                      | Whether to save session information to local storage and enable resuming                                                                                                                                          |
-| `autoClose`    | `boolean`                      |          | `true`                                      | Whether to close the importer when complete                                                                                                                                                                       |
-| `manageDOM`    | `boolean`                      |          | `true`                                      | Whether the class should create and append the iframe to the DOM                                                                                                                                                  |
-| `baseUrl`      | `string`                       |          | `"https://embed.oneschema.co"`              | The base URL for the iframe. By default uses OneSchema's production instance                                                                                                                                      |
+| Option          | Type                           | Required | Default                                     | Description                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| --------------- | ------------------------------ | -------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `clientId`      | `string`                       | yes      |                                             | The client id from your OneSchema developer dashboard                                                                                                                                                                                                                                                                                                                                                                                    |
+| `devMode`       | `boolean`                      |          | `!!(process.env.NODE_ENV !== "production")` | Whether to launch the importer in dev mode, which shows the iframe even when launching fails                                                                                                                                                                                                                                                                                                                                             |
+| `className`     | `string`                       |          | `"oneschema-iframe"`                        | CSS class for the iframe                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `styles`        | `Partial<CSSStyleDeclaration>` |          |                                             | CSS Styles to be applied directly to the iframe                                                                                                                                                                                                                                                                                                                                                                                          |
+| `languageCode`  | `string`                       |          |                                             | Optional language code (like 'en' or 'zh') to force importer language By default, will use user's set language. Requires enterprise licensing                                                                                                                                                                                                                                                                                            |
+| `parent`        | `HTMLElement`                  |          |                                             | The DOM element the iframe should be appended to By default appends to document.body                                                                                                                                                                                                                                                                                                                                                     |
+| `parentId`      | `string`                       |          |                                             | The id of the DOM element the iframe should be appended to **Deprecated:** Pass `parent` instead. An id is resolved once, at construction, so it falls back to document.body when the element does not exist yet.                                                                                                                                                                                                                        |
+| `saveSession`   | `boolean`                      |          | `true`                                      | Whether to save session information to local storage and enable resuming                                                                                                                                                                                                                                                                                                                                                                 |
+| `autoClose`     | `boolean`                      |          | `true`                                      | Whether to close the importer when complete                                                                                                                                                                                                                                                                                                                                                                                              |
+| `manageDOM`     | `boolean`                      |          | `true`                                      | Whether the class should create and append the iframe to the DOM                                                                                                                                                                                                                                                                                                                                                                         |
+| `baseUrl`       | `string`                       |          | `"https://embed.oneschema.co"`              | The base URL for the iframe. By default uses OneSchema's production instance                                                                                                                                                                                                                                                                                                                                                             |
+| `initTimeoutMs` | `number`                       |          | `20000`                                     | How long a launch may stay pending before `launch()` rejects with `OneSchemaLaunchError.Timeout`, in milliseconds. The deadline covers the whole launch, not only the init acknowledgement. Raise it for hosts on slow or distant connections. The deadline cannot be turned off: `0`, a negative number and a non-finite number all fall back to the default, because a launch that never settles cannot be reported. Defaults to 20000 |
 
 <!-- END GENERATED importer-init-options -->
 
@@ -160,7 +181,12 @@ Or, instead of those, with a session token created through the API:
 - `parentId` is deprecated in favor of `parent`, which takes the element itself. `parentId` is resolved once when the importer is constructed, so it silently falls back to `document.body` when the container is not in the DOM yet.
 - Each importer instance now creates and removes its own iframe instead of sharing a single `_oneschema-iframe` element. Anything that looked that element up by id should keep a reference to `importer.iframe` instead.
 - The internal `_hasAttemptedLaunch` field is gone; use `importer.status` instead.
+- `launch()` and `launchSession()` return a promise instead of a `{ success }` object. Replace `const { success } = importer.launch()` with `await importer.launch()` in a `try`/`catch`, or attach a `.catch()`. Every failure the embed or the launch deadline produces still fires the `launched` event, so event-driven hosts keep working, but an unhandled rejection is reported by the browser — attach a handler even when the event is what you act on. A launch the host abandons itself — `close()`, `destroy()` or a newer `launch()` — only rejects its promise with `OneSchemaLaunchError.Cancelled`; it fires no `launched` event, since the host already knows it ended the attempt.
+- A blocked or unresponsive iframe no longer emits a `fatal` `error` event for the launch itself; it rejects the `launch()` promise with `OneSchemaLaunchError.Timeout` once `initTimeoutMs` has passed without the session starting. The `error` event still carries everything the embed reports once a session is running.
+- The `success` event payload is tagged: `{ type: "local" | "file-upload", data }` for imports the host receives, and `{ type: "webhook", eventId, responses }` for webhook deliveries. Read `result.data` instead of the untagged payload, and branch on `result.type` rather than checking which keys are present.
 
 ## Documentation
 
 Please see [📚 OneSchema's documentation](https://docs.oneschema.co/) for [📒 API reference](https://docs.oneschema.co/docs/javascript#api-reference) and other helpful guides.
+
+[LAUNCH-SEQUENCE.md](LAUNCH-SEQUENCE.md) diagrams what the SDK and the embed exchange from construction until the user can pick a file, including the launch deadline and how overlapping launches are told apart.

@@ -226,7 +226,9 @@ export default function OneSchemaImporter({
     if (importer) {
       if (isOpen) {
         launchedParams.current = serializedParams
-        importer.launch(params)
+        // Launch failures reach the host through onLaunched, so the rejection
+        // itself is redundant here.
+        importer.launch(params).catch(() => undefined)
       } else {
         launchedParams.current = undefined
         importer.close()
