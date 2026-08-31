@@ -128,6 +128,11 @@ reads 1 on that path; under `devMode: true` it posts none.
 
 ## Cleanup
 
-Record the starting state before touching anything — `git status --porcelain > /tmp/harness-baseline.txt` — because the worktree may already carry unrelated edits or untracked files.
+Record the starting state before touching anything, because the worktree may already carry unrelated edits or untracked files. Run this — and every cleanup command below — from the repo root, since the harness commands above leave the shell inside a package directory and pathspecs would then resolve against it: `cd "$(git rev-parse --show-toplevel)"`. Use `--untracked-files=all` so a scratch file inside an already-untracked directory is listed individually instead of collapsing into one `?? dir/` entry:
 
-Then revert every harness edit one edit at a time rather than by restoring whole directories: read `git diff -- packages/importer/test packages/importer-react/test packages/importer-react/src` and undo only the lines the harness run added. Delete only the scratch plan/notes files this run created, and finish by diffing against the baseline rather than demanding an empty tree: `diff <(git status --porcelain) /tmp/harness-baseline.txt`. A whole-directory `git checkout --` would throw away unrelated uncommitted work, so prefer a dedicated `git worktree` for harness runs.
+```bash
+cd "$(git rev-parse --show-toplevel)"
+git status --porcelain=v1 --untracked-files=all > /tmp/harness-baseline.txt
+```
+
+Then revert every harness edit one edit at a time rather than by restoring whole directories: read `git diff -- packages/importer/test packages/importer-react/test packages/importer-react/src` and undo only the lines the harness run added. Delete only the scratch plan/notes files this run created, and finish by diffing against the baseline rather than demanding an empty tree: `diff <(git status --porcelain=v1 --untracked-files=all) /tmp/harness-baseline.txt`. A whole-directory `git checkout --` would throw away unrelated uncommitted work, so prefer a dedicated `git worktree` for harness runs.
