@@ -60,10 +60,12 @@ sequenceDiagram
         loop until the deadline
             SDK->>Embed: init
         end
+        SDK-->>Host: "launched" { success: false, embedInitId, error: Timeout }
         SDK-->>Host: launch() rejects with OneSchemaLaunchError.Timeout
     else the embed acknowledges but no session starts
         Embed-->>SDK: init-received
         Note over SDK: retries stop, the deadline keeps running
+        SDK-->>Host: "launched" { success: false, embedInitId, error: Timeout }
         SDK-->>Host: launch() rejects with OneSchemaLaunchError.Timeout
     else the embed rejects the launch
         Embed-->>SDK: launch-error (message)

@@ -402,7 +402,6 @@ test("ignores a reply that did not come from the embed origin", async () => {
   importer.on("launched", (status) => statuses.push(status))
 
   const current = importer.launch()
-  current.catch(() => undefined)
   iframe.onload()
   const currentId = messages[messages.length - 1].payload.embedInitId
   let settled = false
@@ -581,6 +580,21 @@ test("rejects the launch in flight when the importer is closed", async () => {
   assert.equal(failure.error, OneSchemaLaunchError.Cancelled)
 
   importer.destroy()
+})
+
+test("rejects the launch in flight when the importer is destroyed", async () => {
+  const { iframe, importer } = createImporter()
+
+  const launched = importer.launch()
+  iframe.onload()
+  importer.destroy()
+
+  const failure = await launched.then(
+    () => assert.fail("launch should not resolve after destroy"),
+    (error) => error,
+  )
+
+  assert.equal(failure.error, OneSchemaLaunchError.Cancelled)
 })
 
 test("tags the import result with how the data was delivered", async () => {

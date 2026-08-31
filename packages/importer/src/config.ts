@@ -730,7 +730,10 @@ export interface OneSchemaFileUploadImportResult {
 }
 
 /**
- * The result of an import, discriminated by how the data was delivered
+ * The result of an import, discriminated by how the data was delivered. Narrow
+ * on `type` before reading `data`, `eventId` or `responses`: only `local` and
+ * `file-upload` results carry rows, and only `webhook` results carry delivery
+ * metadata
  */
 export type OneSchemaImportResult =
   | OneSchemaLocalImportResult

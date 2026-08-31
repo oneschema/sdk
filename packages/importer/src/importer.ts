@@ -406,7 +406,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
 
     const msg = this.#hasReceivedFrameMessage
       ? "OneSchema failed to respond for initialization"
-      : `OneSchema iframe was blocked: no message was ever received from ${this.iframe?.src}, so the OneSchema embed page never ran. The browser most likely blocked the iframe — check this page's console for a Content-Security-Policy "frame-ancestors" violation, and verify that this page's origin (${window.location.origin}) is on the allowed domains list for OneSchema client ID ${this.#params.clientId}.`
+      : `OneSchema iframe was blocked: no message was ever received from ${this.iframe?.src}, so the OneSchema embed page never ran. The browser most likely blocked the iframe — check this page's console for a Content-Security-Policy "frame-ancestors" violation, and verify that this page's origin (${typeof window === "undefined" ? "unknown" : window.location.origin}) is on the allowed domains list for OneSchema client ID ${this.#params.clientId}.`
     console.error(msg)
     this.#settlePendingLaunchFailure(OneSchemaLaunchError.Timeout, msg)
     this.emit("launched", {
@@ -611,14 +611,17 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
   }
 
   // The embed reports a `complete` payload of rows for both local and
-  // file-upload imports, and only the init message this instance sent says
-  // which one was configured.
+  // file-upload imports, so the configured delivery says which one it was. Only
+  // a session launch, which carries no import config, has to fall back to the
+  // payload's own shape.
   #importResult(data: {
     data?: Record<string, unknown>
     eventId?: string
     responses?: unknown[]
   }): OneSchemaImportResult {
-    if (!data.data) {
+    const importType = (this.#initMessage as OneSchemaInitSimpleMessage)?.importConfig
+      ?.type
+    if (importType === "webhook" || (!importType && !data.data)) {
       return {
         type: "webhook",
         eventId: data.eventId,
@@ -626,11 +629,9 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       }
     }
 
-    const importType = (this.#initMessage as OneSchemaInitSimpleMessage)?.importConfig
-      ?.type
     return {
       type: importType === "file-upload" ? "file-upload" : "local",
-      data: data.data,
+      data: data.data ?? {},
     }
   }
 
