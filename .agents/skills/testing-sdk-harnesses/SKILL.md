@@ -128,4 +128,6 @@ reads 1 on that path; under `devMode: true` it posts none.
 
 ## Cleanup
 
-Revert every harness edit before finishing, one edit at a time rather than by restoring whole directories: read `git diff -- packages/importer/test packages/importer-react/test packages/importer-react/src` and undo only the lines the harness run added. Then delete any scratch plan/notes files and confirm `git status --porcelain` is clean. A whole-directory `git checkout --` would also throw away unrelated uncommitted work, so prefer a dedicated `git worktree` for harness runs.
+Record the starting state before touching anything — `git status --porcelain > /tmp/harness-baseline.txt` — because the worktree may already carry unrelated edits or untracked files.
+
+Then revert every harness edit one edit at a time rather than by restoring whole directories: read `git diff -- packages/importer/test packages/importer-react/test packages/importer-react/src` and undo only the lines the harness run added. Delete only the scratch plan/notes files this run created, and finish by diffing against the baseline rather than demanding an empty tree: `diff <(git status --porcelain) /tmp/harness-baseline.txt`. A whole-directory `git checkout --` would throw away unrelated uncommitted work, so prefer a dedicated `git worktree` for harness runs.
