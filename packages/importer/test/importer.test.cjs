@@ -597,6 +597,150 @@ test("rejects the launch in flight when the importer is destroyed", async () => 
   assert.equal(failure.error, OneSchemaLaunchError.Cancelled)
 })
 
+// A handler is awaited, so the cleanup that follows it lands a few microtasks
+// (or, when a timeout is involved, a few milliseconds) later.
+function drain(ms = 0) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+const RESUME_TOKEN_KEY = "OneSchema-session-user-jwt-template-key"
+
+async function launchWithHandler(params) {
+  const created = createImporter({ saveSession: true, ...params })
+  const { iframe, importer, reply } = created
+
+  const launched = importer.launch()
+  iframe.onload()
+  reply({ messageType: "launched", sessionToken: "saved-token" })
+  await launched
+
+  return created
+}
+
+test("waits for an async success handler before ending the session", async () => {
+  let release
+  const { iframe, importer, reply, storage } = await launchWithHandler()
+  importer.on("success", () => new Promise((resolve) => (release = resolve)))
+
+  reply({ messageType: "complete", data: { rows: [] } })
+  await drain()
+
+  assert.equal(storage.get(RESUME_TOKEN_KEY), "saved-token")
+  assert.equal(iframe.style.display, "initial")
+
+  release()
+  await drain()
+
+  assert.equal(storage.get(RESUME_TOKEN_KEY), undefined)
+  assert.equal(iframe.style.display, "none")
+
+  importer.destroy()
+})
+
+test("awaits a cancel handler on the same terms as a success handler", async () => {
+  let release
+  const { iframe, importer, reply } = await launchWithHandler()
+  importer.on("cancel", () => new Promise((resolve) => (release = resolve)))
+
+  reply({ messageType: "cancel" })
+  await drain()
+
+  assert.equal(iframe.style.display, "initial")
+
+  release()
+  await drain()
+
+  assert.equal(iframe.style.display, "none")
+
+  importer.destroy()
+})
+
+test("reports a failing success handler as an error and still ends the session", async () => {
+  const errors = []
+  const { iframe, importer, reply, storage } = await launchWithHandler()
+  importer.on("error", (error) => errors.push(error))
+  importer.on("success", () => {
+    throw new Error("host handler blew up")
+  })
+
+  reply({ messageType: "complete", data: { rows: [] } })
+  await drain()
+
+  assert.equal(errors.length, 1)
+  assert.match(errors[0].message, /host handler blew up/)
+  assert.equal(errors[0].severity, "error")
+  assert.equal(errors[0].cause.message, "host handler blew up")
+  assert.equal(storage.get(RESUME_TOKEN_KEY), undefined)
+  assert.equal(iframe.style.display, "none")
+
+  importer.destroy()
+})
+
+test("ends the session without a handler that outlives handlerTimeoutMs", async () => {
+  let reject
+  const errors = []
+  const { iframe, importer, reply, storage } = await launchWithHandler({
+    handlerTimeoutMs: 10,
+  })
+  importer.on("error", (error) => errors.push(error))
+  importer.on("success", () => new Promise((_resolve, fail) => (reject = fail)))
+
+  reply({ messageType: "complete", data: { rows: [] } })
+  await drain(30)
+
+  assert.equal(errors.length, 1)
+  assert.match(errors[0].message, /handlerTimeoutMs \(10ms\)/)
+  assert.equal(storage.get(RESUME_TOKEN_KEY), undefined)
+  assert.equal(iframe.style.display, "none")
+
+  // The handler is abandoned, not ignored: how it eventually ended is still
+  // reported rather than surfacing as an unhandled rejection.
+  reject(new Error("host handler blew up late"))
+  await drain()
+
+  assert.equal(errors.length, 2)
+  assert.match(errors[1].message, /host handler blew up late/)
+
+  importer.destroy()
+})
+
+test("waits without a bound when handlerTimeoutMs is zero", async () => {
+  let release
+  const errors = []
+  const { iframe, importer, reply } = await launchWithHandler({ handlerTimeoutMs: 0 })
+  importer.on("error", (error) => errors.push(error))
+  importer.on("success", () => new Promise((resolve) => (release = resolve)))
+
+  reply({ messageType: "complete", data: { rows: [] } })
+  await drain(30)
+
+  assert.deepEqual(errors, [])
+  assert.equal(iframe.style.display, "initial")
+
+  release()
+  await drain()
+
+  assert.equal(iframe.style.display, "none")
+
+  importer.destroy()
+})
+
+test("calls a once handler for one import only", async () => {
+  const results = []
+  const { iframe, importer, reply } = await launchWithHandler({ autoClose: false })
+  importer.once("success", (result) => results.push(result))
+
+  reply({ messageType: "complete", data: { rows: [1] } })
+  await drain()
+  reply({ messageType: "complete", data: { rows: [2] } })
+  await drain()
+
+  assert.deepEqual(results, [{ type: "local", data: { rows: [1] } }])
+  assert.equal(iframe.style.display, "initial")
+
+  importer.destroy()
+})
+
 test("tags the import result with how the data was delivered", async () => {
   const results = []
   const { iframe, importer, reply } = createImporter({ autoClose: false })

@@ -616,6 +616,17 @@ export interface OneSchemaInitParams {
    * because a launch that never settles cannot be reported. Defaults to 20000
    */
   initTimeoutMs?: number
+  /**
+   * How long the importer waits for the `success` and `cancel` handlers of the
+   * host to settle before it clears the resume token and applies `autoClose`,
+   * in milliseconds. Raise it for handlers that ship rows to a slow or distant
+   * backend: a handler that has not settled by the deadline gets an `error`
+   * event and the session is cleaned up without it. `0` waits forever, which
+   * reintroduces the stranded-embed failure mode where a handler that never
+   * settles leaves the importer open with a stale resume token. A negative or
+   * non-finite number falls back to the default. Defaults to 30000
+   */
+  handlerTimeoutMs?: number
 }
 
 /**
@@ -683,6 +694,7 @@ export const DEFAULT_PARAMS: Partial<OneSchemaParams> = {
   devMode: !!(process.env.NODE_ENV !== "production"),
   className: "oneschema-iframe",
   initTimeoutMs: 20000,
+  handlerTimeoutMs: 30000,
   autoClose: true,
   manageDOM: true,
   saveSession: true,
@@ -696,6 +708,11 @@ export enum OneSchemaErrorSeverity {
 export interface OneSchemaError {
   message: string
   severity: OneSchemaErrorSeverity
+  /**
+   * The underlying exception, when the error came from code outside the
+   * importer: the value a `success` or `cancel` handler threw or rejected with
+   */
+  cause?: unknown
 }
 
 /**
@@ -755,11 +772,17 @@ export interface OneSchemaEventMap {
   launched: [OneSchemaLaunchStatus]
   /**
    * The user finished importing. For `local` imports the data is the payload,
-   * for `webhook` imports it summarizes the delivery
+   * for `webhook` imports it summarizes the delivery.
+   *
+   * Awaited: a handler returning a promise holds the resume token and
+   * `autoClose` until it settles, bounded by `handlerTimeoutMs`, and a handler
+   * that throws or rejects is reported as an `error` event
    */
   success: [OneSchemaImportResult]
   /**
-   * The user cancelled the import
+   * The user cancelled the import.
+   *
+   * Awaited on the same terms as `success`
    */
   cancel: []
   /**
