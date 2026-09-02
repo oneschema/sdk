@@ -91,7 +91,7 @@ jobs:
       - name: Run zizmor
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./zizmor --no-progress --strict-collection --min-severity high .github/workflows/*.yml
+        run: ./zizmor --no-progress --strict-collection --min-severity high .github/workflows/
 
   bundle-size:
     if: github.event_name == 'pull_request'
