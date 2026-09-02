@@ -37,7 +37,7 @@ yarn check
 
 CI runs `yarn build`, `yarn check:packages`, `yarn check:ranges`,
 `yarn check:install`, `yarn check`, and `yarn test:ci` on every pull request,
-plus actionlint and a bundle-size report comment. The release workflow runs
+plus actionlint, zizmor, and a bundle-size report comment. The release workflow runs
 `check:ranges` and `check:install` in a separate read-only `verify` job that the
 publish job depends on, and `yarn release` re-runs `check:ranges` before
 `changeset publish`.

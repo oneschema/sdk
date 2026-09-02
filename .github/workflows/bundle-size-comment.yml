@@ -5,7 +5,7 @@ name: Bundle Size Comment
 # never checks out or executes pull-request code; it only treats the uploaded
 # JSON artifact as validated data before rendering and posting markdown.
 
-on:
+on: # zizmor: ignore[dangerous-triggers] validates artifacts without checking out PR code
   workflow_run:
     workflows:
       - CI
