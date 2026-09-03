@@ -86,6 +86,20 @@ test("posts the core package version on init messages", () => {
   assert.equal(payload.coreVersion, version)
 })
 
+test("leaves dev_mode off the embed url unless the host asked for it", () => {
+  const unset = createImporter()
+  const enabled = createImporter({ devMode: true })
+  const disabled = createImporter({ devMode: false })
+
+  assert.equal(unset.iframe.src.includes("dev_mode"), false)
+  assert.equal(enabled.iframe.src.includes("dev_mode=true"), true)
+  assert.equal(disabled.iframe.src.includes("dev_mode=false"), true)
+
+  unset.importer.destroy()
+  enabled.importer.destroy()
+  disabled.importer.destroy()
+})
+
 test("waits for its own iframe to load before initializing", () => {
   const first = createImporter()
   launch(first.importer)
