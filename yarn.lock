@@ -3493,7 +3493,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^5.29.0"
     "@typescript-eslint/parser": "npm:^5.29.0"
     eslint: "npm:^8.18.0"
-    jasmine-core: "npm:~4.2.0"
+    jasmine-core: "npm:~7.0.2"
     karma: "npm:~6.4.0"
     karma-chrome-launcher: "npm:~3.1.0"
     karma-coverage: "npm:~2.2.0"
@@ -10467,10 +10467,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jasmine-core@npm:~4.2.0":
-  version: 4.2.0
-  resolution: "jasmine-core@npm:4.2.0"
-  checksum: 10c0/e6419537b8bbe048c54201ac8a56efcf254ddadd161f7214edd29fe854912f50849e6b9e6fbbd93e8aa12d1e69a88241bd0347f884ddf548b9fa937d6b00b904
+"jasmine-core@npm:~7.0.2":
+  version: 7.0.2
+  resolution: "jasmine-core@npm:7.0.2"
+  checksum: 10c0/335304a185284bb7cac23810e5f4547211b6b00c783ea1fad02e24bb0ef4a3b8f87d46a72c6650cbaed647bcf325b22a5a0322afc17602565450dc3bd8f24cda
   languageName: node
   linkType: hard
 
