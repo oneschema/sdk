@@ -15,7 +15,7 @@ jobs:
   # credentials, no write scopes and no `id-token`, which keeps npm provenance
   # minting out of reach of anything this job runs.
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     steps:
@@ -44,7 +44,7 @@ jobs:
 
   release:
     needs: verify
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # npm's trusted publisher for each package requires this environment, and
     # the environment only allows `main`, so an OIDC token that npm accepts
     # cannot be minted from a branch that rewrote this workflow.
