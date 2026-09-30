@@ -186,7 +186,9 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
 
     const queryParams = []
     queryParams.push(`embed_client_id=${this.#params.clientId}`)
-    queryParams.push(`dev_mode=${this.#params.devMode}`)
+    if (this.#params.devMode !== undefined) {
+      queryParams.push(`dev_mode=${this.#params.devMode}`)
+    }
     if (this.#params.languageCode) {
       queryParams.push(`lng=${this.#params.languageCode}`)
     }

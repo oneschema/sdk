@@ -7,7 +7,7 @@
 
 Remove the deprecated launch surface and make `devMode` explicit
 
-`devMode` now defaults to `false` for every host. It used to default to `process.env.NODE_ENV !== "production"`, which reads a Node global that a browser bundle either inlines or leaves undefined, so whether the iframe stayed visible after a failed launch depended on the bundler rather than on the application. Wire it to your own build condition — `devMode={import.meta.env.DEV}` or whatever your bundler exposes — to keep the old behavior.
+`devMode` has no SDK-side default any more. It used to default to `process.env.NODE_ENV !== "production"`, which reads a Node global that a browser bundle either inlines or leaves undefined, so whether the iframe stayed visible after a failed launch depended on the bundler rather than on the application. An unset `devMode` now sends no `dev_mode` to the embed at all, leaving the default to OneSchema. Wire it to your own build condition — `devMode={import.meta.env.DEV}` or whatever your bundler exposes — to keep the old behavior.
 
 `parentId` is gone; pass the container element as `parent`. An id was resolved once, at construction, so it silently fell back to `document.body` whenever the container had not mounted yet.
 
