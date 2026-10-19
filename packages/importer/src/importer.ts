@@ -93,9 +93,8 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
 
     if (this.#params.manageDOM) {
       const iframeId = "_oneschema-iframe"
-      const existingIframe = document.getElementById(iframeId) as HTMLIFrameElement | null
-      if (existingIframe) {
-        this.iframe = existingIframe
+      this.iframe = document.getElementById(iframeId) as HTMLIFrameElement
+      if (this.iframe) {
         this.iframe.dataset.count = `${parseInt(this.iframe.dataset.count || "0") + 1}`
       } else {
         const iframe = document.createElement("iframe")

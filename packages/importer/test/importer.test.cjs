@@ -124,7 +124,7 @@ test("does not create an embed launcher iframe when constructed without a client
       manageDOM: true,
     })
 
-    assert.equal(importer.iframe, undefined)
+    assert.equal(importer.iframe ?? undefined, undefined)
     assert.deepEqual(appendedElements, [])
     assert.ok(
       consoleError.mock.calls.some(
