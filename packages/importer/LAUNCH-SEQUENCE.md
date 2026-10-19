@@ -74,7 +74,7 @@ sequenceDiagram
     end
 ```
 
-A launch that fails before anything is posted — a missing `userJwt` or `templateKey`, or a destroyed instance — rejects synchronously with `MissingJwt`, `MissingTemplate`, `MissingSessionToken` or `Destroyed`, and fires the same `launched` failure event.
+A launch that fails before anything is posted — a missing or blank `clientId`, a missing `userJwt` or `templateKey`, or a destroyed instance — rejects synchronously with `InvalidClientId`, `MissingJwt`, `MissingTemplate`, `MissingSessionToken` or `Destroyed`, and fires the same `launched` failure event.
 
 ## Overlapping launches
 

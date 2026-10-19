@@ -494,6 +494,11 @@ export enum OneSchemaLaunchError {
    * before the import session started
    */
   Cancelled,
+  /**
+   * The `clientId` was missing, not a string, or blank, so the embed launcher
+   * was never loaded
+   */
+  InvalidClientId,
 }
 
 /**

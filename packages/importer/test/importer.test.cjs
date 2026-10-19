@@ -162,6 +162,125 @@ test("rejects and stays idle when launch params are invalid", async () => {
   importer.destroy()
 })
 
+for (const clientId of ["", " \t ", undefined, 123]) {
+  test(`does not load the embed launcher with invalid clientId ${String(clientId)}`, async () => {
+    const consoleError = mock.method(console, "error")
+    const { iframe, importer } = createImporter({ clientId })
+    const failures = []
+    importer.on("launched", (status) => failures.push(status))
+
+    assert.equal(iframe.src, undefined)
+    assert.equal(importer.iframe, undefined)
+
+    const failure = await importer.launch().then(
+      () => assert.fail("launch should not resolve without a clientId"),
+      (error) => error,
+    )
+
+    assert.ok(failure instanceof OneSchemaLaunchFailure)
+    assert.equal(failure.error, OneSchemaLaunchError.InvalidClientId)
+    assert.equal(failures.length, 1)
+    assert.equal(failures[0].success, false)
+    assert.equal(failures[0].error, OneSchemaLaunchError.InvalidClientId)
+    assert.equal(
+      failure.message,
+      "OneSchema config error: clientId must be a non-empty string",
+    )
+    assert.ok(
+      consoleError.mock.calls.some(
+        (call) =>
+          call.arguments[0] ===
+          "OneSchema config error: clientId must be a non-empty string",
+      ),
+    )
+
+    importer.destroy()
+  })
+}
+
+test("does not create an embed launcher iframe when constructed without a client ID", () => {
+  const previousDocument = globalThis.document
+  const previousWindow = globalThis.window
+  const consoleError = mock.method(console, "error")
+  const appendedIframes = []
+  globalThis.window = {
+    addEventListener() {},
+    removeEventListener() {},
+  }
+  globalThis.document = {
+    createElement: () => ({ style: {} }),
+    body: {
+      append: (iframe) => appendedIframes.push(iframe),
+    },
+  }
+
+  let importer
+  try {
+    importer = new OneSchemaImporterClass({
+      baseUrl: "https://embed.test",
+      clientId: undefined,
+    })
+
+    assert.equal(importer.iframe, undefined)
+    assert.deepEqual(appendedIframes, [])
+    assert.ok(
+      consoleError.mock.calls.some(
+        (call) =>
+          call.arguments[0] ===
+          "OneSchema config error: clientId must be a non-empty string",
+      ),
+    )
+  } finally {
+    importer?.destroy()
+
+    globalThis.document = previousDocument
+    globalThis.window = previousWindow
+  }
+})
+
+test("URL-encodes valid client IDs in the embed launcher URL", () => {
+  const unchanged = createImporter()
+  assert.equal(
+    unchanged.iframe.src,
+    "https://embed.test/embed-launcher?embed_client_id=client-id&dev_mode=false",
+  )
+  unchanged.importer.destroy()
+
+  const encoded = createImporter({ clientId: "client id/one" })
+  assert.equal(
+    encoded.iframe.src,
+    "https://embed.test/embed-launcher?embed_client_id=client%20id%2Fone&dev_mode=false",
+  )
+  encoded.importer.destroy()
+})
+
+test("launchSession rejects invalid client IDs like launch", async () => {
+  const consoleError = mock.method(console, "error")
+  const { iframe, importer } = createImporter({ clientId: "" })
+  const failures = []
+  importer.on("launched", (status) => failures.push(status))
+
+  assert.equal(iframe.src, undefined)
+
+  const failure = await importer.launchSession().then(
+    () => assert.fail("launchSession should not resolve without a clientId"),
+    (error) => error,
+  )
+
+  assert.ok(failure instanceof OneSchemaLaunchFailure)
+  assert.equal(failure.error, OneSchemaLaunchError.InvalidClientId)
+  assert.equal(failures.length, 1)
+  assert.equal(failures[0].success, false)
+  assert.equal(failures[0].error, OneSchemaLaunchError.InvalidClientId)
+  assert.equal(
+    failure.message,
+    "OneSchema config error: clientId must be a non-empty string",
+  )
+  assert.ok(consoleError.mock.calls.length > 0)
+
+  importer.destroy()
+})
+
 test("resolves with the running session once the embed launches", async () => {
   const { iframe, importer, reply } = createImporter()
   const statuses = []
