@@ -3488,7 +3488,7 @@ __metadata:
     "@angular/platform-browser-dynamic": "npm:^16.2.12"
     "@angular/router": "npm:^16.2.12"
     "@babel/core": "npm:^7.22.9"
-    "@oneschema/importer": "npm:^0.7.7"
+    "@oneschema/importer": "npm:^0.7.8"
     "@types/jasmine": "npm:~4.0.0"
     "@typescript-eslint/eslint-plugin": "npm:^5.29.0"
     "@typescript-eslint/parser": "npm:^5.29.0"
@@ -3581,7 +3581,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@oneschema/importer@npm:^0.7.7, @oneschema/importer@workspace:packages/importer":
+"@oneschema/importer@npm:^0.7.7, @oneschema/importer@npm:^0.7.8, @oneschema/importer@workspace:packages/importer":
   version: 0.0.0-use.local
   resolution: "@oneschema/importer@workspace:packages/importer"
   dependencies:
