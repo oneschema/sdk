@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     branches:
-      - main
+      - release/0.7
 
 concurrency:
   group: release
@@ -46,8 +46,8 @@ jobs:
     needs: verify
     runs-on: ubuntu-latest
     # npm's trusted publisher for each package requires this environment, and
-    # the environment only allows `main`, so an OIDC token that npm accepts
-    # cannot be minted from a branch that rewrote this workflow.
+    # the environment allows `main` and `release/0.7`, so an OIDC token that
+    # npm accepts cannot be minted from another branch that rewrote this workflow.
     environment: release
     permissions:
       contents: write
@@ -90,6 +90,9 @@ jobs:
         with:
           version: yarn version:packages
           publish: yarn release
+          branch: release/0.7
+          title: Version Packages (release/0.7)
+          commit: Version Packages (release/0.7)
 
       - name: Check that the release is tagged
         if: steps.changesets.outputs.published == 'true'
