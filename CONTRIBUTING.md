@@ -80,6 +80,16 @@ Two checks enforce this, on pull requests and again before publishing:
 When bumping the core's minor version, widen the wrappers' ranges in the same
 pull request and add a changeset for each wrapper.
 
+## Maintenance releases
+
+`release/<major>.<minor>` branches are cut from the last release commit of that
+line. Fixes land through pull requests into the maintenance branch, each with a
+patch changeset. On push, `release.yml` opens a "Version Packages (release/0.7)"
+pull request from `changeset-release/release/0.7`. Merging it publishes under
+the npm `release-0.7` dist-tag, so npm's `latest` tag never moves while
+`^0.7.x` ranges still resolve to the newest 0.7 patch by semver. The `release`
+environment's deployment-branch policy must include `release/0.7`.
+
 ## Pull requests
 
 - Use Conventional Commits for commit messages and PR titles.

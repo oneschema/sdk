@@ -7,7 +7,7 @@
     ["@oneschema/importer", "@oneschema/react", "@oneschema/vue", "@oneschema/angular"]
   ],
   "access": "public",
-  "baseBranch": "main",
+  "baseBranch": "release/0.7",
   "updateInternalDependencies": "patch",
   "ignore": [
     "@oneschema/angular-example",
