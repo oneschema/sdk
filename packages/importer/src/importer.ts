@@ -27,6 +27,9 @@ const DESTROYED_MESSAGE =
 
 const DEFAULT_LAUNCH_ERROR_MESSAGE = "OneSchema failed to launch the import session"
 
+const INVALID_CLIENT_ID_MESSAGE =
+  "OneSchema config error: clientId must be a non-empty string"
+
 /**
  * The embed sends the launch failure as `{ message, data, status }`, but older
  * embed versions send a plain string instead.
@@ -90,8 +93,9 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
 
     if (this.#params.manageDOM) {
       const iframeId = "_oneschema-iframe"
-      this.iframe = document.getElementById(iframeId) as HTMLIFrameElement
-      if (this.iframe) {
+      const existingIframe = document.getElementById(iframeId) as HTMLIFrameElement | null
+      if (existingIframe) {
+        this.iframe = existingIframe
         this.iframe.dataset.count = `${parseInt(this.iframe.dataset.count || "0") + 1}`
       } else {
         const iframe = document.createElement("iframe")
@@ -130,6 +134,11 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
       return
     }
 
+    if (!this.#hasValidClientId()) {
+      console.error(INVALID_CLIENT_ID_MESSAGE)
+      return
+    }
+
     // just in case..
     if (this.iframe) {
       this.close()
@@ -140,7 +149,7 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     this.iframe.setAttribute("allowtransparency", "true")
 
     const queryParams = []
-    queryParams.push(`embed_client_id=${this.#params.clientId}`)
+    queryParams.push(`embed_client_id=${encodeURIComponent(this.#params.clientId)}`)
     queryParams.push(`dev_mode=${this.#params.devMode}`)
     if (this.#params.languageCode) {
       queryParams.push(`lng=${this.#params.languageCode}`)
@@ -214,6 +223,20 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     }
 
     this._hasAttemptedLaunch = true
+
+    if (!this.#hasValidClientId()) {
+      console.error(INVALID_CLIENT_ID_MESSAGE)
+      this.emit("launched", {
+        success: false,
+        error: OneSchemaLaunchError.LaunchError,
+        message: INVALID_CLIENT_ID_MESSAGE,
+      })
+      return {
+        success: false,
+        error: OneSchemaLaunchError.LaunchError,
+        message: INVALID_CLIENT_ID_MESSAGE,
+      }
+    }
 
     const mergedParams = merged(this.#params, launchParams)
     const baseMessage: OneSchemaSharedInitParams = {
@@ -422,6 +445,11 @@ export class OneSchemaImporterClass extends EventEmitter<OneSchemaEventMap> {
     }
 
     this.iframe = undefined
+  }
+
+  #hasValidClientId(): boolean {
+    const clientId: unknown = this.#params.clientId
+    return typeof clientId === "string" && clientId.trim().length > 0
   }
 
   #iframeEventEmit(message: Record<string, any>) {
