@@ -75,7 +75,7 @@ changes may not be included if they are not expected to break existing code.
 
 ## 0.4.8 (2023-10-25) [NOT STABLE]
 
-- Stop `_initWithRetry` if the postMessage has been recieved by OneSchema app.
+- Stop `_initWithRetry` if the postMessage has been received by OneSchema app.
 
 ## 0.4.7 (2023-10-16)
 
@@ -87,7 +87,7 @@ changes may not be included if they are not expected to break existing code.
 
 ## 0.4.5 (2023-10-09)
 
-- Make sure keys in `OneSchemaTemplateOverries` are optional
+- Make sure keys in `OneSchemaTemplateOverrides` are optional
 - Have a `console.warn` upon changing launch params after an importer has launched in
   React SDK.
 
@@ -205,9 +205,9 @@ changes may not be included if they are not expected to break existing code.
 
 ## 0.2.7 (2022-09-30)
 
-- Add `launchSession` and Typescript definitons for its usage
+- Add `launchSession` and Typescript definitions for its usage
 - Moves `sessionToken` from config object into base option
-- `launched` event and `onLaunched` now have a parameter (object with `success` (bolean) and `error` (enum))
+- `launched` event and `onLaunched` now have a parameter (object with `success` (boolean) and `error` (enum))
 
 ## 0.2.6 (2022-09-27)
 
@@ -237,7 +237,7 @@ changes may not be included if they are not expected to break existing code.
 
 ## 0.2.0 (2022-07-27)
 
-- Updated initiliazing and launch functions to be object-based.
+- Updated initializing and launch functions to be object-based.
 - Add `setStyles` function on base JS importer
 - Add `manageDOM`/`setIframe` to base JS and `inline` prop to React for manual iframe creation
 - Adds Angular SDK

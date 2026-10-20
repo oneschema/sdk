@@ -1,0 +1,7 @@
+# Spelling check: https://github.com/crate-ci/typos (run `typos` at the repo root).
+
+[default]
+extend-ignore-re = [
+  # Legacy SDK protocol message, misspelled on the wire; older SDKs still send it.
+  "init-recieved",
+]
