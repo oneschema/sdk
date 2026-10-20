@@ -61,7 +61,7 @@ async function packTo(directory, spec, { attempts = 1, registry } = {}) {
     if (result.status === 0) {
       break
     }
-    // A version published seconds ago may take about 3 minutes to reach the registry.
+    // A version published seconds ago can take a few minutes to reach the registry, so the published lookup retries for about 3 minutes.
     if (attempt < attempts) {
       await sleep(15)
     }
