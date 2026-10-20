@@ -52,6 +52,19 @@ jobs:
       - name: Run tests
         run: yarn run test:ci
 
+  typos:
+    name: Spelling (typos)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: crate-ci/typos@80c8a4945eec0f6d464eaf9e65ed98ef085283d1 # v1.38.1
+
   actionlint:
     runs-on: ubuntu-24.04
     permissions:
