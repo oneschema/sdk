@@ -5,6 +5,9 @@
 //   yarn build && node scripts/verify-published.mjs
 //   node scripts/verify-published.mjs @oneschema/importer
 //
+// Packages changesets ignores are released by hand, from whichever revision the
+// maintainer built, so they are only checked when named explicitly.
+//
 // Only reads the public registry, so it needs no npm credentials.
 import { createHash } from "node:crypto"
 import { spawnSync } from "node:child_process"
@@ -23,6 +26,10 @@ const packageDirectories = [
 ]
 
 const only = process.argv.slice(2)
+
+const { ignore = [] } = JSON.parse(
+  await readFile(join(repoRoot, ".changeset/config.json"), "utf8"),
+)
 
 const publicRegistry = "https://registry.npmjs.org"
 
@@ -54,14 +61,17 @@ async function packTo(directory, spec, { attempts = 1, registry } = {}) {
     if (result.status === 0) {
       break
     }
-    // A version published seconds ago may not have reached the registry yet.
+    // A version published seconds ago can take a few minutes to reach the registry, so the published lookup retries for about 3 minutes.
     if (attempt < attempts) {
       await sleep(15)
     }
   }
 
   if (result.status !== 0) {
-    return { error: (result.stderr || result.stdout).trim() }
+    // `npm pack --silent` can fail without writing anything, and an empty
+    // message would read as a success to the caller.
+    const output = (result.stderr || result.stdout || "").trim()
+    return { error: output || `npm pack exited with ${result.status} for ${spec}` }
   }
 
   const tarballs = (await readdir(directory)).filter((file) => file.endsWith(".tgz"))
@@ -130,7 +140,8 @@ try {
     const directory = join(repoRoot, packageDirectory)
     const manifest = JSON.parse(await readFile(join(directory, "package.json"), "utf8"))
     const { name, version } = manifest
-    if (only.length > 0 && !only.includes(name) && !only.includes(`${name}@${version}`)) {
+    const named = only.includes(name) || only.includes(`${name}@${version}`)
+    if (only.length > 0 ? !named : ignore.includes(name)) {
       continue
     }
 
@@ -139,9 +150,9 @@ try {
     const published = await packTo(
       join(workspace, "published", name),
       `${name}@${version}`,
-      { attempts: 4, registry: publicRegistry },
+      { attempts: 12, registry: publicRegistry },
     )
-    if (published.error) {
+    if ("error" in published) {
       failures.push(
         `${name}@${version}: not published or not downloadable (${published.error})`,
       )
@@ -149,7 +160,7 @@ try {
     }
 
     const built = await packTo(join(workspace, "built", name), `./${packageDirectory}`)
-    if (built.error) {
+    if ("error" in built) {
       failures.push(`${name}@${version}: ${built.error}`)
       continue
     }
