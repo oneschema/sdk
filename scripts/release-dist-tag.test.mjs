@@ -80,16 +80,6 @@ test("throws for unparsable versions", () => {
 async function createFixture(t) {
   const root = await mkdtemp(join(os.tmpdir(), "release-dist-tag-"))
   t.after(() => rm(root, { recursive: true, force: true }))
-  await writeFile(
-    join(root, "package.json"),
-    JSON.stringify({ workspaces: ["packages/*"] }),
-  )
-  await mkdir(join(root, ".changeset"), { recursive: true })
-  await writeFile(
-    join(root, ".changeset/config.json"),
-    JSON.stringify({ ignore: ["@fixture/ignored"] }),
-  )
-
   const packages = [
     { name: "@fixture/published", version: "1.0.0" },
     { name: "@fixture/private", version: "1.0.0", private: true },
@@ -97,6 +87,17 @@ async function createFixture(t) {
     { name: "@fixture/unknown", version: "0.1.0" },
     { name: "@fixture/unpublished", version: "1.2.0" },
   ]
+  await writeFile(
+    join(root, "package.json"),
+    JSON.stringify({
+      workspaces: packages.map((manifest) => `packages/${manifest.name.split("/")[1]}`),
+    }),
+  )
+  await mkdir(join(root, ".changeset"), { recursive: true })
+  await writeFile(
+    join(root, ".changeset/config.json"),
+    JSON.stringify({ ignore: ["@fixture/ignored"] }),
+  )
   for (const manifest of packages) {
     const directory = join(root, "packages", manifest.name.split("/")[1])
     await mkdir(directory, { recursive: true })
@@ -104,6 +105,29 @@ async function createFixture(t) {
   }
   return root
 }
+
+test("rejects unsupported workspace patterns", async (t) => {
+  const root = await createFixture(t)
+  await writeFile(
+    join(root, "package.json"),
+    JSON.stringify({ workspaces: ["packages/*"] }),
+  )
+
+  await assert.rejects(
+    collectCandidates({ repoRoot: root }),
+    /Unsupported workspace pattern: packages\/\*/,
+  )
+})
+
+test("throws when a listed workspace has no package.json", async (t) => {
+  const root = await createFixture(t)
+  await writeFile(
+    join(root, "package.json"),
+    JSON.stringify({ workspaces: ["packages/missing"] }),
+  )
+
+  await assert.rejects(collectCandidates({ repoRoot: root }), /ENOENT/)
+})
 
 function response(status, value) {
   return {

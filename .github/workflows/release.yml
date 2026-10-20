@@ -123,7 +123,8 @@ jobs:
           echo "npm dist-tag for this publish: ${tag}"
           echo "tag=${tag}" >> "$GITHUB_OUTPUT"
 
-      # Record the current Latest so a release-0.7 publish can hand the badge back.
+      # Record Latest before publishing because the changesets step moves the badge.
+      # A 404 means no Latest release exists yet.
       - name: Record the current Latest release
         id: latest-release
         env:
@@ -158,6 +159,22 @@ jobs:
           title: Version Packages (release/0.7)
           commit: Version Packages (release/0.7)
 
+      # changesets/action v1.9.0 creates each GitHub release without `make_latest`,
+      # so GitHub marks the newest one Latest; a `release-0.7` publish hands the
+      # badge back to the release that was Latest before this run, and a `latest`
+      # publish keeps it on the new release.
+      - name: Keep the previous Latest release
+        if: >-
+          !cancelled() &&
+          steps.changesets.outputs.published == 'true' &&
+          steps.dist-tag.outputs.tag != 'latest' &&
+          steps.latest-release.outputs.id != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          RELEASE_ID: ${{ steps.latest-release.outputs.id }}
+        run: gh api --method PATCH "repos/${REPOSITORY}/releases/${RELEASE_ID}" -f make_latest=true --jq '"Latest release stays " + .tag_name'
+
       - name: Check that the release is tagged
         if: steps.changesets.outputs.published == 'true'
         env:
@@ -188,15 +205,6 @@ jobs:
             fi
           done <<< "${tags}"
           exit "${missing}"
-
-      # When the tag is latest, the new release keeps the badge.
-      - name: Keep the previous Latest release
-        if: steps.changesets.outputs.published == 'true' && steps.dist-tag.outputs.tag != 'latest' && steps.latest-release.outputs.id != ''
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPOSITORY: ${{ github.repository }}
-          RELEASE_ID: ${{ steps.latest-release.outputs.id }}
-        run: gh api --method PATCH "repos/${REPOSITORY}/releases/${RELEASE_ID}" -f make_latest=true --jq '"Latest release stays " + .tag_name'
 
       # App-token tags start verify-release.yml, but GITHUB_TOKEN fallback
       # tags do not, so this verifies every release regardless of the token.

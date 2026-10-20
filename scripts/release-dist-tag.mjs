@@ -7,7 +7,7 @@
 // not move because one publish sets one tag and npm trusted publishing/OIDC
 // only supports npm publish, not npm dist-tag. It catches up on the first
 // 0.7.x publish after 1.0. ^0.7 ranges are unaffected.
-import { readFile, readdir, stat } from "node:fs/promises"
+import { readFile } from "node:fs/promises"
 import { join, resolve } from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 
@@ -58,72 +58,20 @@ export function decideDistTag(candidates) {
     : "release-0.7"
 }
 
-function workspacePatterns(workspaces) {
-  const patterns = Array.isArray(workspaces) ? workspaces : workspaces?.packages
-  if (!Array.isArray(patterns)) {
+function workspaceEntries(workspaces) {
+  const entries = Array.isArray(workspaces) ? workspaces : workspaces?.packages
+  if (!Array.isArray(entries)) {
     throw new Error("Root package.json workspaces must be an array")
   }
-  return patterns
-}
-
-function globSegmentPattern(segment) {
-  return new RegExp(
-    `^${segment.replace(/[|\\{}()[\]^$+?.]/g, "\\$&").replaceAll("*", ".*")}$`,
-  )
-}
-
-async function matchingDirectories(root, pattern) {
-  const segments = pattern.split("/").filter(Boolean)
-  let directories = [root]
-
-  for (const segment of segments) {
-    if (segment === "**") {
-      const descendants = []
-      const visit = async (directory) => {
-        descendants.push(directory)
-        for (const entry of await readdir(directory, { withFileTypes: true })) {
-          if (entry.isDirectory()) {
-            await visit(join(directory, entry.name))
-          }
-        }
-      }
-      for (const directory of directories) {
-        await visit(directory)
-      }
-      directories = descendants
-      continue
-    }
-
-    if (segment.includes("*") || segment.includes("?")) {
-      const expression = globSegmentPattern(segment)
-      const matches = []
-      for (const directory of directories) {
-        for (const entry of await readdir(directory, { withFileTypes: true })) {
-          if (entry.isDirectory() && expression.test(entry.name)) {
-            matches.push(join(directory, entry.name))
-          }
-        }
-      }
-      directories = matches
-      continue
-    }
-
-    const paths = directories.map((directory) => join(directory, segment))
-    directories = []
-    for (const path of paths) {
-      try {
-        if ((await stat(path)).isDirectory()) {
-          directories.push(path)
-        }
-      } catch (error) {
-        if (error.code !== "ENOENT") {
-          throw error
-        }
-      }
+  for (const entry of entries) {
+    if (
+      typeof entry !== "string" ||
+      ["*", "?", "{", "["].some((character) => entry.includes(character))
+    ) {
+      throw new Error(`Unsupported workspace pattern: ${entry}`)
     }
   }
-
-  return directories
+  return entries
 }
 
 async function defaultFetchPackument(name) {
@@ -140,25 +88,13 @@ export async function collectCandidates({
   const { ignore = [] } = JSON.parse(
     await readFile(join(repoRoot, ".changeset/config.json"), "utf8"),
   )
-  const packageDirectories = new Set()
-
-  for (const pattern of workspacePatterns(rootManifest.workspaces)) {
-    for (const directory of await matchingDirectories(repoRoot, pattern)) {
-      packageDirectories.add(directory)
-    }
-  }
+  const packageDirectories = workspaceEntries(rootManifest.workspaces).map((entry) =>
+    join(repoRoot, entry),
+  )
 
   const candidates = []
   for (const directory of packageDirectories) {
-    let manifest
-    try {
-      manifest = JSON.parse(await readFile(join(directory, "package.json"), "utf8"))
-    } catch (error) {
-      if (error.code === "ENOENT") {
-        continue
-      }
-      throw error
-    }
+    const manifest = JSON.parse(await readFile(join(directory, "package.json"), "utf8"))
 
     if (manifest.private || ignore.includes(manifest.name)) {
       continue
