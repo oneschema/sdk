@@ -6,7 +6,8 @@ on:
       - release/0.7
 
 concurrency:
-  group: release
+  # A main run waiting for release environment approval must not block release/0.7.
+  group: release-${{ github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -54,12 +55,44 @@ jobs:
       pull-requests: write
       id-token: write
     steps:
+      # Events caused by GITHUB_TOKEN don't start workflow runs, so a Version
+      # Packages PR opened or pushed with it never gets ci.yml and its required
+      # actionlint, build-and-lint, and bundle-size checks. The oneschema-dev
+      # App token avoids that; without the App configured, this job falls back
+      # to GITHUB_TOKEN.
+      - name: Check GitHub App configuration
+        id: app-config
+        env:
+          APP_CLIENT_ID: ${{ vars.ONESCHEMA_DEV_APP_CLIENT_ID }}
+          APP_PRIVATE_KEY: ${{ secrets.ONESCHEMA_DEV_APP_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -n "$APP_CLIENT_ID" ] && [ -n "$APP_PRIVATE_KEY" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::ONESCHEMA_DEV_APP_CLIENT_ID / ONESCHEMA_DEV_APP_PRIVATE_KEY are not configured; falling back to GITHUB_TOKEN, so the Version Packages PR will not get CI runs (close and reopen it to trigger them)."
+          fi
+
+      - name: Create GitHub App installation token
+        id: app-token
+        if: steps.app-config.outputs.configured == 'true'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.ONESCHEMA_DEV_APP_CLIENT_ID }}
+          private-key: ${{ secrets.ONESCHEMA_DEV_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # The changesets action pushes the version branch and the
           # `<package>@<version>` tags that identify what a release was built
-          # from, so it needs the credentials to stay in the git config.
+          # from, so it needs the credentials to stay in the git config. When
+          # configured, the persisted credentials are the App token, so the
+          # version-branch push and tags come from the App.
+          token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
           persist-credentials: true
 
       - name: Enable Corepack
@@ -78,6 +111,36 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
+      # Every unpublished package must be newer than npm's latest to promote
+      # this publish to latest. A 0.7.x publish to latest doesn't advance the
+      # release-0.7 tag; it catches up after 1.0, while ^0.7 ranges are unaffected.
+      # Registry errors fail the job before anything publishes.
+      - name: Choose the npm dist-tag
+        id: dist-tag
+        run: |
+          set -euo pipefail
+          tag="$(node scripts/release-dist-tag.mjs)"
+          echo "npm dist-tag for this publish: ${tag}"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+
+      # Record the current Latest so a release-0.7 publish can hand the badge back.
+      - name: Record the current Latest release
+        id: latest-release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          error_file="$RUNNER_TEMP/latest-release.err"
+          if id="$(gh api "repos/${REPOSITORY}/releases/latest" --jq .id 2> "$error_file")"; then
+            echo "id=${id}" >> "$GITHUB_OUTPUT"
+          elif grep -q "HTTP 404" "$error_file"; then
+            echo "No Latest release yet"
+          else
+            cat "$error_file" >&2
+            exit 1
+          fi
+
       # npm authenticates this job through its trusted publisher for the
       # `oneschema/sdk` `release.yml` workflow: the OIDC token minted from
       # `id-token: write` replaces a registry token, and provenance is attested
@@ -86,7 +149,8 @@ jobs:
         id: changesets
         uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+          RELEASE_DIST_TAG: ${{ steps.dist-tag.outputs.tag }}
         with:
           version: yarn version:packages
           publish: yarn release
@@ -125,8 +189,17 @@ jobs:
           done <<< "${tags}"
           exit "${missing}"
 
-      # Tags pushed with GITHUB_TOKEN do not start a workflow run, so the
-      # verification cannot rely on the `Verify release` tag trigger.
+      # When the tag is latest, the new release keeps the badge.
+      - name: Keep the previous Latest release
+        if: steps.changesets.outputs.published == 'true' && steps.dist-tag.outputs.tag != 'latest' && steps.latest-release.outputs.id != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          RELEASE_ID: ${{ steps.latest-release.outputs.id }}
+        run: gh api --method PATCH "repos/${REPOSITORY}/releases/${RELEASE_ID}" -f make_latest=true --jq '"Latest release stays " + .tag_name'
+
+      # App-token tags start verify-release.yml, but GITHUB_TOKEN fallback
+      # tags do not, so this verifies every release regardless of the token.
       - name: Compare the published packages with this revision
         if: steps.changesets.outputs.published == 'true'
         run: node scripts/verify-published.mjs
