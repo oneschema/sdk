@@ -87,13 +87,10 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # The changesets action pushes the version branch and the
-          # `<package>@<version>` tags that identify what a release was built
-          # from, so it needs the credentials to stay in the git config. When
-          # configured, the persisted credentials are the App token, so the
-          # version-branch push and tags come from the App.
-          token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
-          persist-credentials: true
+          # changesets/action writes its GITHUB_TOKEN (the App token when
+          # configured) to ~/.netrc for the version-branch and tag pushes, so
+          # checkout doesn't persist credentials while dependencies install.
+          persist-credentials: false
 
       - name: Enable Corepack
         run: corepack enable
