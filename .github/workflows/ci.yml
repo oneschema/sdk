@@ -28,7 +28,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version-file: .nvmrc
+          node-version: ^24.22.1
           cache: yarn
 
       - name: Install dependencies
@@ -129,7 +129,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version-file: .nvmrc
+          node-version: ^24.22.1
           cache: yarn
 
       - name: Install and build pull request
@@ -138,7 +138,7 @@ jobs:
       - name: Set up Node.js for base
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version-file: base/.nvmrc
+          node-version: ^24.22.1
 
       - name: Enable Corepack for base
         run: corepack enable
@@ -163,7 +163,7 @@ jobs:
       - name: Restore pull request Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version-file: .nvmrc
+          node-version: ^24.22.1
 
       - name: Enable Corepack for pull request
         run: corepack enable
