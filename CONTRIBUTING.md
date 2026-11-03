@@ -1,8 +1,8 @@
 # Contributing
 
-This is a Yarn workspaces monorepo. Use Node 24.22.1 or newer 24.x (`.nvmrc`
-names the major for `nvm use`) and enable Corepack before installing
-dependencies from the repository root:
+This is a Yarn workspaces monorepo. Use Node 24.22.1 or newer 24.x (the floor
+CI requires) and enable Corepack before installing dependencies from the
+repository root:
 
 ```sh
 corepack enable
