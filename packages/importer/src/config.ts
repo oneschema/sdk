@@ -407,6 +407,9 @@ export interface OneSchemaValidationHookToAdd {
   column_keys?: string[]
   custom_column_keys?: string[]
   hook_type?: ValidationHookType
+  /** Authorization type used for validation hook requests. */
+  auth_type?: ValidationHookAuthorizationType
+  /** @deprecated Ignored by OneSchema. Use `auth_type` instead. */
   authorization_type?: ValidationHookAuthorizationType
   secret_key?: string
   batch_size?: number
