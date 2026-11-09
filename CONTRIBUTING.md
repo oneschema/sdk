@@ -32,9 +32,12 @@ that don't apply to them.)
 Before pushing, run from the root:
 
 ```sh
+yarn build
 yarn fix
 yarn check
 ```
+
+Build before linting or checking a fresh checkout. The Angular workspace maps `@oneschema/importer` to `packages/importer/dist/index.d.mts`, which the core build generates; without it, Angular's type check reports TS2307. Wrapper ESLint checks in `yarn fix` also resolve built core packages. The root `yarn build` builds dependencies first, matching CI's build-before-check order. If resolution errors persist after building, investigate them rather than assuming they are build-order issues.
 
 CI runs `yarn build`, `yarn check:packages`, `yarn check:ranges`,
 `yarn check:install`, `yarn check`, and `yarn test:ci` on every pull request,
