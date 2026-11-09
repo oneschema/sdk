@@ -46,8 +46,8 @@ jobs:
     needs: verify
     runs-on: ubuntu-24.04
     # npm's trusted publisher for each package requires this environment, and
-    # the environment only allows `main`, so an OIDC token that npm accepts
-    # cannot be minted from a branch that rewrote this workflow.
+    # the environment allows only `main` and `release/0.7`, so an OIDC token
+    # that npm accepts cannot be minted from an unauthorized branch.
     environment: release
     permissions:
       contents: write

@@ -60,6 +60,8 @@ See [TESTING.md](./TESTING.md) for how to run and test the SDK packages locally.
 Add a changeset in your pull request when changing a published package. Merging
 the Version Packages pull request updates package versions and publishes them.
 
+Release lines are `main` and the maintenance branch `release/0.7`, whose publish script uses npm dist-tag `release-0.7`. Ship applicable fixes on both lines. Add an older maintenance line only when telemetry or support shows an active issue; do not create release branches speculatively.
+
 The legacy FileFeeds packages are ignored by that automation: do not write a
 changeset for them, and note the change under `Unreleased` in
 [CHANGELOG-filefeeds.md](./CHANGELOG-filefeeds.md) instead. Their versions and
@@ -70,11 +72,13 @@ The workflow publishes through npm's trusted publishing: every package is
 registered on npm with a GitHub Actions trusted publisher for `oneschema/sdk`
 and the `release.yml` workflow in the `release` environment, so authentication
 and provenance both come from the workflow's OIDC identity and no npm token is
-involved. The environment is restricted to `main`, which is what keeps a rewritten
-workflow on another branch from publishing. A new package has to be registered
+involved. The environment allows only `main` and `release/0.7`, which keeps a rewritten
+workflow on an unauthorized branch from publishing. A new package has to be registered
 the same way before its first automated publish — org `oneschema`, repository
 `sdk`, workflow `release.yml`, environment `release`, allowed action
 `npm publish`.
+
+Before publishing from another maintenance branch, have a repository administrator add it to the [`release` environment's deployment-branch policy](https://github.com/oneschema/sdk/settings/environments) and verify that the active [`protect-main-and-releases` ruleset](https://github.com/oneschema/sdk/settings/rules/21690762) covers it. The ruleset already includes `refs/heads/release/*`; extend coverage only if the new branch falls outside that pattern. Configure the branch's release workflow, changesets base branch, and npm dist-tag as well; `main`'s workflow triggers only on `main`. Verify the environment allowlist and ruleset through the GitHub API after an administrator changes them; do not weaken either protection to bypass a blocked publish.
 
 Every published package is tagged `<package>@<version>` on the commit it was
 built from, and the release workflow then compares each tarball on npm with a
