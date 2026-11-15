@@ -48,8 +48,8 @@
     "build-test": "parcel build test/index.html",
     "test": "parcel serve test/index.html -p 4244 --open",
     "test:ci": "true",
-    "fix": "eslint './src/**/**.{ts,tsx,js,jsx}' --fix",
-    "check": "eslint './src/**/**.{ts,tsx,js,jsx}' && tsc --noEmit",
+    "fix": "eslint 'src/**/*.{ts,tsx,js,jsx}' --fix",
+    "check": "eslint 'src/**/*.{ts,tsx,js,jsx}' && tsc --noEmit",
     "clean": "npx --yes rimraf dist"
   },
   "dependencies": {
@@ -57,26 +57,30 @@
     "tslib": "^2.x"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^22.0.0",
-    "@rollup/plugin-json": "^5.0.0",
-    "@rollup/plugin-node-resolve": "^13.3.0",
-    "@rollup/plugin-replace": "^4.0.0",
-    "@typescript-eslint/eslint-plugin": "^5.29.0",
-    "@typescript-eslint/parser": "^5.29.0",
-    "eslint": "^8.18.0",
-    "eslint-import-resolver-typescript": "^3.1.1",
-    "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-react": "^7.30.1",
-    "eslint-plugin-react-hooks": "^4.6.0",
+    "@eslint-react/eslint-plugin": "^5.30.2",
+    "@eslint/js": "^10.0.1",
+    "@rollup/plugin-commonjs": "^29.0.3",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-replace": "^6.0.3",
+    "@rollup/plugin-terser": "^1.0.2",
+    "@rollup/plugin-typescript": "^12.3.1",
+    "eslint": "^10.15.0",
+    "eslint-import-resolver-typescript": "^4.4.5",
+    "eslint-plugin-import-x": "^4.18.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-unused-imports": "^4.4.1",
     "express": "^5.2.1",
-    "parcel": "^2.8.3",
-    "rollup": "^2.75.6",
-    "rollup-plugin-dts": "^4.2.2",
+    "globals": "^17.0.0",
+    "parcel": "^2.16.4",
+    "rollup": "^4.68.3",
+    "rollup-plugin-dts": "^6.5.1",
     "rollup-plugin-peer-deps-external": "^2.2.4",
-    "rollup-plugin-terser": "^7.0.2",
-    "rollup-plugin-typescript2": "^0.32.1",
-    "typescript": "^4.7.3",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.2",
     "vue": "^3.3.4"
+  },
+  "installConfig": {
+    "hoistingLimits": "workspaces"
   }
 }
