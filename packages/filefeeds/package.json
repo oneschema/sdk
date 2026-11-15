@@ -70,7 +70,7 @@
     "eslint-plugin-unused-imports": "^4.4.1",
     "express": "^5.2.1",
     "globals": "^17.0.0",
-    "parcel": "^2.8.3",
+    "parcel": "^2.16.4",
     "rollup": "^4.68.3",
     "rollup-plugin-dts": "^6.5.1",
     "typescript": "~6.0.3",
