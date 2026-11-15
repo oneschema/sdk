@@ -25,9 +25,7 @@ if (!entryPoint) {
   fail("@oneschema/angular does not declare a default export condition")
 }
 
-const angularRequire = createRequire(
-  join(toolchainDirectory, "package.json"),
-)
+const angularRequire = createRequire(join(toolchainDirectory, "package.json"))
 const { transformAsync } = angularRequire("@babel/core")
 const linker = angularRequire("@angular/compiler-cli/linker/babel")
 const source = await readFile(join(packageDirectory, entryPoint), "utf8")

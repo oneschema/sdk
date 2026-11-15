@@ -39,7 +39,9 @@ describe('OneSchemaButton', () => {
   })
 
   it('launches the importer when clicked and handles a rejected launch', async () => {
-    const launch = vi.spyOn(component.oneschema, 'launch').mockRejectedValue(new Error('launch failed'))
+    const launch = vi
+      .spyOn(component.oneschema, 'launch')
+      .mockRejectedValue(new Error('launch failed'))
 
     fixture.nativeElement.querySelector('button').click()
 
