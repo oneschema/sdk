@@ -68,6 +68,10 @@ import oneschemaImporter, {
 
 ## Angular SDK
 
+The Angular development toolchain requires Node.js `^20.19.0 || ^22.13.0 || ^24.0.0`.
+Use the repository's recommended Node 24 version in [CONTRIBUTING.md](CONTRIBUTING.md).
+This contributor prerequisite does not change the published library's Angular `>=15` peers.
+
 Navigate to `packages/importer-angular` and run the unit tests:
 
 ```sh
