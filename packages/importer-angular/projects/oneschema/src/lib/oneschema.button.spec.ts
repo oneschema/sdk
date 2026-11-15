@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { OneSchemaButton } from './oneschema.button'
 import { OneSchemaService } from './oneschema.service'
@@ -35,5 +36,14 @@ describe('OneSchemaButton', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy()
+  })
+
+  it('launches the importer when clicked and handles a rejected launch', async () => {
+    const launch = vi.spyOn(component.oneschema, 'launch').mockRejectedValue(new Error('launch failed'))
+
+    fixture.nativeElement.querySelector('button').click()
+
+    expect(launch).toHaveBeenCalledOnce()
+    await Promise.resolve()
   })
 })

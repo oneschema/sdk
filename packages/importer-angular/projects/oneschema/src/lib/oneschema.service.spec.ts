@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { OneSchemaService } from './oneschema.service'
 import { OneSchemaParamsService } from './oneschema.params'
@@ -29,5 +30,13 @@ describe('OneSchemaService', () => {
 
   it('should be created', () => {
     expect(service).toBeTruthy()
+  })
+
+  it('destroys the importer when its Angular injector is destroyed', () => {
+    const destroy = vi.spyOn(service, 'destroy')
+
+    TestBed.resetTestingModule()
+
+    expect(destroy).toHaveBeenCalledOnce()
   })
 })

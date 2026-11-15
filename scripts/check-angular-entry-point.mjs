@@ -3,14 +3,14 @@
 // executes its module-level code, so `scripts/smoke-install.mjs` runs this in a
 // separate process that never inherits the release credentials.
 //
-// Usage: node scripts/check-angular-entry-point.mjs <packageDirectory> <repoRoot>
+// Usage: node scripts/check-angular-entry-point.mjs <packageDirectory> <toolchainDirectory>
 // Prints `fail: <reason>` and exits non-zero when the bundle is not consumable.
 
 import { createRequire } from "node:module"
 import { readFile, rm, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 
-const [packageDirectory, repoRoot] = process.argv.slice(2)
+const [packageDirectory, toolchainDirectory] = process.argv.slice(2)
 
 const fail = (reason) => {
   console.log(`fail: ${reason}`)
@@ -26,7 +26,7 @@ if (!entryPoint) {
 }
 
 const angularRequire = createRequire(
-  join(repoRoot, "packages/importer-angular/package.json"),
+  join(toolchainDirectory, "package.json"),
 )
 const { transformAsync } = angularRequire("@babel/core")
 const linker = angularRequire("@angular/compiler-cli/linker/babel")

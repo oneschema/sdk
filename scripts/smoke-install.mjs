@@ -11,7 +11,8 @@
 //   3. a consumer installing only the published `@oneschema/angular` tarball
 //      gets the current core from the registry;
 //   4. the Angular entry point is consumable: its partial-Ivy bundle links
-//      with the Angular linker and exports the public API.
+//      with the Angular linker and exports the public API;
+//   5. Angular 15 and 21 consumers compile and link the packed library.
 //
 // Run with `yarn check:install`.
 
@@ -218,6 +219,61 @@ try {
   } else {
     console.log("skip Angular entry point check: the packed install did not resolve")
   }
+
+  // Compile and link with the oldest supported consumer and the workspace toolchain.
+  for (const [angularVersion, typescriptVersion] of [
+    ["15.0.4", "4.8.4"],
+    ["21.2.26", "5.9.3"],
+  ]) {
+    const consumer = await createProject(
+      join(workDirectory, `angular-${angularVersion}`),
+      `oneschema-smoke-angular-${angularVersion}`,
+    )
+    const consumerInstall = run("npm", [
+      "install", ...installFlags,
+      tarballs.get("@oneschema/angular"), tarballs.get("@oneschema/importer"),
+      ...["common", "core", "compiler", "compiler-cli", "platform-browser"].map(
+        (name) => `@angular/${name}@${angularVersion}`,
+      ),
+      `typescript@${typescriptVersion}`, "@babel/core@^7.22.9",
+    ], { cwd: consumer })
+    if (consumerInstall.status !== 0) {
+      failures.push(`Angular ${angularVersion} consumer install failed`)
+      continue
+    }
+    await writeFile(join(consumer, "tsconfig.json"), JSON.stringify({
+      compilerOptions: {
+        target: "ES2022", module: "ES2022", moduleResolution: angularVersion.startsWith("15.") ? "node" : "bundler",
+        experimentalDecorators: true, strict: true, types: [],
+        outDir: "dist", lib: ["ES2022", "DOM"],
+      },
+      angularCompilerOptions: { strictTemplates: true },
+      files: ["app.ts"],
+    }))
+    await writeFile(join(consumer, "app.ts"), `
+import { Component, NgModule } from '@angular/core'
+import { OneSchemaModule, OneSchemaService, OneSchemaButton } from '@oneschema/angular'
+@Component({ selector: 'app-root', standalone: false, template: '<lib-oneschema-button></lib-oneschema-button>' })
+export class AppComponent {
+  constructor(public importer: OneSchemaService) {}
+  button?: OneSchemaButton
+}
+@NgModule({ declarations: [AppComponent], imports: [OneSchemaModule.forRoot({ clientId: 'smoke-test', templateKey: 'test' })] })
+export class AppModule {}
+`)
+    const compile = run("node", [join(consumer, "node_modules/@angular/compiler-cli/bundles/src/bin/ngc.js"), "-p", "tsconfig.json"], { cwd: consumer })
+    if (compile.status !== 0) {
+      failures.push(`Angular ${angularVersion} consumer compilation failed`)
+    }
+    const linkFailure = checkAngularEntryPoint(
+      join(consumer, "node_modules/@oneschema/angular"), consumer,
+    )
+    if (linkFailure) {
+      failures.push(`Angular ${angularVersion}: ${linkFailure}`)
+    } else if (compile.status === 0) {
+      console.log(`ok  Angular ${angularVersion} consumer compiles and links the packed library`)
+    }
+  }
 } finally {
   await rm(workDirectory, { recursive: true, force: true })
 }
@@ -236,10 +292,10 @@ if (failures.length > 0) {
 // it runs in a separate process with the credential-free environment rather
 // than in this one. The child prints `fail: <reason>` and exits non-zero when
 // the bundle is not consumable.
-function checkAngularEntryPoint(packageDirectory) {
+function checkAngularEntryPoint(packageDirectory, toolchainDirectory = join(repoRoot, "packages/importer-angular")) {
   const checker = run(
     "node",
-    [join(repoRoot, "scripts/check-angular-entry-point.mjs"), packageDirectory, repoRoot],
+    [join(repoRoot, "scripts/check-angular-entry-point.mjs"), packageDirectory, toolchainDirectory],
     { capture: true, cwd: workDirectory },
   )
   if (checker.status === 0) {

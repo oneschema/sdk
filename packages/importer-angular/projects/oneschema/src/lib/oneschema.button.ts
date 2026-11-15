@@ -2,6 +2,7 @@ import { Component } from '@angular/core'
 import { OneSchemaService } from './oneschema.service'
 
 @Component({
+  standalone: false,
   selector: 'lib-oneschema-button',
   template: `<button id="oneschema-launch-button" (click)="launch()">
     Open OneSchema

@@ -10,7 +10,7 @@
       "prefix": "lib",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "builder": "@angular/build:ng-packagr",
           "options": {
             "project": "projects/oneschema/ng-package.json"
           },
@@ -25,11 +25,9 @@
           "defaultConfiguration": "production"
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+          "builder": "@angular/build:unit-test",
           "options": {
-            "main": "projects/oneschema/src/test.ts",
-            "tsConfig": "projects/oneschema/tsconfig.spec.json",
-            "karmaConfig": "projects/oneschema/karma.conf.js"
+            "tsConfig": "projects/oneschema/tsconfig.spec.json"
           }
         },
         "lint": {

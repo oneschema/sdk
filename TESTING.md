@@ -75,11 +75,11 @@ cd packages/importer-angular
 yarn test
 ```
 
-Angular uses Karma/Jasmine. Because Angular is a thin wrapper on the JavaScript
-SDK, the tests mainly verify that the package loads correctly. You will likely
-need to update the params in
-`packages/importer-angular/projects/oneschema/src/lib/oneschema.button.spec.ts`
-with the same values you use for the JavaScript test page.
+Angular uses the Angular CLI's Vitest runner with jsdom; no browser installation
+or backend is needed. Run `yarn test:ci` for a single unattended run. The tests
+cover dependency injection, button launch failures, and importer cleanup.
+`yarn check:install` from the root also compiles and links the packed Angular
+library in isolated Angular 15 and 21 consumer projects.
 
 ## Differences between the React and JavaScript SDKs
 

@@ -11,10 +11,10 @@
     },
     {
       "name": "ng test",
-      "type": "chrome",
+      "type": "node-terminal",
       "request": "launch",
-      "preLaunchTask": "npm: test",
-      "url": "http://localhost:9876/debug.html"
+      "command": "corepack yarn test --watch=false",
+      "cwd": "${workspaceFolder}"
     }
   ]
 }
