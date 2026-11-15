@@ -21,6 +21,7 @@ export default [
         preventAssignment: true,
       }),
       typescript({
+        noEmitOnError: true,
         exclude: ["test/**/*"],
         declarationDir: "dist",
         rootDir: ".",
@@ -58,6 +59,7 @@ export default [
       commonjs(),
       json(),
       typescript({
+        noEmitOnError: true,
         exclude: ["test/**/*"],
         declarationDir: "dist",
         rootDir: ".",

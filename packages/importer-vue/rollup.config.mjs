@@ -12,6 +12,7 @@ export default {
     commonjs(),
     json(),
     typescript({
+      noEmitOnError: true,
       exclude: ["test/**/*"],
       declarationDir: "dist",
     }),
