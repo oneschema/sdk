@@ -1,7 +1,7 @@
 import nodeResolve from "@rollup/plugin-node-resolve"
 import commonjs from "@rollup/plugin-commonjs"
 import json from "@rollup/plugin-json"
-import typescript from "rollup-plugin-typescript2"
+import typescript from "@rollup/plugin-typescript"
 import external from "rollup-plugin-peer-deps-external"
 
 export default {
@@ -12,10 +12,8 @@ export default {
     commonjs(),
     json(),
     typescript({
-      useTsconfigDeclarationDir: true,
-      tsconfigOverride: {
-        exclude: ["**/test"],
-      },
+      exclude: ["test/**/*"],
+      declarationDir: "dist",
     }),
   ],
   output: [

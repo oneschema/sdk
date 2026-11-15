@@ -3,14 +3,14 @@ import json from "@rollup/plugin-json"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import replace from "@rollup/plugin-replace"
 import dts from "rollup-plugin-dts"
-import { terser } from "rollup-plugin-terser"
-import typescript from "rollup-plugin-typescript2"
+import terser from "@rollup/plugin-terser"
+import typescript from "@rollup/plugin-typescript"
 
-import pkg from "./package.json"
+import pkg from "./package.json" with { type: "json" }
 
 export default [
-  // UMD (for importing with script tag)
   {
+    // UMD (for importing with script tag)
     input: ["src/index-default.ts"],
     plugins: [
       nodeResolve(),
@@ -21,29 +21,29 @@ export default [
         preventAssignment: true,
       }),
       typescript({
-        tsconfigOverride: {
-          exclude: ["**/test"],
-        },
+        exclude: ["test/**/*"],
+        declarationDir: "dist",
+        rootDir: ".",
       }),
       terser(),
     ],
     output: [
       {
-        file: `dist/oneschema-filefeeds-${pkg.version}.min.js`,
+        file: `dist/oneschema-importer-${pkg.version}.min.js`,
         format: "umd",
-        name: "oneschemaFileFeeds",
+        name: "oneschemaImporter",
         exports: "default",
         esModule: false,
         sourcemap: true,
       },
       {
         // take off smallest part of version, so 0.2.6 becomes 0.2.latest :)
-        file: `dist/oneschema-filefeeds-${pkg.version
+        file: `dist/oneschema-importer-${pkg.version
           .split(".")
           .slice(0, 2)
           .join(".")}.latest.min.js`,
         format: "umd",
-        name: "oneschemaFileFeeds",
+        name: "oneschemaImporter",
         exports: "default",
         esModule: false,
         sourcemap: true,
@@ -58,9 +58,9 @@ export default [
       commonjs(),
       json(),
       typescript({
-        tsconfigOverride: {
-          exclude: ["**/test"],
-        },
+        exclude: ["test/**/*"],
+        declarationDir: "dist",
+        rootDir: ".",
       }),
     ],
     output: [
@@ -84,10 +84,10 @@ export default [
       },
     ],
   },
-  // ESM Types
+  // Types
   {
     input: ["src/index.ts"],
-    output: [{ file: "dist/index.d.ts", format: "esm" }],
+    output: [{ file: "dist/index.d.ts", format: "es" }],
     plugins: [dts()],
   },
 ]
