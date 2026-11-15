@@ -55,7 +55,7 @@
     "clean": "npx --yes rimraf dist"
   },
   "dependencies": {
-    "eventemitter3": "^4.0.7",
+    "eventemitter3": "^5.0.4",
     "tslib": "^2.x"
   },
   "devDependencies": {
