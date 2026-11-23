@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
+    "types": ["node"],
+    "lib": ["ES2020", "DOM"],
     /* Visit https://aka.ms/tsconfig to read more about this file */
 
     /* Projects */

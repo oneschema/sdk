@@ -15,14 +15,22 @@ const cjsPath = declarationPath.replace(/\.d\.ts$/, ".d.cts")
 
 await copyFile(declarationPath, esmPath)
 
-const exportMatch = declaration.match(/\nexport \{([\s\S]*?)\};?\s*$/)
+const exportMatch = declaration.match(
+  /\nexport (?:type )?\{[^}]*\};?(?:\s*export (?:type )?\{[^}]*\};?)*\s*$/,
+)
 
-if (!exportMatch || !/\bas default\b/.test(exportMatch[1])) {
+const exports = exportMatch
+  ? [...exportMatch[0].matchAll(/export (?:type )?\{([^}]*)\}/g)]
+      .map((match) => match[1])
+      .join(",")
+  : ""
+
+if (!exportMatch || !/\bas default\b/.test(exports)) {
   await copyFile(declarationPath, cjsPath)
   process.exit(0)
 }
 
-const entries = exportMatch[1]
+const entries = exports
   .split(",")
   .map((entry) => entry.trim())
   .filter(Boolean)
