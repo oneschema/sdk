@@ -61,6 +61,8 @@ export interface ImporterCustomization extends OneSchemaBrandingCustomizations {
   mappingSidebarBannerText?: string | null
 
   // REVIEW AND FINALIZE PANE
+  /** Fix with AI in the embedded Importer only; omit to use the saved customization or org default. */
+  importerFixWithAi?: boolean
   autofixAfterMapping?: boolean
   acceptCodeHookSuggestions?: boolean
   preventRowDeletion?: RowDeletionStrategy[]
