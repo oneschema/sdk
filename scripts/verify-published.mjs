@@ -61,7 +61,7 @@ async function packTo(directory, spec, { attempts = 1, registry } = {}) {
     if (result.status === 0) {
       break
     }
-    // A version published seconds ago may not have reached the registry yet.
+    // A version published seconds ago can take a few minutes to reach the registry, so the published lookup retries for about 3 minutes.
     if (attempt < attempts) {
       await sleep(15)
     }
@@ -150,9 +150,9 @@ try {
     const published = await packTo(
       join(workspace, "published", name),
       `${name}@${version}`,
-      { attempts: 4, registry: publicRegistry },
+      { attempts: 12, registry: publicRegistry },
     )
-    if (published.error) {
+    if ("error" in published) {
       failures.push(
         `${name}@${version}: not published or not downloadable (${published.error})`,
       )
@@ -160,7 +160,7 @@ try {
     }
 
     const built = await packTo(join(workspace, "built", name), `./${packageDirectory}`)
-    if (built.error) {
+    if ("error" in built) {
       failures.push(`${name}@${version}: ${built.error}`)
       continue
     }
