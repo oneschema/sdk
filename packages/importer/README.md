@@ -173,6 +173,12 @@ Or, instead of those, with a session token created through the API:
 
 <!-- END GENERATED importer-launch-options -->
 
+Set `customizationOverrides: { importerFixWithAi: false }` to hide Fix with AI
+in the embedded Importer's Review & Finalize step for that launch. Set it to
+`true` to show the action when your organization allows Fix with AI and AI code
+generation. Omit the option to use the selected customization or the organization
+default. This does not affect Workspaces or other products.
+
 ### Events
 
 <!-- BEGIN GENERATED importer-events -->
